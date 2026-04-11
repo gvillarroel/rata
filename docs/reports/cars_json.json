@@ -1,0 +1,2623 @@
+{
+  "source_path": "C:\\Users\\villa\\dev\\rata\\datasets\\cars.json",
+  "format": "json",
+  "row_count": 406,
+  "column_count": 9,
+  "structure": {
+    "dataset_type_counts": {
+      "null": 14,
+      "number": 2422,
+      "string": 1218
+    },
+    "nested_field_count": 9,
+    "nested_fields": [
+      {
+        "path": "Acceleration",
+        "occurrence_count": 406,
+        "null_count": 0,
+        "observed_types": {
+          "number": 406
+        }
+      },
+      {
+        "path": "Cylinders",
+        "occurrence_count": 406,
+        "null_count": 0,
+        "observed_types": {
+          "number": 406
+        }
+      },
+      {
+        "path": "Displacement",
+        "occurrence_count": 406,
+        "null_count": 0,
+        "observed_types": {
+          "number": 406
+        }
+      },
+      {
+        "path": "Horsepower",
+        "occurrence_count": 406,
+        "null_count": 6,
+        "observed_types": {
+          "null": 6,
+          "number": 400
+        }
+      },
+      {
+        "path": "Miles_per_Gallon",
+        "occurrence_count": 406,
+        "null_count": 8,
+        "observed_types": {
+          "null": 8,
+          "number": 398
+        }
+      },
+      {
+        "path": "Name",
+        "occurrence_count": 406,
+        "null_count": 0,
+        "observed_types": {
+          "string": 406
+        }
+      },
+      {
+        "path": "Origin",
+        "occurrence_count": 406,
+        "null_count": 0,
+        "observed_types": {
+          "string": 406
+        }
+      },
+      {
+        "path": "Weight_in_lbs",
+        "occurrence_count": 406,
+        "null_count": 0,
+        "observed_types": {
+          "number": 406
+        }
+      },
+      {
+        "path": "Year",
+        "occurrence_count": 406,
+        "null_count": 0,
+        "observed_types": {
+          "string": 406
+        }
+      }
+    ],
+    "columns": [
+      {
+        "name": "Acceleration",
+        "observed_types": {
+          "number": 406
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "Cylinders",
+        "observed_types": {
+          "number": 406
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "Displacement",
+        "observed_types": {
+          "number": 406
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "Horsepower",
+        "observed_types": {
+          "null": 6,
+          "number": 400
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "Miles_per_Gallon",
+        "observed_types": {
+          "null": 8,
+          "number": 398
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "Name",
+        "observed_types": {
+          "string": 406
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "Origin",
+        "observed_types": {
+          "string": 406
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "Weight_in_lbs",
+        "observed_types": {
+          "number": 406
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "Year",
+        "observed_types": {
+          "string": 406
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "temporal"
+        ]
+      }
+    ]
+  },
+  "columns": [
+    {
+      "name": "Acceleration",
+      "dominant_type": "number",
+      "non_null_count": 406,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 96,
+      "distinct_ratio": 0.23645320197044334,
+      "uniqueness_ratio": 0.23645320197044334,
+      "mode_count": 23,
+      "mode_ratio": 0.05665024630541872,
+      "entropy": 5.962340744317845,
+      "value_type_counts": {
+        "number": 406
+      },
+      "top_values": [
+        {
+          "value": "14.5",
+          "count": 23,
+          "ratio": 0.05665024630541872
+        },
+        {
+          "value": "15.5",
+          "count": 21,
+          "ratio": 0.05172413793103448
+        },
+        {
+          "value": "14",
+          "count": 16,
+          "ratio": 0.03940886699507389
+        },
+        {
+          "value": "16",
+          "count": 16,
+          "ratio": 0.03940886699507389
+        },
+        {
+          "value": "13.5",
+          "count": 15,
+          "ratio": 0.03694581280788178
+        }
+      ],
+      "numeric_summary": {
+        "count": 406,
+        "min": 8.0,
+        "max": 24.8,
+        "sum": 6301.000000000003,
+        "mean": 15.519704433497544,
+        "median": 15.5,
+        "variance": 7.839463952049307,
+        "stddev": 2.7999042755153805,
+        "p25": 13.7,
+        "p50": 15.5,
+        "p75": 17.174999999999997,
+        "p95": 20.325,
+        "range": 16.8,
+        "iqr": 3.474999999999998,
+        "mad": 1.75,
+        "coefficient_of_variation": 0.1804096390825653,
+        "zero_count": 0,
+        "positive_count": 406,
+        "negative_count": 0,
+        "integer_like_count": 124,
+        "duplicate_count": 310,
+        "duplicate_ratio": 0.7635467980295566,
+        "outlier_count_tukey": 6,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": 0.2293723046380777,
+        "kurtosis_excess": 0.35390520583317064
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "Cylinders",
+      "dominant_type": "number",
+      "non_null_count": 406,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 5,
+      "distinct_ratio": 0.012315270935960592,
+      "uniqueness_ratio": 0.012315270935960592,
+      "mode_count": 207,
+      "mode_ratio": 0.5098522167487685,
+      "entropy": 1.5919634998167174,
+      "value_type_counts": {
+        "number": 406
+      },
+      "top_values": [
+        {
+          "value": "4",
+          "count": 207,
+          "ratio": 0.5098522167487685
+        },
+        {
+          "value": "8",
+          "count": 108,
+          "ratio": 0.2660098522167488
+        },
+        {
+          "value": "6",
+          "count": 84,
+          "ratio": 0.20689655172413793
+        },
+        {
+          "value": "3",
+          "count": 4,
+          "ratio": 0.009852216748768473
+        },
+        {
+          "value": "5",
+          "count": 3,
+          "ratio": 0.007389162561576354
+        }
+      ],
+      "numeric_summary": {
+        "count": 406,
+        "min": 3.0,
+        "max": 8.0,
+        "sum": 2223.0,
+        "mean": 5.475369458128079,
+        "median": 4.0,
+        "variance": 2.924270183697722,
+        "stddev": 1.7100497605911127,
+        "p25": 4.0,
+        "p50": 4.0,
+        "p75": 8.0,
+        "p95": 8.0,
+        "range": 5.0,
+        "iqr": 4.0,
+        "mad": 0.0,
+        "coefficient_of_variation": 0.3123167803868609,
+        "zero_count": 0,
+        "positive_count": 406,
+        "negative_count": 0,
+        "integer_like_count": 406,
+        "duplicate_count": 401,
+        "duplicate_ratio": 0.9876847290640394,
+        "outlier_count_tukey": 0,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": 0.5044835198802009,
+        "kurtosis_excess": -1.4086403164286565
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "Displacement",
+      "dominant_type": "number",
+      "non_null_count": 406,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 83,
+      "distinct_ratio": 0.2044334975369458,
+      "uniqueness_ratio": 0.2044334975369458,
+      "mode_count": 22,
+      "mode_ratio": 0.054187192118226604,
+      "entropy": 5.744405744234414,
+      "value_type_counts": {
+        "number": 406
+      },
+      "top_values": [
+        {
+          "value": "97",
+          "count": 22,
+          "ratio": 0.054187192118226604
+        },
+        {
+          "value": "350",
+          "count": 19,
+          "ratio": 0.046798029556650245
+        },
+        {
+          "value": "98",
+          "count": 18,
+          "ratio": 0.04433497536945813
+        },
+        {
+          "value": "250",
+          "count": 17,
+          "ratio": 0.04187192118226601
+        },
+        {
+          "value": "318",
+          "count": 17,
+          "ratio": 0.04187192118226601
+        }
+      ],
+      "numeric_summary": {
+        "count": 406,
+        "min": 68.0,
+        "max": 455.0,
+        "sum": 79080.5,
+        "mean": 194.7795566502463,
+        "median": 151.0,
+        "variance": 10981.607192906893,
+        "stddev": 104.79316386533472,
+        "p25": 105.0,
+        "p50": 151.0,
+        "p75": 302.0,
+        "p95": 400.0,
+        "range": 387.0,
+        "iqr": 197.0,
+        "mad": 61.0,
+        "coefficient_of_variation": 0.5380090481133263,
+        "zero_count": 0,
+        "positive_count": 406,
+        "negative_count": 0,
+        "integer_like_count": 405,
+        "duplicate_count": 323,
+        "duplicate_ratio": 0.7955665024630542,
+        "outlier_count_tukey": 0,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": 0.6915628305021138,
+        "kurtosis_excess": -0.8154294099063852
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "Horsepower",
+      "dominant_type": "number",
+      "non_null_count": 400,
+      "null_count": 6,
+      "missing_count": 0,
+      "completeness_ratio": 0.9852216748768473,
+      "null_ratio": 0.014778325123152709,
+      "distinct_count": 93,
+      "distinct_ratio": 0.2325,
+      "uniqueness_ratio": 0.229064039408867,
+      "mode_count": 22,
+      "mode_ratio": 0.055,
+      "entropy": 5.863290810099341,
+      "value_type_counts": {
+        "number": 400
+      },
+      "top_values": [
+        {
+          "value": "150",
+          "count": 22,
+          "ratio": 0.055
+        },
+        {
+          "value": "90",
+          "count": 20,
+          "ratio": 0.05
+        },
+        {
+          "value": "110",
+          "count": 19,
+          "ratio": 0.0475
+        },
+        {
+          "value": "88",
+          "count": 19,
+          "ratio": 0.0475
+        },
+        {
+          "value": "100",
+          "count": 17,
+          "ratio": 0.0425
+        }
+      ],
+      "numeric_summary": {
+        "count": 400,
+        "min": 46.0,
+        "max": 230.0,
+        "sum": 42033.0,
+        "mean": 105.0825,
+        "median": 95.0,
+        "variance": 1499.2606937499995,
+        "stddev": 38.72028788309818,
+        "p25": 75.75,
+        "p50": 95.0,
+        "p75": 130.0,
+        "p95": 180.0,
+        "range": 184.0,
+        "iqr": 54.25,
+        "mad": 20.0,
+        "coefficient_of_variation": 0.3684751303318648,
+        "zero_count": 0,
+        "positive_count": 400,
+        "negative_count": 0,
+        "integer_like_count": 400,
+        "duplicate_count": 307,
+        "duplicate_ratio": 0.7675,
+        "outlier_count_tukey": 8,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": 1.0301975833933177,
+        "kurtosis_excess": 0.5194995101381021
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "Miles_per_Gallon",
+      "dominant_type": "number",
+      "non_null_count": 398,
+      "null_count": 8,
+      "missing_count": 0,
+      "completeness_ratio": 0.9802955665024631,
+      "null_ratio": 0.019704433497536946,
+      "distinct_count": 129,
+      "distinct_ratio": 0.3241206030150754,
+      "uniqueness_ratio": 0.31773399014778325,
+      "mode_count": 20,
+      "mode_ratio": 0.05025125628140704,
+      "entropy": 6.221083606636953,
+      "value_type_counts": {
+        "number": 398
+      },
+      "top_values": [
+        {
+          "value": "13",
+          "count": 20,
+          "ratio": 0.05025125628140704
+        },
+        {
+          "value": "14",
+          "count": 19,
+          "ratio": 0.04773869346733668
+        },
+        {
+          "value": "18",
+          "count": 17,
+          "ratio": 0.04271356783919598
+        },
+        {
+          "value": "15",
+          "count": 16,
+          "ratio": 0.04020100502512563
+        },
+        {
+          "value": "26",
+          "count": 14,
+          "ratio": 0.035175879396984924
+        }
+      ],
+      "numeric_summary": {
+        "count": 398,
+        "min": 9.0,
+        "max": 46.6,
+        "sum": 9358.799999999997,
+        "mean": 23.5145728643216,
+        "median": 23.0,
+        "variance": 60.93611928991691,
+        "stddev": 7.806159061274431,
+        "p25": 17.5,
+        "p50": 23.0,
+        "p75": 29.0,
+        "p95": 37.029999999999994,
+        "range": 37.6,
+        "iqr": 11.5,
+        "mad": 6.0,
+        "coefficient_of_variation": 0.3319711187745464,
+        "zero_count": 0,
+        "positive_count": 398,
+        "negative_count": 0,
+        "integer_like_count": 259,
+        "duplicate_count": 269,
+        "duplicate_ratio": 0.6758793969849246,
+        "outlier_count_tukey": 1,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": 0.4553419255630955,
+        "kurtosis_excess": -0.5194245405990401
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "Name",
+      "dominant_type": "string",
+      "non_null_count": 406,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 311,
+      "distinct_ratio": 0.7660098522167488,
+      "uniqueness_ratio": 0.7660098522167488,
+      "mode_count": 6,
+      "mode_ratio": 0.014778325123152709,
+      "entropy": 8.10338460202316,
+      "value_type_counts": {
+        "string": 406
+      },
+      "top_values": [
+        {
+          "value": "ford pinto",
+          "count": 6,
+          "ratio": 0.014778325123152709
+        },
+        {
+          "value": "amc matador",
+          "count": 5,
+          "ratio": 0.012315270935960592
+        },
+        {
+          "value": "ford maverick",
+          "count": 5,
+          "ratio": 0.012315270935960592
+        },
+        {
+          "value": "toyota corolla",
+          "count": 5,
+          "ratio": 0.012315270935960592
+        },
+        {
+          "value": "amc gremlin",
+          "count": 4,
+          "ratio": 0.009852216748768473
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 406,
+        "min_length": 6,
+        "max_length": 36,
+        "average_length": 16.266009852216747,
+        "median_length": 16.0,
+        "empty_count": 0,
+        "whitespace_only_count": 0,
+        "average_word_count": 2.625615763546798,
+        "max_word_count": 6,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 406,
+        "hex_like_count": 0,
+        "base64_like_count": 0,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "Origin",
+      "dominant_type": "string",
+      "non_null_count": 406,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 3,
+      "distinct_ratio": 0.007389162561576354,
+      "uniqueness_ratio": 0.007389162561576354,
+      "mode_count": 254,
+      "mode_ratio": 0.625615763546798,
+      "entropy": 1.3279423646128548,
+      "value_type_counts": {
+        "string": 406
+      },
+      "top_values": [
+        {
+          "value": "USA",
+          "count": 254,
+          "ratio": 0.625615763546798
+        },
+        {
+          "value": "Japan",
+          "count": 79,
+          "ratio": 0.19458128078817735
+        },
+        {
+          "value": "Europe",
+          "count": 73,
+          "ratio": 0.17980295566502463
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 406,
+        "min_length": 3,
+        "max_length": 6,
+        "average_length": 3.9285714285714284,
+        "median_length": 3.0,
+        "empty_count": 0,
+        "whitespace_only_count": 0,
+        "average_word_count": 1.0,
+        "max_word_count": 1,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 406,
+        "hex_like_count": 0,
+        "base64_like_count": 0,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "Weight_in_lbs",
+      "dominant_type": "number",
+      "non_null_count": 406,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 356,
+      "distinct_ratio": 0.8768472906403941,
+      "uniqueness_ratio": 0.8768472906403941,
+      "mode_count": 4,
+      "mode_ratio": 0.009852216748768473,
+      "entropy": 8.398022308778772,
+      "value_type_counts": {
+        "number": 406
+      },
+      "top_values": [
+        {
+          "value": "1985",
+          "count": 4,
+          "ratio": 0.009852216748768473
+        },
+        {
+          "value": "2130",
+          "count": 4,
+          "ratio": 0.009852216748768473
+        },
+        {
+          "value": "2125",
+          "count": 3,
+          "ratio": 0.007389162561576354
+        },
+        {
+          "value": "2155",
+          "count": 3,
+          "ratio": 0.007389162561576354
+        },
+        {
+          "value": "2265",
+          "count": 3,
+          "ratio": 0.007389162561576354
+        }
+      ],
+      "numeric_summary": {
+        "count": 406,
+        "min": 1613.0,
+        "max": 5140.0,
+        "sum": 1209642.0,
+        "mean": 2979.4137931034484,
+        "median": 2822.5,
+        "variance": 715649.296755563,
+        "stddev": 845.9605763601298,
+        "p25": 2226.5,
+        "p50": 2822.5,
+        "p75": 3618.25,
+        "p95": 4462.25,
+        "range": 3527.0,
+        "iqr": 1391.75,
+        "mad": 635.5,
+        "coefficient_of_variation": 0.28393524199904824,
+        "zero_count": 0,
+        "positive_count": 406,
+        "negative_count": 0,
+        "integer_like_count": 406,
+        "duplicate_count": 50,
+        "duplicate_ratio": 0.12315270935960591,
+        "outlier_count_tukey": 0,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": 0.5038140854823506,
+        "kurtosis_excess": -0.8255413383681263
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "Year",
+      "dominant_type": "string",
+      "non_null_count": 406,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 12,
+      "distinct_ratio": 0.029556650246305417,
+      "uniqueness_ratio": 0.029556650246305417,
+      "mode_count": 61,
+      "mode_ratio": 0.15024630541871922,
+      "entropy": 3.5404271825242573,
+      "value_type_counts": {
+        "string": 406
+      },
+      "top_values": [
+        {
+          "value": "1982-01-01",
+          "count": 61,
+          "ratio": 0.15024630541871922
+        },
+        {
+          "value": "1973-01-01",
+          "count": 40,
+          "ratio": 0.09852216748768473
+        },
+        {
+          "value": "1978-01-01",
+          "count": 36,
+          "ratio": 0.08866995073891626
+        },
+        {
+          "value": "1970-01-01",
+          "count": 35,
+          "ratio": 0.08620689655172414
+        },
+        {
+          "value": "1976-01-01",
+          "count": 34,
+          "ratio": 0.08374384236453201
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 406,
+        "min_length": 10,
+        "max_length": 10,
+        "average_length": 10.0,
+        "median_length": 10.0,
+        "empty_count": 0,
+        "whitespace_only_count": 0,
+        "average_word_count": 1.0,
+        "max_word_count": 1,
+        "date_like_count": 406,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 406,
+        "hex_like_count": 0,
+        "base64_like_count": 0,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": {
+        "count": 406,
+        "min": "1970-01-01T00:00:00+00:00",
+        "max": "1982-01-01T00:00:00+00:00"
+      }
+    }
+  ],
+  "column_pairs": [
+    {
+      "left": "Acceleration",
+      "right": "Cylinders",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 2,
+      "equal_scalar_ratio": 0.0049261083743842365,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.01,
+      "numeric_relationship": {
+        "covariance": -2.501485112475431,
+        "pearson_correlation": -0.5224515124210529,
+        "spearman_correlation": -0.4917066209678721,
+        "slope": -0.31908879583807787,
+        "intercept": 10.427533257575682,
+        "r_squared": 0.2729555828310456
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 154,
+        "top_combinations": [
+          {
+            "value": "14.5 | 4",
+            "count": 14,
+            "ratio": 0.034482758620689655
+          },
+          {
+            "value": "15.5 | 4",
+            "count": 12,
+            "ratio": 0.029556650246305417
+          },
+          {
+            "value": "12 | 8",
+            "count": 10,
+            "ratio": 0.024630541871921183
+          },
+          {
+            "value": "13 | 8",
+            "count": 10,
+            "ratio": 0.024630541871921183
+          },
+          {
+            "value": "11 | 8",
+            "count": 9,
+            "ratio": 0.022167487684729065
+          }
+        ],
+        "mutual_information": 0.7824779461488358,
+        "normalized_mutual_information": 0.25397861868575977,
+        "chi_square": 577.3125099634868,
+        "cramers_v": 0.5962281432019034
+      }
+    },
+    {
+      "left": "Acceleration",
+      "right": "Displacement",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": -163.7184395399064,
+        "pearson_correlation": -0.5579836330725136,
+        "spearman_correlation": -0.5128519403811804,
+        "slope": -20.8838819262775,
+        "intercept": 518.891231570134,
+        "r_squared": 0.31134573477680155
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 346,
+        "top_combinations": [
+          {
+            "value": "12 | 400",
+            "count": 4,
+            "ratio": 0.009852216748768473
+          },
+          {
+            "value": "14.5 | 97",
+            "count": 4,
+            "ratio": 0.009852216748768473
+          },
+          {
+            "value": "12 | 350",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "13 | 350",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "13.5 | 318",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          }
+        ],
+        "mutual_information": 3.354266605871194,
+        "normalized_mutual_information": 0.5731477984495976,
+        "chi_square": 8435.893283170211,
+        "cramers_v": 0.5033795817663317
+      }
+    },
+    {
+      "left": "Acceleration",
+      "right": "Horsepower",
+      "paired_non_null_count": 400,
+      "overlap_ratio": 0.9852216748768473,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": -75.61240187500015,
+        "pearson_correlation": -0.697124443855188,
+        "spearman_correlation": -0.6681141652404474,
+        "slope": -9.636176438922263,
+        "intercept": 254.3733725241127,
+        "r_squared": 0.4859824902204052
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 352,
+        "top_combinations": [
+          {
+            "value": "14.5 | 88",
+            "count": 4,
+            "ratio": 0.01
+          },
+          {
+            "value": "13 | 150",
+            "count": 3,
+            "ratio": 0.0075
+          },
+          {
+            "value": "13.5 | 110",
+            "count": 3,
+            "ratio": 0.0075
+          },
+          {
+            "value": "14 | 150",
+            "count": 3,
+            "ratio": 0.0075
+          },
+          {
+            "value": "14.5 | 150",
+            "count": 3,
+            "ratio": 0.0075
+          }
+        ],
+        "mutual_information": 3.4365216901904887,
+        "normalized_mutual_information": 0.5814802401409459,
+        "chi_square": 9511.378833756375,
+        "cramers_v": 0.50839097292544
+      }
+    },
+    {
+      "left": "Acceleration",
+      "right": "Miles_per_Gallon",
+      "paired_non_null_count": 398,
+      "overlap_ratio": 0.9802955665024631,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 8,
+      "equal_scalar_ratio": 0.020100502512562814,
+      "shared_distinct_scalar_count": 31,
+      "scalar_jaccard_index": 0.16062176165803108,
+      "numeric_relationship": {
+        "covariance": 9.036168531097694,
+        "pearson_correlation": 0.42028891210165037,
+        "spearman_correlation": 0.43867747957086217,
+        "slope": 1.1912045293502265,
+        "intercept": 4.9697930042539475,
+        "r_squared": 0.17664276963558878
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 344,
+        "top_combinations": [
+          {
+            "value": "12 | 13",
+            "count": 6,
+            "ratio": 0.01507537688442211
+          },
+          {
+            "value": "13 | 13",
+            "count": 4,
+            "ratio": 0.010050251256281407
+          },
+          {
+            "value": "13.5 | 14",
+            "count": 3,
+            "ratio": 0.007537688442211055
+          },
+          {
+            "value": "14.5 | 18",
+            "count": 3,
+            "ratio": 0.007537688442211055
+          },
+          {
+            "value": "14.5 | 22",
+            "count": 3,
+            "ratio": 0.007537688442211055
+          }
+        ],
+        "mutual_information": 3.8286805523364063,
+        "normalized_mutual_information": 0.6297912246466696,
+        "chi_square": 16999.945224353713,
+        "cramers_v": 0.6740906420831587
+      }
+    },
+    {
+      "left": "Acceleration",
+      "right": "Name",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 397,
+        "top_combinations": [
+          {
+            "value": "12 | chevrolet impala",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "14.5 | datsun pl510",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "15 | amc gremlin",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "15 | honda civic",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "16 | amc hornet",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          }
+        ],
+        "mutual_information": 5.444724404525326,
+        "normalized_mutual_information": 0.7833110985732261,
+        "chi_square": 31011.82155514501,
+        "cramers_v": 0.8966827575708068
+      }
+    },
+    {
+      "left": "Acceleration",
+      "right": "Origin",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 162,
+        "top_combinations": [
+          {
+            "value": "16 | USA",
+            "count": 13,
+            "ratio": 0.03201970443349754
+          },
+          {
+            "value": "13 | USA",
+            "count": 12,
+            "ratio": 0.029556650246305417
+          },
+          {
+            "value": "14.5 | USA",
+            "count": 11,
+            "ratio": 0.027093596059113302
+          },
+          {
+            "value": "15.5 | USA",
+            "count": 11,
+            "ratio": 0.027093596059113302
+          },
+          {
+            "value": "12 | USA",
+            "count": 10,
+            "ratio": 0.024630541871921183
+          }
+        ],
+        "mutual_information": 0.4714899845975635,
+        "normalized_mutual_information": 0.16756158613951572,
+        "chi_square": 180.69547486243093,
+        "cramers_v": 0.47173231072642174
+      }
+    },
+    {
+      "left": "Acceleration",
+      "right": "Weight_in_lbs",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": -1018.7049515882451,
+        "pearson_correlation": -0.4300858050916272,
+        "spearman_correlation": -0.4196204840075982,
+        "slope": -129.94574091025024,
+        "intercept": 4996.133284422379,
+        "r_squared": 0.18497379974131314
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 404,
+        "top_combinations": [
+          {
+            "value": "11.5 | 3672",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "14.5 | 2130",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "10 | 3086",
+            "count": 1,
+            "ratio": 0.0024630541871921183
+          },
+          {
+            "value": "10 | 3563",
+            "count": 1,
+            "ratio": 0.0024630541871921183
+          },
+          {
+            "value": "10 | 4341",
+            "count": 1,
+            "ratio": 0.0024630541871921183
+          }
+        ],
+        "mutual_information": 5.704879352660255,
+        "normalized_mutual_information": 0.806212553628556,
+        "chi_square": 33162.16826803703,
+        "cramers_v": 0.9272495684547715
+      }
+    },
+    {
+      "left": "Acceleration",
+      "right": "Year",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 266,
+        "top_combinations": [
+          {
+            "value": "11 | 1973-01-01",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "13 | 1973-01-01",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "15.5 | 1971-01-01",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "16.5 | 1974-01-01",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "10 | 1970-01-01",
+            "count": 4,
+            "ratio": 0.009852216748768473
+          }
+        ],
+        "mutual_information": 1.6453791449689952,
+        "normalized_mutual_information": 0.3581209757129137,
+        "chi_square": 1012.5682808436762,
+        "cramers_v": 0.4761598799438866
+      }
+    },
+    {
+      "left": "Cylinders",
+      "right": "Displacement",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": 170.56168858744454,
+        "pearson_correlation": 0.9517870386276701,
+        "spearman_correlation": 0.9126696037405306,
+        "slope": 58.32624137752197,
+        "intercept": -124.57816399564373,
+        "r_squared": 0.90589856689963
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 87,
+        "top_combinations": [
+          {
+            "value": "4 | 97",
+            "count": 22,
+            "ratio": 0.054187192118226604
+          },
+          {
+            "value": "8 | 350",
+            "count": 19,
+            "ratio": 0.046798029556650245
+          },
+          {
+            "value": "4 | 98",
+            "count": 18,
+            "ratio": 0.04433497536945813
+          },
+          {
+            "value": "6 | 250",
+            "count": 17,
+            "ratio": 0.04187192118226601
+          },
+          {
+            "value": "8 | 318",
+            "count": 17,
+            "ratio": 0.04187192118226601
+          }
+        ],
+        "mutual_information": 1.5544500399395407,
+        "normalized_mutual_information": 0.5140290474722109,
+        "chi_square": 1230.1081602056113,
+        "cramers_v": 0.8703193457998081
+      }
+    },
+    {
+      "left": "Cylinders",
+      "right": "Horsepower",
+      "paired_non_null_count": 400,
+      "overlap_ratio": 0.9852216748768473,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": 56.04436874999993,
+        "pearson_correlation": 0.8441582976660666,
+        "spearman_correlation": 0.8168451255054467,
+        "slope": 19.06307518638753,
+        "intercept": 0.3785595387664955,
+        "r_squared": 0.7126032315184716
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 119,
+        "top_combinations": [
+          {
+            "value": "8 | 150",
+            "count": 22,
+            "ratio": 0.055
+          },
+          {
+            "value": "4 | 88",
+            "count": 15,
+            "ratio": 0.0375
+          },
+          {
+            "value": "6 | 100",
+            "count": 15,
+            "ratio": 0.0375
+          },
+          {
+            "value": "4 | 75",
+            "count": 14,
+            "ratio": 0.035
+          },
+          {
+            "value": "4 | 70",
+            "count": 12,
+            "ratio": 0.03
+          }
+        ],
+        "mutual_information": 1.177966003224829,
+        "normalized_mutual_information": 0.3848423965845883,
+        "chi_square": 694.7678738739585,
+        "cramers_v": 0.6589612440585744
+      }
+    },
+    {
+      "left": "Cylinders",
+      "right": "Miles_per_Gallon",
+      "paired_non_null_count": 398,
+      "overlap_ratio": 0.9802955665024631,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": -10.283009267442743,
+        "pearson_correlation": -0.7753962854205555,
+        "spearman_correlation": -0.8218644914450964,
+        "slope": -3.5628865844082385,
+        "intercept": 42.94931350439771,
+        "r_squared": 0.6012393994439955
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 159,
+        "top_combinations": [
+          {
+            "value": "8 | 13",
+            "count": 20,
+            "ratio": 0.05025125628140704
+          },
+          {
+            "value": "8 | 14",
+            "count": 19,
+            "ratio": 0.04773869346733668
+          },
+          {
+            "value": "4 | 26",
+            "count": 14,
+            "ratio": 0.035175879396984924
+          },
+          {
+            "value": "6 | 18",
+            "count": 13,
+            "ratio": 0.032663316582914576
+          },
+          {
+            "value": "8 | 15",
+            "count": 12,
+            "ratio": 0.03015075376884422
+          }
+        ],
+        "mutual_information": 1.2119252435872179,
+        "normalized_mutual_information": 0.3850473602163335,
+        "chi_square": 843.0039010938611,
+        "cramers_v": 0.7276847280939521
+      }
+    },
+    {
+      "left": "Cylinders",
+      "right": "Name",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 319,
+        "top_combinations": [
+          {
+            "value": "4 | ford pinto",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "4 | toyota corolla",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "6 | ford maverick",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "4 | chevrolet chevette",
+            "count": 4,
+            "ratio": 0.009852216748768473
+          },
+          {
+            "value": "4 | peugeot 504",
+            "count": 4,
+            "ratio": 0.009852216748768473
+          }
+        ],
+        "mutual_information": 1.5389837584267472,
+        "normalized_mutual_information": 0.4284836526983452,
+        "chi_square": 1336.3576199995223,
+        "cramers_v": 0.907127503651763
+      }
+    },
+    {
+      "left": "Cylinders",
+      "right": "Origin",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 9,
+        "top_combinations": [
+          {
+            "value": "8 | USA",
+            "count": 108,
+            "ratio": 0.2660098522167488
+          },
+          {
+            "value": "6 | USA",
+            "count": 74,
+            "ratio": 0.18226600985221675
+          },
+          {
+            "value": "4 | USA",
+            "count": 72,
+            "ratio": 0.17733990147783252
+          },
+          {
+            "value": "4 | Japan",
+            "count": 69,
+            "ratio": 0.16995073891625614
+          },
+          {
+            "value": "4 | Europe",
+            "count": 66,
+            "ratio": 0.1625615763546798
+          }
+        ],
+        "mutual_information": 0.38743906373672443,
+        "normalized_mutual_information": 0.26646933641102527,
+        "chi_square": 140.48903282291863,
+        "cramers_v": 0.4159519807315868
+      }
+    },
+    {
+      "left": "Cylinders",
+      "right": "Weight_in_lbs",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": 1295.0569899779168,
+        "pearson_correlation": 0.8952204775128884,
+        "spearman_correlation": 0.8738115033348903,
+        "slope": 442.86502567294235,
+        "intercept": 554.5641574607121,
+        "r_squared": 0.8014197033584038
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 361,
+        "top_combinations": [
+          {
+            "value": "4 | 1985",
+            "count": 4,
+            "ratio": 0.009852216748768473
+          },
+          {
+            "value": "4 | 2130",
+            "count": 4,
+            "ratio": 0.009852216748768473
+          },
+          {
+            "value": "4 | 2125",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "4 | 2155",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "4 | 2265",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          }
+        ],
+        "mutual_information": 1.563614300298667,
+        "normalized_mutual_information": 0.4276363052837473,
+        "chi_square": 1222.1846100759126,
+        "cramers_v": 0.8675118041515693
+      }
+    },
+    {
+      "left": "Cylinders",
+      "right": "Year",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 41,
+        "top_combinations": [
+          {
+            "value": "4 | 1982-01-01",
+            "count": 50,
+            "ratio": 0.12315270935960591
+          },
+          {
+            "value": "4 | 1980-01-01",
+            "count": 25,
+            "ratio": 0.06157635467980296
+          },
+          {
+            "value": "8 | 1970-01-01",
+            "count": 23,
+            "ratio": 0.05665024630541872
+          },
+          {
+            "value": "8 | 1973-01-01",
+            "count": 20,
+            "ratio": 0.04926108374384237
+          },
+          {
+            "value": "4 | 1978-01-01",
+            "count": 17,
+            "ratio": 0.04187192118226601
+          }
+        ],
+        "mutual_information": 0.2523961467366247,
+        "normalized_mutual_information": 0.10631347993973568,
+        "chi_square": 109.72305881139661,
+        "cramers_v": 0.2599297210001857
+      }
+    },
+    {
+      "left": "Displacement",
+      "right": "Horsepower",
+      "paired_non_null_count": 400,
+      "overlap_ratio": 0.9852216748768473,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 38,
+      "scalar_jaccard_index": 0.2773722627737226,
+      "numeric_relationship": {
+        "covariance": 3657.5580343750025,
+        "pearson_correlation": 0.8983263139804304,
+        "spearman_correlation": 0.8777386180979829,
+        "slope": 0.3307913710021405,
+        "intercept": 40.32471376655221,
+        "r_squared": 0.8069901663896668
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 237,
+        "top_combinations": [
+          {
+            "value": "318 | 150",
+            "count": 12,
+            "ratio": 0.03
+          },
+          {
+            "value": "151 | 90",
+            "count": 6,
+            "ratio": 0.015
+          },
+          {
+            "value": "232 | 100",
+            "count": 6,
+            "ratio": 0.015
+          },
+          {
+            "value": "135 | 84",
+            "count": 5,
+            "ratio": 0.0125
+          },
+          {
+            "value": "250 | 100",
+            "count": 5,
+            "ratio": 0.0125
+          }
+        ],
+        "mutual_information": 3.9853587077929733,
+        "normalized_mutual_information": 0.6869746805134028,
+        "chi_square": 12462.007932425646,
+        "cramers_v": 0.6201853549202704
+      }
+    },
+    {
+      "left": "Displacement",
+      "right": "Miles_per_Gallon",
+      "paired_non_null_count": 398,
+      "overlap_ratio": 0.9802955665024631,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": -653.7555781419662,
+        "pearson_correlation": -0.8042028248058988,
+        "spearman_correlation": -0.8556920118178747,
+        "slope": -0.060282405468817336,
+        "intercept": 35.17475015429322,
+        "r_squared": 0.6467421834257872
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 331,
+        "top_combinations": [
+          {
+            "value": "350 | 13",
+            "count": 6,
+            "ratio": 0.01507537688442211
+          },
+          {
+            "value": "250 | 18",
+            "count": 4,
+            "ratio": 0.010050251256281407
+          },
+          {
+            "value": "318 | 14",
+            "count": 4,
+            "ratio": 0.010050251256281407
+          },
+          {
+            "value": "400 | 13",
+            "count": 4,
+            "ratio": 0.010050251256281407
+          },
+          {
+            "value": "97 | 26",
+            "count": 4,
+            "ratio": 0.010050251256281407
+          }
+        ],
+        "mutual_information": 3.717333002782567,
+        "normalized_mutual_information": 0.6221692650419186,
+        "chi_square": 10283.121331965636,
+        "cramers_v": 0.5647788627798007
+      }
+    },
+    {
+      "left": "Displacement",
+      "right": "Name",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 354,
+        "top_combinations": [
+          {
+            "value": "108 | toyota corolla",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "140 | chevrolet vega",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "198 | plymouth duster",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "200 | ford maverick",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "232 | amc gremlin",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          }
+        ],
+        "mutual_information": 5.455346023947987,
+        "normalized_mutual_information": 0.7995884692333425,
+        "chi_square": 27801.305470305735,
+        "cramers_v": 0.9138241935314799
+      }
+    },
+    {
+      "left": "Displacement",
+      "right": "Origin",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 104,
+        "top_combinations": [
+          {
+            "value": "350 | USA",
+            "count": 19,
+            "ratio": 0.046798029556650245
+          },
+          {
+            "value": "250 | USA",
+            "count": 17,
+            "ratio": 0.04187192118226601
+          },
+          {
+            "value": "318 | USA",
+            "count": 17,
+            "ratio": 0.04187192118226601
+          },
+          {
+            "value": "140 | USA",
+            "count": 16,
+            "ratio": 0.03940886699507389
+          },
+          {
+            "value": "225 | USA",
+            "count": 13,
+            "ratio": 0.03201970443349754
+          }
+        ],
+        "mutual_information": 1.0187421516957746,
+        "normalized_mutual_information": 0.36885197142181064,
+        "chi_square": 411.81724031729107,
+        "cramers_v": 0.7121545401531211
+      }
+    },
+    {
+      "left": "Displacement",
+      "right": "Weight_in_lbs",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": 82664.70328690346,
+        "pearson_correlation": 0.9324746504807496,
+        "spearman_correlation": 0.9456638464137659,
+        "slope": 7.527559658143412,
+        "intercept": 1513.199060231995,
+        "r_squared": 0.8695089737891962
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 396,
+        "top_combinations": [
+          {
+            "value": "97 | 2130",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "140 | 2408",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "304 | 3672",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "400 | 4464",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "90 | 1937",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          }
+        ],
+        "mutual_information": 5.528212548394967,
+        "normalized_mutual_information": 0.7959277864525953,
+        "chi_square": 29537.939142608033,
+        "cramers_v": 0.9419333043438016
+      }
+    },
+    {
+      "left": "Displacement",
+      "right": "Year",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 279,
+        "top_combinations": [
+          {
+            "value": "91 | 1982-01-01",
+            "count": 6,
+            "ratio": 0.014778325123152709
+          },
+          {
+            "value": "135 | 1982-01-01",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "350 | 1973-01-01",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "105 | 1982-01-01",
+            "count": 4,
+            "ratio": 0.009852216748768473
+          },
+          {
+            "value": "112 | 1982-01-01",
+            "count": 4,
+            "ratio": 0.009852216748768473
+          }
+        ],
+        "mutual_information": 1.3369784898284287,
+        "normalized_mutual_information": 0.2964654123614122,
+        "chi_square": 783.5396319292823,
+        "cramers_v": 0.41886215689373496
+      }
+    },
+    {
+      "left": "Horsepower",
+      "right": "Miles_per_Gallon",
+      "paired_non_null_count": 392,
+      "overlap_ratio": 0.9655172413793104,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": -233.2613494377344,
+        "pearson_correlation": -0.7784267838977752,
+        "spearman_correlation": -0.8536164024453882,
+        "slope": -0.15784473335365318,
+        "intercept": 39.935861021170425,
+        "r_squared": 0.6059482578894336
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 332,
+        "top_combinations": [
+          {
+            "value": "150 | 14",
+            "count": 6,
+            "ratio": 0.015306122448979591
+          },
+          {
+            "value": "150 | 15",
+            "count": 5,
+            "ratio": 0.012755102040816327
+          },
+          {
+            "value": "100 | 19",
+            "count": 4,
+            "ratio": 0.01020408163265306
+          },
+          {
+            "value": "150 | 13",
+            "count": 4,
+            "ratio": 0.01020408163265306
+          },
+          {
+            "value": "88 | 27",
+            "count": 4,
+            "ratio": 0.01020408163265306
+          }
+        ],
+        "mutual_information": 3.800187964476274,
+        "normalized_mutual_information": 0.6304411476837648,
+        "chi_square": 11990.083831770617,
+        "cramers_v": 0.5765993687734563
+      }
+    },
+    {
+      "left": "Horsepower",
+      "right": "Name",
+      "paired_non_null_count": 400,
+      "overlap_ratio": 0.9852216748768473,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 374,
+        "top_combinations": [
+          {
+            "value": "75 | toyota corolla",
+            "count": 4,
+            "ratio": 0.01
+          },
+          {
+            "value": "100 | amc gremlin",
+            "count": 3,
+            "ratio": 0.0075
+          },
+          {
+            "value": "65 | datsun 210",
+            "count": 3,
+            "ratio": 0.0075
+          },
+          {
+            "value": "95 | plymouth duster",
+            "count": 3,
+            "ratio": 0.0075
+          },
+          {
+            "value": "100 | amc hornet",
+            "count": 2,
+            "ratio": 0.005
+          }
+        ],
+        "mutual_information": 5.452346318986965,
+        "normalized_mutual_information": 0.7915494819463924,
+        "chi_square": 29637.196001035685,
+        "cramers_v": 0.8974177327112861
+      }
+    },
+    {
+      "left": "Horsepower",
+      "right": "Origin",
+      "paired_non_null_count": 400,
+      "overlap_ratio": 0.9852216748768473,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 132,
+        "top_combinations": [
+          {
+            "value": "150 | USA",
+            "count": 22,
+            "ratio": 0.055
+          },
+          {
+            "value": "100 | USA",
+            "count": 15,
+            "ratio": 0.0375
+          },
+          {
+            "value": "110 | USA",
+            "count": 15,
+            "ratio": 0.0375
+          },
+          {
+            "value": "90 | USA",
+            "count": 15,
+            "ratio": 0.0375
+          },
+          {
+            "value": "105 | USA",
+            "count": 12,
+            "ratio": 0.03
+          }
+        ],
+        "mutual_information": 0.7426251028084083,
+        "normalized_mutual_information": 0.26606717056672585,
+        "chi_square": 299.1710290133419,
+        "cramers_v": 0.6115257854470876
+      }
+    },
+    {
+      "left": "Horsepower",
+      "right": "Weight_in_lbs",
+      "paired_non_null_count": 400,
+      "overlap_ratio": 0.9852216748768473,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": 28466.860887500003,
+        "pearson_correlation": 0.8665862223908412,
+        "spearman_correlation": 0.8812030863572985,
+        "slope": 18.987265527716684,
+        "intercept": 991.3356701837117,
+        "r_squared": 0.7509716808376284
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 390,
+        "top_combinations": [
+          {
+            "value": "150 | 3672",
+            "count": 2,
+            "ratio": 0.005
+          },
+          {
+            "value": "150 | 3940",
+            "count": 2,
+            "ratio": 0.005
+          },
+          {
+            "value": "53 | 1795",
+            "count": 2,
+            "ratio": 0.005
+          },
+          {
+            "value": "65 | 1975",
+            "count": 2,
+            "ratio": 0.005
+          },
+          {
+            "value": "65 | 2110",
+            "count": 2,
+            "ratio": 0.005
+          }
+        ],
+        "mutual_information": 5.646967497566877,
+        "normalized_mutual_information": 0.8057243710214728,
+        "chi_square": 32776.14103346973,
+        "cramers_v": 0.9437457318283808
+      }
+    },
+    {
+      "left": "Horsepower",
+      "right": "Year",
+      "paired_non_null_count": 400,
+      "overlap_ratio": 0.9852216748768473,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 273,
+        "top_combinations": [
+          {
+            "value": "150 | 1973-01-01",
+            "count": 6,
+            "ratio": 0.015
+          },
+          {
+            "value": "84 | 1982-01-01",
+            "count": 6,
+            "ratio": 0.015
+          },
+          {
+            "value": "88 | 1982-01-01",
+            "count": 5,
+            "ratio": 0.0125
+          },
+          {
+            "value": "100 | 1971-01-01",
+            "count": 4,
+            "ratio": 0.01
+          },
+          {
+            "value": "110 | 1975-01-01",
+            "count": 4,
+            "ratio": 0.01
+          }
+        ],
+        "mutual_information": 1.5199372080021707,
+        "normalized_mutual_information": 0.3335651010371291,
+        "chi_square": 917.1140907816236,
+        "cramers_v": 0.45654684385305655
+      }
+    },
+    {
+      "left": "Miles_per_Gallon",
+      "right": "Name",
+      "paired_non_null_count": 398,
+      "overlap_ratio": 0.9802955665024631,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 391,
+        "top_combinations": [
+          {
+            "value": "14 | chevrolet impala",
+            "count": 2,
+            "ratio": 0.005025125628140704
+          },
+          {
+            "value": "14 | ford galaxie 500",
+            "count": 2,
+            "ratio": 0.005025125628140704
+          },
+          {
+            "value": "14 | plymouth fury iii",
+            "count": 2,
+            "ratio": 0.005025125628140704
+          },
+          {
+            "value": "14 | pontiac catalina",
+            "count": 2,
+            "ratio": 0.005025125628140704
+          },
+          {
+            "value": "18 | amc hornet",
+            "count": 2,
+            "ratio": 0.005025125628140704
+          }
+        ],
+        "mutual_information": 5.688037792677733,
+        "normalized_mutual_information": 0.8028523171851306,
+        "chi_square": 40839.63088979954,
+        "cramers_v": 0.8953531858734103
+      }
+    },
+    {
+      "left": "Miles_per_Gallon",
+      "right": "Origin",
+      "paired_non_null_count": 398,
+      "overlap_ratio": 0.9802955665024631,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 178,
+        "top_combinations": [
+          {
+            "value": "13 | USA",
+            "count": 20,
+            "ratio": 0.05025125628140704
+          },
+          {
+            "value": "14 | USA",
+            "count": 19,
+            "ratio": 0.04773869346733668
+          },
+          {
+            "value": "15 | USA",
+            "count": 16,
+            "ratio": 0.04020100502512563
+          },
+          {
+            "value": "18 | USA",
+            "count": 15,
+            "ratio": 0.03768844221105527
+          },
+          {
+            "value": "16 | USA",
+            "count": 13,
+            "ratio": 0.032663316582914576
+          }
+        ],
+        "mutual_information": 0.7308471037095359,
+        "normalized_mutual_information": 0.25433130953529137,
+        "chi_square": 290.63744256419676,
+        "cramers_v": 0.6042536017945233
+      }
+    },
+    {
+      "left": "Miles_per_Gallon",
+      "right": "Weight_in_lbs",
+      "paired_non_null_count": 398,
+      "overlap_ratio": 0.9802955665024631,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": -5491.379554809226,
+        "pearson_correlation": -0.8317409332443353,
+        "spearman_correlation": -0.8749473981990714,
+        "slope": -90.1169883937437,
+        "intercept": 5089.487113013489,
+        "r_squared": 0.6917929800341578
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 392,
+        "top_combinations": [
+          {
+            "value": "26 | 2265",
+            "count": 2,
+            "ratio": 0.005025125628140704
+          },
+          {
+            "value": "27 | 2130",
+            "count": 2,
+            "ratio": 0.005025125628140704
+          },
+          {
+            "value": "29 | 1937",
+            "count": 2,
+            "ratio": 0.005025125628140704
+          },
+          {
+            "value": "30 | 2155",
+            "count": 2,
+            "ratio": 0.005025125628140704
+          },
+          {
+            "value": "33 | 1795",
+            "count": 2,
+            "ratio": 0.005025125628140704
+          }
+        ],
+        "mutual_information": 5.993622991026443,
+        "normalized_mutual_information": 0.8301564833596298,
+        "chi_square": 43408.26092141542,
+        "cramers_v": 0.9230807039753638
+      }
+    },
+    {
+      "left": "Miles_per_Gallon",
+      "right": "Year",
+      "paired_non_null_count": 398,
+      "overlap_ratio": 0.9802955665024631,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 263,
+        "top_combinations": [
+          {
+            "value": "13 | 1973-01-01",
+            "count": 7,
+            "ratio": 0.017587939698492462
+          },
+          {
+            "value": "13 | 1972-01-01",
+            "count": 5,
+            "ratio": 0.01256281407035176
+          },
+          {
+            "value": "14 | 1970-01-01",
+            "count": 5,
+            "ratio": 0.01256281407035176
+          },
+          {
+            "value": "15 | 1970-01-01",
+            "count": 5,
+            "ratio": 0.01256281407035176
+          },
+          {
+            "value": "18 | 1973-01-01",
+            "count": 5,
+            "ratio": 0.01256281407035176
+          }
+        ],
+        "mutual_information": 1.9401795945551186,
+        "normalized_mutual_information": 0.4134314958039457,
+        "chi_square": 1400.099809691558,
+        "cramers_v": 0.5655117326825634
+      }
+    },
+    {
+      "left": "Name",
+      "right": "Origin",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 311,
+        "top_combinations": [
+          {
+            "value": "ford pinto | USA",
+            "count": 6,
+            "ratio": 0.014778325123152709
+          },
+          {
+            "value": "amc matador | USA",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "ford maverick | USA",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "toyota corolla | Japan",
+            "count": 5,
+            "ratio": 0.012315270935960592
+          },
+          {
+            "value": "amc gremlin | USA",
+            "count": 4,
+            "ratio": 0.009852216748768473
+          }
+        ],
+        "mutual_information": 1.3279423646128539,
+        "normalized_mutual_information": 0.4048148049169164,
+        "chi_square": 593.4039408867005,
+        "cramers_v": 0.8548643346453553
+      }
+    },
+    {
+      "left": "Name",
+      "right": "Weight_in_lbs",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 405,
+        "top_combinations": [
+          {
+            "value": "datsun pl510 | 2130",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "amc ambassador brougham | 3821",
+            "count": 1,
+            "ratio": 0.0024630541871921183
+          },
+          {
+            "value": "amc ambassador dpl | 3850",
+            "count": 1,
+            "ratio": 0.0024630541871921183
+          },
+          {
+            "value": "amc ambassador sst | 3672",
+            "count": 1,
+            "ratio": 0.0024630541871921183
+          },
+          {
+            "value": "amc concord d/l | 3410",
+            "count": 1,
+            "ratio": 0.0024630541871921183
+          }
+        ],
+        "mutual_information": 7.840997101991187,
+        "normalized_mutual_information": 0.9504943845618992,
+        "chi_square": 109941.40987958437,
+        "cramers_v": 0.9346236951044491
+      }
+    },
+    {
+      "left": "Name",
+      "right": "Year",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 403,
+        "top_combinations": [
+          {
+            "value": "ford pinto | 1975-01-01",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "plymouth reliant | 1982-01-01",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "toyota corolla | 1982-01-01",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "amc ambassador brougham | 1973-01-01",
+            "count": 1,
+            "ratio": 0.0024630541871921183
+          },
+          {
+            "value": "amc ambassador dpl | 1970-01-01",
+            "count": 1,
+            "ratio": 0.0024630541871921183
+          }
+        ],
+        "mutual_information": 2.9932541924854412,
+        "normalized_mutual_information": 0.5588336386268415,
+        "chi_square": 2947.546993037843,
+        "cramers_v": 0.8124020479780034
+      }
+    },
+    {
+      "left": "Origin",
+      "right": "Weight_in_lbs",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 375,
+        "top_combinations": [
+          {
+            "value": "Japan | 1985",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "USA | 2125",
+            "count": 3,
+            "ratio": 0.007389162561576354
+          },
+          {
+            "value": "Europe | 1825",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "Europe | 1835",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "Europe | 1937",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          }
+        ],
+        "mutual_information": 1.217056773458534,
+        "normalized_mutual_information": 0.3644456011413495,
+        "chi_square": 516.4175409925172,
+        "cramers_v": 0.7974849173122577
+      }
+    },
+    {
+      "left": "Origin",
+      "right": "Year",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 36,
+        "top_combinations": [
+          {
+            "value": "USA | 1982-01-01",
+            "count": 33,
+            "ratio": 0.0812807881773399
+          },
+          {
+            "value": "USA | 1973-01-01",
+            "count": 29,
+            "ratio": 0.07142857142857142
+          },
+          {
+            "value": "USA | 1970-01-01",
+            "count": 27,
+            "ratio": 0.0665024630541872
+          },
+          {
+            "value": "USA | 1979-01-01",
+            "count": 23,
+            "ratio": 0.05665024630541872
+          },
+          {
+            "value": "USA | 1976-01-01",
+            "count": 22,
+            "ratio": 0.054187192118226604
+          }
+        ],
+        "mutual_information": 0.07815394617481974,
+        "normalized_mutual_information": 0.036044040177046745,
+        "chi_square": 43.507359829296696,
+        "cramers_v": 0.2314746042239012
+      }
+    },
+    {
+      "left": "Weight_in_lbs",
+      "right": "Year",
+      "paired_non_null_count": 406,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 396,
+        "top_combinations": [
+          {
+            "value": "1800 | 1978-01-01",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "1965 | 1982-01-01",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "1985 | 1978-01-01",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "2110 | 1980-01-01",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          },
+          {
+            "value": "2125 | 1982-01-01",
+            "count": 2,
+            "ratio": 0.0049261083743842365
+          }
+        ],
+        "mutual_information": 3.3223746578617472,
+        "normalized_mutual_information": 0.6093015181194283,
+        "chi_square": 3623.9183982057584,
+        "cramers_v": 0.9008030450024854
+      }
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "source_path": "C:\\Users\\villa\\dev\\rata\\datasets\\news_headlines.jsonl",
+  "format": "jsonl",
+  "row_count": 200,
+  "column_count": 2,
+  "structure": {
+    "dataset_type_counts": {
+      "object": 200,
+      "string": 200
+    },
+    "nested_field_count": 3,
+    "nested_fields": [
+      {
+        "path": "meta",
+        "occurrence_count": 200,
+        "null_count": 0,
+        "observed_types": {
+          "object": 200
+        }
+      },
+      {
+        "path": "meta.source",
+        "occurrence_count": 200,
+        "null_count": 0,
+        "observed_types": {
+          "string": 200
+        }
+      },
+      {
+        "path": "text",
+        "occurrence_count": 200,
+        "null_count": 0,
+        "observed_types": {
+          "string": 200
+        }
+      }
+    ],
+    "columns": [
+      {
+        "name": "meta",
+        "observed_types": {
+          "object": 200
+        },
+        "array_summary": null,
+        "object_summary": {
+          "row_count_with_objects": 200,
+          "key_count_min": 1,
+          "key_count_max": 1,
+          "average_key_count": 1.0,
+          "top_keys": [
+            {
+              "value": "source",
+              "count": 200,
+              "ratio": 1.0
+            }
+          ]
+        },
+        "semantic_hints": []
+      },
+      {
+        "name": "text",
+        "observed_types": {
+          "string": 200
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      }
+    ]
+  },
+  "columns": [
+    {
+      "name": "meta",
+      "dominant_type": "object",
+      "non_null_count": 200,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 1,
+      "distinct_ratio": 0.005,
+      "uniqueness_ratio": 0.005,
+      "mode_count": 0,
+      "mode_ratio": 0.0,
+      "entropy": -0.0,
+      "value_type_counts": {
+        "object": 200
+      },
+      "top_values": [],
+      "numeric_summary": null,
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "text",
+      "dominant_type": "string",
+      "non_null_count": 200,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 178,
+      "distinct_ratio": 0.89,
+      "uniqueness_ratio": 0.89,
+      "mode_count": 3,
+      "mode_ratio": 0.015,
+      "entropy": 7.420081752263925,
+      "value_type_counts": {
+        "string": 200
+      },
+      "top_values": [
+        {
+          "value": "Amid Conference Halls and Keynote Speakers, a Rivalry Forms",
+          "count": 3,
+          "ratio": 0.015
+        },
+        {
+          "value": "A Corporate Campus Made to Mirror Facebook",
+          "count": 2,
+          "ratio": 0.01
+        },
+        {
+          "value": "Airbnb and Others Set Terms for Employees to Cash Out",
+          "count": 2,
+          "ratio": 0.01
+        },
+        {
+          "value": "Attending to the Needs of the Too-Busy",
+          "count": 2,
+          "ratio": 0.01
+        },
+        {
+          "value": "Back to the Future: The Netscape and Google I.P.O.'s",
+          "count": 2,
+          "ratio": 0.01
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 200,
+        "min_length": 10,
+        "max_length": 92,
+        "average_length": 47.92,
+        "median_length": 49.0,
+        "empty_count": 0,
+        "whitespace_only_count": 0,
+        "average_word_count": 8.015,
+        "max_word_count": 18,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 165,
+        "hex_like_count": 0,
+        "base64_like_count": 0,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    }
+  ],
+  "column_pairs": [
+    {
+      "left": "meta",
+      "right": "text",
+      "paired_non_null_count": 200,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": null
+    }
+  ]
+}

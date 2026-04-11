@@ -1,0 +1,983 @@
+{
+  "source_path": "C:\\Users\\villa\\dev\\rata\\datasets\\iris.csv",
+  "format": "csv",
+  "row_count": 150,
+  "column_count": 5,
+  "structure": {
+    "dataset_type_counts": {
+      "number": 600,
+      "string": 150
+    },
+    "nested_field_count": 5,
+    "nested_fields": [
+      {
+        "path": "petal_length",
+        "occurrence_count": 150,
+        "null_count": 0,
+        "observed_types": {
+          "number": 150
+        }
+      },
+      {
+        "path": "petal_width",
+        "occurrence_count": 150,
+        "null_count": 0,
+        "observed_types": {
+          "number": 150
+        }
+      },
+      {
+        "path": "sepal_length",
+        "occurrence_count": 150,
+        "null_count": 0,
+        "observed_types": {
+          "number": 150
+        }
+      },
+      {
+        "path": "sepal_width",
+        "occurrence_count": 150,
+        "null_count": 0,
+        "observed_types": {
+          "number": 150
+        }
+      },
+      {
+        "path": "species",
+        "occurrence_count": 150,
+        "null_count": 0,
+        "observed_types": {
+          "string": 150
+        }
+      }
+    ],
+    "columns": [
+      {
+        "name": "petal_length",
+        "observed_types": {
+          "number": 150
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "petal_width",
+        "observed_types": {
+          "number": 150
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "sepal_length",
+        "observed_types": {
+          "number": 150
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "sepal_width",
+        "observed_types": {
+          "number": 150
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "species",
+        "observed_types": {
+          "string": 150
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      }
+    ]
+  },
+  "columns": [
+    {
+      "name": "petal_length",
+      "dominant_type": "number",
+      "non_null_count": 150,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 43,
+      "distinct_ratio": 0.2866666666666667,
+      "uniqueness_ratio": 0.2866666666666667,
+      "mode_count": 13,
+      "mode_ratio": 0.08666666666666667,
+      "entropy": 5.03456995367417,
+      "value_type_counts": {
+        "number": 150
+      },
+      "top_values": [
+        {
+          "value": "1.4",
+          "count": 13,
+          "ratio": 0.08666666666666667
+        },
+        {
+          "value": "1.5",
+          "count": 13,
+          "ratio": 0.08666666666666667
+        },
+        {
+          "value": "4.5",
+          "count": 8,
+          "ratio": 0.05333333333333334
+        },
+        {
+          "value": "5.1",
+          "count": 8,
+          "ratio": 0.05333333333333334
+        },
+        {
+          "value": "1.3",
+          "count": 7,
+          "ratio": 0.04666666666666667
+        }
+      ],
+      "numeric_summary": {
+        "count": 150,
+        "min": 1.0,
+        "max": 6.9,
+        "sum": 563.7000000000002,
+        "mean": 3.758000000000001,
+        "median": 4.35,
+        "variance": 3.0955026666666696,
+        "stddev": 1.7594040657753038,
+        "p25": 1.6,
+        "p50": 4.35,
+        "p75": 5.1,
+        "p95": 6.1,
+        "range": 5.9,
+        "iqr": 3.4999999999999996,
+        "mad": 1.25,
+        "coefficient_of_variation": 0.46817564283536545,
+        "zero_count": 0,
+        "positive_count": 150,
+        "negative_count": 0,
+        "integer_like_count": 13,
+        "duplicate_count": 107,
+        "duplicate_ratio": 0.7133333333333334,
+        "outlier_count_tukey": 0,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": -0.2721276664567237,
+        "kurtosis_excess": -1.395535886399008
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "petal_width",
+      "dominant_type": "number",
+      "non_null_count": 150,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 22,
+      "distinct_ratio": 0.14666666666666667,
+      "uniqueness_ratio": 0.14666666666666667,
+      "mode_count": 29,
+      "mode_ratio": 0.19333333333333333,
+      "entropy": 4.049827090391418,
+      "value_type_counts": {
+        "number": 150
+      },
+      "top_values": [
+        {
+          "value": "0.2",
+          "count": 29,
+          "ratio": 0.19333333333333333
+        },
+        {
+          "value": "1.3",
+          "count": 13,
+          "ratio": 0.08666666666666667
+        },
+        {
+          "value": "1.5",
+          "count": 12,
+          "ratio": 0.08
+        },
+        {
+          "value": "1.8",
+          "count": 12,
+          "ratio": 0.08
+        },
+        {
+          "value": "1.4",
+          "count": 8,
+          "ratio": 0.05333333333333334
+        }
+      ],
+      "numeric_summary": {
+        "count": 150,
+        "min": 0.1,
+        "max": 2.5,
+        "sum": 179.89999999999998,
+        "mean": 1.1993333333333331,
+        "median": 1.3,
+        "variance": 0.5771328888888883,
+        "stddev": 0.7596926279021591,
+        "p25": 0.3,
+        "p50": 1.3,
+        "p75": 1.8,
+        "p95": 2.3,
+        "range": 2.4,
+        "iqr": 1.5,
+        "mad": 0.7,
+        "coefficient_of_variation": 0.6334290949712278,
+        "zero_count": 0,
+        "positive_count": 150,
+        "negative_count": 0,
+        "integer_like_count": 13,
+        "duplicate_count": 128,
+        "duplicate_ratio": 0.8533333333333334,
+        "outlier_count_tukey": 0,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": -0.10193420656559905,
+        "kurtosis_excess": -1.336067405231551
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "sepal_length",
+      "dominant_type": "number",
+      "non_null_count": 150,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 35,
+      "distinct_ratio": 0.23333333333333334,
+      "uniqueness_ratio": 0.23333333333333334,
+      "mode_count": 10,
+      "mode_ratio": 0.06666666666666667,
+      "entropy": 4.822018088381166,
+      "value_type_counts": {
+        "number": 150
+      },
+      "top_values": [
+        {
+          "value": "5.0",
+          "count": 10,
+          "ratio": 0.06666666666666667
+        },
+        {
+          "value": "5.1",
+          "count": 9,
+          "ratio": 0.06
+        },
+        {
+          "value": "6.3",
+          "count": 9,
+          "ratio": 0.06
+        },
+        {
+          "value": "5.7",
+          "count": 8,
+          "ratio": 0.05333333333333334
+        },
+        {
+          "value": "6.7",
+          "count": 8,
+          "ratio": 0.05333333333333334
+        }
+      ],
+      "numeric_summary": {
+        "count": 150,
+        "min": 4.3,
+        "max": 7.9,
+        "sum": 876.5000000000002,
+        "mean": 5.843333333333335,
+        "median": 5.8,
+        "variance": 0.6811222222222227,
+        "stddev": 0.8253012917851412,
+        "p25": 5.1,
+        "p50": 5.8,
+        "p75": 6.4,
+        "p95": 7.254999999999998,
+        "range": 3.6000000000000005,
+        "iqr": 1.3000000000000007,
+        "mad": 0.7000000000000002,
+        "coefficient_of_variation": 0.14123809899346396,
+        "zero_count": 0,
+        "positive_count": 150,
+        "negative_count": 0,
+        "integer_like_count": 17,
+        "duplicate_count": 115,
+        "duplicate_ratio": 0.7666666666666667,
+        "outlier_count_tukey": 0,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": 0.31175305850229174,
+        "kurtosis_excess": -0.5735679489249823
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "sepal_width",
+      "dominant_type": "number",
+      "non_null_count": 150,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 23,
+      "distinct_ratio": 0.15333333333333332,
+      "uniqueness_ratio": 0.15333333333333332,
+      "mode_count": 26,
+      "mode_ratio": 0.17333333333333334,
+      "entropy": 4.023181025924309,
+      "value_type_counts": {
+        "number": 150
+      },
+      "top_values": [
+        {
+          "value": "3.0",
+          "count": 26,
+          "ratio": 0.17333333333333334
+        },
+        {
+          "value": "2.8",
+          "count": 14,
+          "ratio": 0.09333333333333334
+        },
+        {
+          "value": "3.2",
+          "count": 13,
+          "ratio": 0.08666666666666667
+        },
+        {
+          "value": "3.4",
+          "count": 12,
+          "ratio": 0.08
+        },
+        {
+          "value": "3.1",
+          "count": 11,
+          "ratio": 0.07333333333333333
+        }
+      ],
+      "numeric_summary": {
+        "count": 150,
+        "min": 2.0,
+        "max": 4.4,
+        "sum": 458.59999999999974,
+        "mean": 3.0573333333333315,
+        "median": 3.0,
+        "variance": 0.1887128888888889,
+        "stddev": 0.4344109677354946,
+        "p25": 2.8,
+        "p50": 3.0,
+        "p75": 3.3,
+        "p95": 3.8,
+        "range": 2.4000000000000004,
+        "iqr": 0.5,
+        "mad": 0.2999999999999998,
+        "coefficient_of_variation": 0.14208819267406067,
+        "zero_count": 0,
+        "positive_count": 150,
+        "negative_count": 0,
+        "integer_like_count": 28,
+        "duplicate_count": 127,
+        "duplicate_ratio": 0.8466666666666667,
+        "outlier_count_tukey": 4,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": 0.315767106338949,
+        "kurtosis_excess": 0.18097631752246857
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "species",
+      "dominant_type": "string",
+      "non_null_count": 150,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 3,
+      "distinct_ratio": 0.02,
+      "uniqueness_ratio": 0.02,
+      "mode_count": 50,
+      "mode_ratio": 0.3333333333333333,
+      "entropy": 1.584962500721156,
+      "value_type_counts": {
+        "string": 150
+      },
+      "top_values": [
+        {
+          "value": "setosa",
+          "count": 50,
+          "ratio": 0.3333333333333333
+        },
+        {
+          "value": "versicolor",
+          "count": 50,
+          "ratio": 0.3333333333333333
+        },
+        {
+          "value": "virginica",
+          "count": 50,
+          "ratio": 0.3333333333333333
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 150,
+        "min_length": 6,
+        "max_length": 10,
+        "average_length": 8.333333333333334,
+        "median_length": 9.0,
+        "empty_count": 0,
+        "whitespace_only_count": 0,
+        "average_word_count": 1.0,
+        "max_word_count": 1,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 150,
+        "hex_like_count": 0,
+        "base64_like_count": 0,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    }
+  ],
+  "column_pairs": [
+    {
+      "left": "petal_length",
+      "right": "petal_width",
+      "paired_non_null_count": 150,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 9,
+      "scalar_jaccard_index": 0.16071428571428573,
+      "numeric_relationship": {
+        "covariance": 1.2869719999999993,
+        "pearson_correlation": 0.9628654314027956,
+        "spearman_correlation": 0.9376668235763413,
+        "slope": 0.41575541635241114,
+        "intercept": -0.3630755213190282,
+        "r_squared": 0.9271098389904916
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 102,
+        "top_combinations": [
+          {
+            "value": "1.4 | 0.2",
+            "count": 8,
+            "ratio": 0.05333333333333334
+          },
+          {
+            "value": "1.5 | 0.2",
+            "count": 7,
+            "ratio": 0.04666666666666667
+          },
+          {
+            "value": "1.6 | 0.2",
+            "count": 5,
+            "ratio": 0.03333333333333333
+          },
+          {
+            "value": "4.5 | 1.5",
+            "count": 5,
+            "ratio": 0.03333333333333333
+          },
+          {
+            "value": "1.3 | 0.2",
+            "count": 4,
+            "ratio": 0.02666666666666667
+          }
+        ],
+        "mutual_information": 2.694847122982587,
+        "normalized_mutual_information": 0.5968080913926376,
+        "chi_square": 1023.4396544731951,
+        "cramers_v": 0.5700012961481211
+      }
+    },
+    {
+      "left": "petal_length",
+      "right": "sepal_length",
+      "paired_non_null_count": 150,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 24,
+      "scalar_jaccard_index": 0.4444444444444444,
+      "numeric_relationship": {
+        "covariance": 1.2658199999999995,
+        "pearson_correlation": 0.8717537758865828,
+        "spearman_correlation": 0.8818981264349859,
+        "slope": 0.4089222773511849,
+        "intercept": 4.306603415047581,
+        "r_squared": 0.7599546457725144
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 123,
+        "top_combinations": [
+          {
+            "value": "1.5 | 5.1",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "1.6 | 5.0",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "5.1 | 5.8",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "1.3 | 4.4",
+            "count": 2,
+            "ratio": 0.013333333333333334
+          },
+          {
+            "value": "1.4 | 4.6",
+            "count": 2,
+            "ratio": 0.013333333333333334
+          }
+        ],
+        "mutual_information": 3.0028671016027335,
+        "normalized_mutual_information": 0.6094534005193797,
+        "chi_square": 1796.0103896302112,
+        "cramers_v": 0.5934297767448921
+      }
+    },
+    {
+      "left": "petal_length",
+      "right": "sepal_width",
+      "paired_non_null_count": 150,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 11,
+      "scalar_jaccard_index": 0.2,
+      "numeric_relationship": {
+        "covariance": -0.3274586666666668,
+        "pearson_correlation": -0.42844010433054003,
+        "spearman_correlation": -0.30963508601557777,
+        "slope": -0.10578529625990739,
+        "intercept": 3.454874476678066,
+        "r_squared": 0.18356092299876403
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 122,
+        "top_combinations": [
+          {
+            "value": "1.4 | 3.0",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "1.5 | 3.1",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "1.5 | 3.4",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "1.5 | 3.7",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "5.1 | 2.7",
+            "count": 3,
+            "ratio": 0.02
+          }
+        ],
+        "mutual_information": 2.227428539174724,
+        "normalized_mutual_information": 0.49492318921916967,
+        "chi_square": 895.2094824513097,
+        "cramers_v": 0.5208412433197097
+      }
+    },
+    {
+      "left": "petal_length",
+      "right": "species",
+      "paired_non_null_count": 150,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 48,
+        "top_combinations": [
+          {
+            "value": "1.4 | setosa",
+            "count": 13,
+            "ratio": 0.08666666666666667
+          },
+          {
+            "value": "1.5 | setosa",
+            "count": 13,
+            "ratio": 0.08666666666666667
+          },
+          {
+            "value": "1.3 | setosa",
+            "count": 7,
+            "ratio": 0.04666666666666667
+          },
+          {
+            "value": "1.6 | setosa",
+            "count": 7,
+            "ratio": 0.04666666666666667
+          },
+          {
+            "value": "4.5 | versicolor",
+            "count": 7,
+            "ratio": 0.04666666666666667
+          }
+        ],
+        "mutual_information": 1.4463165236458,
+        "normalized_mutual_information": 0.5120031846897083,
+        "chi_square": 181.4666666666667,
+        "cramers_v": 0.7777460310981272
+      }
+    },
+    {
+      "left": "petal_width",
+      "right": "sepal_length",
+      "paired_non_null_count": 150,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": 0.512828888888889,
+        "pearson_correlation": 0.8179411262715758,
+        "spearman_correlation": 0.8342887759080051,
+        "slope": 0.8885802538063642,
+        "intercept": 4.777629415601568,
+        "r_squared": 0.6690276860464138
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 110,
+        "top_combinations": [
+          {
+            "value": "0.2 | 5.0",
+            "count": 5,
+            "ratio": 0.03333333333333333
+          },
+          {
+            "value": "0.2 | 4.4",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "0.2 | 4.6",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "0.2 | 4.8",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "0.2 | 5.1",
+            "count": 3,
+            "ratio": 0.02
+          }
+        ],
+        "mutual_information": 2.240684758221671,
+        "normalized_mutual_information": 0.5070468649125962,
+        "chi_square": 673.8047698292402,
+        "cramers_v": 0.46250002825542263
+      }
+    },
+    {
+      "left": "petal_width",
+      "right": "sepal_width",
+      "paired_non_null_count": 150,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 5,
+      "scalar_jaccard_index": 0.125,
+      "numeric_relationship": {
+        "covariance": -0.12082844444444452,
+        "pearson_correlation": -0.3661259325364395,
+        "spearman_correlation": -0.2890317486605842,
+        "slope": -0.2093598316274551,
+        "intercept": 3.3084255580651956,
+        "r_squared": 0.13404819847567745
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 98,
+        "top_combinations": [
+          {
+            "value": "0.2 | 3.4",
+            "count": 6,
+            "ratio": 0.04
+          },
+          {
+            "value": "0.2 | 3.2",
+            "count": 5,
+            "ratio": 0.03333333333333333
+          },
+          {
+            "value": "1.3 | 2.9",
+            "count": 5,
+            "ratio": 0.03333333333333333
+          },
+          {
+            "value": "1.8 | 3.0",
+            "count": 4,
+            "ratio": 0.02666666666666667
+          },
+          {
+            "value": "0.2 | 3.0",
+            "count": 3,
+            "ratio": 0.02
+          }
+        ],
+        "mutual_information": 1.6759771322899093,
+        "normalized_mutual_information": 0.4152073768371144,
+        "chi_square": 497.16912892957345,
+        "cramers_v": 0.3972800894853049
+      }
+    },
+    {
+      "left": "petal_width",
+      "right": "species",
+      "paired_non_null_count": 150,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 27,
+        "top_combinations": [
+          {
+            "value": "0.2 | setosa",
+            "count": 29,
+            "ratio": 0.19333333333333333
+          },
+          {
+            "value": "1.3 | versicolor",
+            "count": 13,
+            "ratio": 0.08666666666666667
+          },
+          {
+            "value": "1.8 | virginica",
+            "count": 11,
+            "ratio": 0.07333333333333333
+          },
+          {
+            "value": "1.5 | versicolor",
+            "count": 10,
+            "ratio": 0.06666666666666667
+          },
+          {
+            "value": "2.3 | virginica",
+            "count": 8,
+            "ratio": 0.05333333333333334
+          }
+        ],
+        "mutual_information": 1.4358978386754426,
+        "normalized_mutual_information": 0.5667555810236485,
+        "chi_square": 184.41666666666669,
+        "cramers_v": 0.7840422324226051
+      }
+    },
+    {
+      "left": "sepal_length",
+      "right": "sepal_width",
+      "paired_non_null_count": 150,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.017543859649122806,
+      "numeric_relationship": {
+        "covariance": -0.04215111111111109,
+        "pearson_correlation": -0.11756978413300205,
+        "spearman_correlation": -0.16677765828323496,
+        "slope": -0.06188479796414411,
+        "intercept": 3.4189468361038164,
+        "r_squared": 0.013822654141080701
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 117,
+        "top_combinations": [
+          {
+            "value": "5.8 | 2.7",
+            "count": 4,
+            "ratio": 0.02666666666666667
+          },
+          {
+            "value": "5.1 | 3.8",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "6.5 | 3.0",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "6.7 | 3.1",
+            "count": 3,
+            "ratio": 0.02
+          },
+          {
+            "value": "6.9 | 3.1",
+            "count": 3,
+            "ratio": 0.02
+          }
+        ],
+        "mutual_information": 2.089844090533962,
+        "normalized_mutual_information": 0.4744764729564089,
+        "chi_square": 681.5673942063227,
+        "cramers_v": 0.45446185098632425
+      }
+    },
+    {
+      "left": "sepal_length",
+      "right": "species",
+      "paired_non_null_count": 150,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 57,
+        "top_combinations": [
+          {
+            "value": "5.0 | setosa",
+            "count": 8,
+            "ratio": 0.05333333333333334
+          },
+          {
+            "value": "5.1 | setosa",
+            "count": 8,
+            "ratio": 0.05333333333333334
+          },
+          {
+            "value": "6.3 | virginica",
+            "count": 6,
+            "ratio": 0.04
+          },
+          {
+            "value": "4.8 | setosa",
+            "count": 5,
+            "ratio": 0.03333333333333333
+          },
+          {
+            "value": "5.4 | setosa",
+            "count": 5,
+            "ratio": 0.03333333333333333
+          }
+        ],
+        "mutual_information": 0.8769376208910549,
+        "normalized_mutual_information": 0.31720847971451704,
+        "chi_square": 102.59999999999998,
+        "cramers_v": 0.5848076606885377
+      }
+    },
+    {
+      "left": "sepal_width",
+      "right": "species",
+      "paired_non_null_count": 150,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 43,
+        "top_combinations": [
+          {
+            "value": "3.0 | virginica",
+            "count": 12,
+            "ratio": 0.08
+          },
+          {
+            "value": "3.4 | setosa",
+            "count": 9,
+            "ratio": 0.06
+          },
+          {
+            "value": "2.8 | virginica",
+            "count": 8,
+            "ratio": 0.05333333333333334
+          },
+          {
+            "value": "3.0 | versicolor",
+            "count": 8,
+            "ratio": 0.05333333333333334
+          },
+          {
+            "value": "2.9 | versicolor",
+            "count": 7,
+            "ratio": 0.04666666666666667
+          }
+        ],
+        "mutual_information": 0.5166428756804979,
+        "normalized_mutual_information": 0.20459553990131854,
+        "chi_square": 59.21295371295373,
+        "cramers_v": 0.44427076471056753
+      }
+    }
+  ]
+}

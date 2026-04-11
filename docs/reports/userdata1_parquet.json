@@ -1,0 +1,4833 @@
+{
+  "source_path": "C:\\Users\\villa\\dev\\rata\\datasets\\userdata1.parquet",
+  "format": "parquet",
+  "row_count": 1000,
+  "column_count": 13,
+  "structure": {
+    "dataset_type_counts": {
+      "null": 74,
+      "number": 2932,
+      "string": 9994
+    },
+    "nested_field_count": 13,
+    "nested_fields": [
+      {
+        "path": "birthdate",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "string": 1000
+        }
+      },
+      {
+        "path": "cc",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "string": 1000
+        }
+      },
+      {
+        "path": "comments",
+        "occurrence_count": 1000,
+        "null_count": 6,
+        "observed_types": {
+          "null": 6,
+          "string": 994
+        }
+      },
+      {
+        "path": "country",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "string": 1000
+        }
+      },
+      {
+        "path": "email",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "string": 1000
+        }
+      },
+      {
+        "path": "first_name",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "string": 1000
+        }
+      },
+      {
+        "path": "gender",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "string": 1000
+        }
+      },
+      {
+        "path": "id",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "number": 1000
+        }
+      },
+      {
+        "path": "ip_address",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "string": 1000
+        }
+      },
+      {
+        "path": "last_name",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "string": 1000
+        }
+      },
+      {
+        "path": "registration_dttm",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "number": 1000
+        }
+      },
+      {
+        "path": "salary",
+        "occurrence_count": 1000,
+        "null_count": 68,
+        "observed_types": {
+          "null": 68,
+          "number": 932
+        }
+      },
+      {
+        "path": "title",
+        "occurrence_count": 1000,
+        "null_count": 0,
+        "observed_types": {
+          "string": 1000
+        }
+      }
+    ],
+    "columns": [
+      {
+        "name": "birthdate",
+        "observed_types": {
+          "string": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "base64_like"
+        ]
+      },
+      {
+        "name": "cc",
+        "observed_types": {
+          "string": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "hex_like",
+          "base64_like"
+        ]
+      },
+      {
+        "name": "comments",
+        "observed_types": {
+          "null": 6,
+          "string": 994
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "hex_like",
+          "base64_like"
+        ]
+      },
+      {
+        "name": "country",
+        "observed_types": {
+          "string": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "base64_like"
+        ]
+      },
+      {
+        "name": "email",
+        "observed_types": {
+          "string": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "email_like"
+        ]
+      },
+      {
+        "name": "first_name",
+        "observed_types": {
+          "string": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "base64_like"
+        ]
+      },
+      {
+        "name": "gender",
+        "observed_types": {
+          "string": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "id",
+        "observed_types": {
+          "number": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "monotonic_increasing"
+        ]
+      },
+      {
+        "name": "ip_address",
+        "observed_types": {
+          "string": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "ip_like"
+        ]
+      },
+      {
+        "name": "last_name",
+        "observed_types": {
+          "string": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "base64_like"
+        ]
+      },
+      {
+        "name": "registration_dttm",
+        "observed_types": {
+          "number": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "salary",
+        "observed_types": {
+          "null": 68,
+          "number": 932
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": []
+      },
+      {
+        "name": "title",
+        "observed_types": {
+          "string": 1000
+        },
+        "array_summary": null,
+        "object_summary": null,
+        "semantic_hints": [
+          "phone_like",
+          "base64_like"
+        ]
+      }
+    ]
+  },
+  "columns": [
+    {
+      "name": "birthdate",
+      "dominant_type": "string",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 788,
+      "distinct_ratio": 0.788,
+      "uniqueness_ratio": 0.788,
+      "mode_count": 197,
+      "mode_ratio": 0.197,
+      "entropy": 8.43224007622921,
+      "value_type_counts": {
+        "string": 1000
+      },
+      "top_values": [
+        {
+          "value": "",
+          "count": 197,
+          "ratio": 0.197
+        },
+        {
+          "value": "1/28/1997",
+          "count": 2,
+          "ratio": 0.002
+        },
+        {
+          "value": "10/5/1982",
+          "count": 2,
+          "ratio": 0.002
+        },
+        {
+          "value": "10/7/1986",
+          "count": 2,
+          "ratio": 0.002
+        },
+        {
+          "value": "10/9/1991",
+          "count": 2,
+          "ratio": 0.002
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 1000,
+        "min_length": 0,
+        "max_length": 27,
+        "average_length": 7.222,
+        "median_length": 9.0,
+        "empty_count": 197,
+        "whitespace_only_count": 0,
+        "average_word_count": 0.807,
+        "max_word_count": 5,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 1000,
+        "hex_like_count": 0,
+        "base64_like_count": 175,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "cc",
+      "dominant_type": "string",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 710,
+      "distinct_ratio": 0.71,
+      "uniqueness_ratio": 0.71,
+      "mode_count": 291,
+      "mode_ratio": 0.291,
+      "entropy": 7.583985559875813,
+      "value_type_counts": {
+        "string": 1000
+      },
+      "top_values": [
+        {
+          "value": "",
+          "count": 291,
+          "ratio": 0.291
+        },
+        {
+          "value": "060402061831873369",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "0604512080706322395",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "201481541679543",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "201483580672124",
+          "count": 1,
+          "ratio": 0.001
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 1000,
+        "min_length": 0,
+        "max_length": 19,
+        "average_length": 11.409,
+        "median_length": 16.0,
+        "empty_count": 291,
+        "whitespace_only_count": 0,
+        "average_word_count": 0.709,
+        "max_word_count": 1,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 709,
+        "boolean_like_count": 0,
+        "ascii_only_count": 1000,
+        "hex_like_count": 709,
+        "base64_like_count": 488,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "comments",
+      "dominant_type": "string",
+      "non_null_count": 994,
+      "null_count": 6,
+      "missing_count": 0,
+      "completeness_ratio": 0.994,
+      "null_ratio": 0.006,
+      "distinct_count": 84,
+      "distinct_ratio": 0.08450704225352113,
+      "uniqueness_ratio": 0.084,
+      "mode_count": 811,
+      "mode_ratio": 0.8158953722334004,
+      "entropy": 1.8315410440971993,
+      "value_type_counts": {
+        "string": 994
+      },
+      "top_values": [
+        {
+          "value": "",
+          "count": 811,
+          "ratio": 0.8158953722334004
+        },
+        {
+          "value": "../../../../../../../../../../../etc/hosts",
+          "count": 5,
+          "ratio": 0.005030181086519115
+        },
+        {
+          "value": "1E+02",
+          "count": 5,
+          "ratio": 0.005030181086519115
+        },
+        {
+          "value": "❤️ 💔 💌 💕 💞 💓 💗 💖 💘 💝 💟 💜 💛 💚 💙",
+          "count": 5,
+          "ratio": 0.005030181086519115
+        },
+        {
+          "value": "\"ثم نفس سقطت وبالتحديد،",
+          "count": 4,
+          "ratio": 0.004024144869215292
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 994,
+        "min_length": 0,
+        "max_length": 217,
+        "average_length": 4.133802816901408,
+        "median_length": 0.0,
+        "empty_count": 811,
+        "whitespace_only_count": 5,
+        "average_word_count": 0.45271629778672035,
+        "max_word_count": 19,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 24,
+        "boolean_like_count": 0,
+        "ascii_only_count": 888,
+        "hex_like_count": 2,
+        "base64_like_count": 1,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "country",
+      "dominant_type": "string",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 120,
+      "distinct_ratio": 0.12,
+      "uniqueness_ratio": 0.12,
+      "mode_count": 189,
+      "mode_ratio": 0.189,
+      "entropy": 5.2782794750174435,
+      "value_type_counts": {
+        "string": 1000
+      },
+      "top_values": [
+        {
+          "value": "China",
+          "count": 189,
+          "ratio": 0.189
+        },
+        {
+          "value": "Indonesia",
+          "count": 97,
+          "ratio": 0.097
+        },
+        {
+          "value": "Russia",
+          "count": 62,
+          "ratio": 0.062
+        },
+        {
+          "value": "Philippines",
+          "count": 45,
+          "ratio": 0.045
+        },
+        {
+          "value": "Brazil",
+          "count": 38,
+          "ratio": 0.038
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 1000,
+        "min_length": 4,
+        "max_length": 32,
+        "average_length": 7.507,
+        "median_length": 6.0,
+        "empty_count": 0,
+        "whitespace_only_count": 0,
+        "average_word_count": 1.101,
+        "max_word_count": 5,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 1000,
+        "hex_like_count": 0,
+        "base64_like_count": 114,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "email",
+      "dominant_type": "string",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 985,
+      "distinct_ratio": 0.985,
+      "uniqueness_ratio": 0.985,
+      "mode_count": 16,
+      "mode_ratio": 0.016,
+      "entropy": 9.901784284662023,
+      "value_type_counts": {
+        "string": 1000
+      },
+      "top_values": [
+        {
+          "value": "",
+          "count": 16,
+          "ratio": 0.016
+        },
+        {
+          "value": "aalexanderlk@ox.ac.uk",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "aalvarezjp@typepad.com",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "aalvarezn5@amazon.de",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "aandersonbp@mlb.com",
+          "count": 1,
+          "ratio": 0.001
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 1000,
+        "min_length": 0,
+        "max_length": 32,
+        "average_length": 20.632,
+        "median_length": 21.0,
+        "empty_count": 16,
+        "whitespace_only_count": 0,
+        "average_word_count": 0.984,
+        "max_word_count": 1,
+        "date_like_count": 0,
+        "email_like_count": 984,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 1000,
+        "hex_like_count": 0,
+        "base64_like_count": 0,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "first_name",
+      "dominant_type": "string",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 198,
+      "distinct_ratio": 0.198,
+      "uniqueness_ratio": 0.198,
+      "mode_count": 16,
+      "mode_ratio": 0.016,
+      "entropy": 7.451701361720207,
+      "value_type_counts": {
+        "string": 1000
+      },
+      "top_values": [
+        {
+          "value": "",
+          "count": 16,
+          "ratio": 0.016
+        },
+        {
+          "value": "Mark",
+          "count": 11,
+          "ratio": 0.011
+        },
+        {
+          "value": "Peter",
+          "count": 11,
+          "ratio": 0.011
+        },
+        {
+          "value": "Samuel",
+          "count": 11,
+          "ratio": 0.011
+        },
+        {
+          "value": "Cheryl",
+          "count": 10,
+          "ratio": 0.01
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 1000,
+        "min_length": 0,
+        "max_length": 11,
+        "average_length": 5.639,
+        "median_length": 6.0,
+        "empty_count": 16,
+        "whitespace_only_count": 0,
+        "average_word_count": 0.984,
+        "max_word_count": 1,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 1000,
+        "hex_like_count": 0,
+        "base64_like_count": 58,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "gender",
+      "dominant_type": "string",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 3,
+      "distinct_ratio": 0.003,
+      "uniqueness_ratio": 0.003,
+      "mode_count": 482,
+      "mode_ratio": 0.482,
+      "entropy": 1.286884034750398,
+      "value_type_counts": {
+        "string": 1000
+      },
+      "top_values": [
+        {
+          "value": "Female",
+          "count": 482,
+          "ratio": 0.482
+        },
+        {
+          "value": "Male",
+          "count": 451,
+          "ratio": 0.451
+        },
+        {
+          "value": "",
+          "count": 67,
+          "ratio": 0.067
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 1000,
+        "min_length": 0,
+        "max_length": 6,
+        "average_length": 4.696,
+        "median_length": 4.0,
+        "empty_count": 67,
+        "whitespace_only_count": 0,
+        "average_word_count": 0.933,
+        "max_word_count": 1,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 1000,
+        "hex_like_count": 0,
+        "base64_like_count": 0,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "id",
+      "dominant_type": "number",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 1000,
+      "distinct_ratio": 1.0,
+      "uniqueness_ratio": 1.0,
+      "mode_count": 1,
+      "mode_ratio": 0.001,
+      "entropy": 9.965784284662018,
+      "value_type_counts": {
+        "number": 1000
+      },
+      "top_values": [
+        {
+          "value": "1",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "10",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "100",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "1000",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "101",
+          "count": 1,
+          "ratio": 0.001
+        }
+      ],
+      "numeric_summary": {
+        "count": 1000,
+        "min": 1.0,
+        "max": 1000.0,
+        "sum": 500500.0,
+        "mean": 500.5,
+        "median": 500.5,
+        "variance": 83333.25,
+        "stddev": 288.6749902572095,
+        "p25": 250.75,
+        "p50": 500.5,
+        "p75": 750.25,
+        "p95": 950.05,
+        "range": 999.0,
+        "iqr": 499.5,
+        "mad": 250.0,
+        "coefficient_of_variation": 0.5767732073071119,
+        "zero_count": 0,
+        "positive_count": 1000,
+        "negative_count": 0,
+        "integer_like_count": 1000,
+        "duplicate_count": 0,
+        "duplicate_ratio": 0.0,
+        "outlier_count_tukey": 0,
+        "monotonic_increasing": true,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": -8.881784197001253e-19,
+        "kurtosis_excess": -1.2000024000023997
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "ip_address",
+      "dominant_type": "string",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 1000,
+      "distinct_ratio": 1.0,
+      "uniqueness_ratio": 1.0,
+      "mode_count": 1,
+      "mode_ratio": 0.001,
+      "entropy": 9.965784284662018,
+      "value_type_counts": {
+        "string": 1000
+      },
+      "top_values": [
+        {
+          "value": "0.14.221.162",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "0.14.50.205",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "0.234.217.5",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "0.82.180.94",
+          "count": 1,
+          "ratio": 0.001
+        },
+        {
+          "value": "1.117.145.216",
+          "count": 1,
+          "ratio": 0.001
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 1000,
+        "min_length": 8,
+        "max_length": 15,
+        "average_length": 13.289,
+        "median_length": 13.0,
+        "empty_count": 0,
+        "whitespace_only_count": 0,
+        "average_word_count": 1.0,
+        "max_word_count": 1,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 1000,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 1000,
+        "hex_like_count": 0,
+        "base64_like_count": 0,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "last_name",
+      "dominant_type": "string",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 247,
+      "distinct_ratio": 0.247,
+      "uniqueness_ratio": 0.247,
+      "mode_count": 10,
+      "mode_ratio": 0.01,
+      "entropy": 7.797696870988669,
+      "value_type_counts": {
+        "string": 1000
+      },
+      "top_values": [
+        {
+          "value": "Barnes",
+          "count": 10,
+          "ratio": 0.01
+        },
+        {
+          "value": "Patterson",
+          "count": 9,
+          "ratio": 0.009
+        },
+        {
+          "value": "Shaw",
+          "count": 9,
+          "ratio": 0.009
+        },
+        {
+          "value": "Willis",
+          "count": 9,
+          "ratio": 0.009
+        },
+        {
+          "value": "Dixon",
+          "count": 8,
+          "ratio": 0.008
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 1000,
+        "min_length": 3,
+        "max_length": 10,
+        "average_length": 6.093,
+        "median_length": 6.0,
+        "empty_count": 0,
+        "whitespace_only_count": 0,
+        "average_word_count": 1.0,
+        "max_word_count": 1,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 0,
+        "json_like_count": 0,
+        "numeric_like_count": 0,
+        "boolean_like_count": 0,
+        "ascii_only_count": 1000,
+        "hex_like_count": 0,
+        "base64_like_count": 115,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "registration_dttm",
+      "dominant_type": "number",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 995,
+      "distinct_ratio": 0.995,
+      "uniqueness_ratio": 0.995,
+      "mode_count": 2,
+      "mode_ratio": 0.002,
+      "entropy": 9.955784284662016,
+      "value_type_counts": {
+        "number": 1000
+      },
+      "top_values": [
+        {
+          "value": "1454459605000",
+          "count": 2,
+          "ratio": 0.002
+        },
+        {
+          "value": "1454459806000",
+          "count": 2,
+          "ratio": 0.002
+        },
+        {
+          "value": "1454494020000",
+          "count": 2,
+          "ratio": 0.002
+        },
+        {
+          "value": "1454495723000",
+          "count": 2,
+          "ratio": 0.002
+        },
+        {
+          "value": "1454519251000",
+          "count": 2,
+          "ratio": 0.002
+        }
+      ],
+      "numeric_summary": {
+        "count": 1000,
+        "min": 1454457660000.0,
+        "max": 1454543995000.0,
+        "sum": 1454499349191000.0,
+        "mean": 1454499349191.0,
+        "median": 1454497677500.0,
+        "variance": 712732848496526.5,
+        "stddev": 26697056.925746076,
+        "p25": 1454475374000.0,
+        "p50": 1454497677500.0,
+        "p75": 1454523370250.0,
+        "p95": 1454540353500.0,
+        "range": 86335000.0,
+        "iqr": 47996250.0,
+        "mad": 24167500.0,
+        "coefficient_of_variation": 0.00001835480843672781,
+        "zero_count": 0,
+        "positive_count": 1000,
+        "negative_count": 0,
+        "integer_like_count": 1000,
+        "duplicate_count": 5,
+        "duplicate_ratio": 0.005,
+        "outlier_count_tukey": 0,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": 0.014541363490165,
+        "kurtosis_excess": -1.33504378979603
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "salary",
+      "dominant_type": "number",
+      "non_null_count": 932,
+      "null_count": 68,
+      "missing_count": 0,
+      "completeness_ratio": 0.932,
+      "null_ratio": 0.068,
+      "distinct_count": 932,
+      "distinct_ratio": 1.0,
+      "uniqueness_ratio": 0.932,
+      "mode_count": 1,
+      "mode_ratio": 0.001072961373390558,
+      "entropy": 9.86418614465419,
+      "value_type_counts": {
+        "number": 932
+      },
+      "top_values": [
+        {
+          "value": "100269.36",
+          "count": 1,
+          "ratio": 0.001072961373390558
+        },
+        {
+          "value": "100320.59",
+          "count": 1,
+          "ratio": 0.001072961373390558
+        },
+        {
+          "value": "100391.51",
+          "count": 1,
+          "ratio": 0.001072961373390558
+        },
+        {
+          "value": "100606.14",
+          "count": 1,
+          "ratio": 0.001072961373390558
+        },
+        {
+          "value": "100729.54",
+          "count": 1,
+          "ratio": 0.001072961373390558
+        }
+      ],
+      "numeric_summary": {
+        "count": 932,
+        "min": 12380.49,
+        "max": 286592.99,
+        "sum": 138872992.39999998,
+        "mean": 149005.3566523605,
+        "median": 147274.515,
+        "variance": 6358844304.005569,
+        "stddev": 79742.3620418004,
+        "p25": 81559.7175,
+        "p50": 147274.515,
+        "p75": 220103.465,
+        "p95": 274961.319,
+        "range": 274212.5,
+        "iqr": 138543.7475,
+        "mad": 68183.345,
+        "coefficient_of_variation": 0.5351643983366631,
+        "zero_count": 0,
+        "positive_count": 932,
+        "negative_count": 0,
+        "integer_like_count": 22,
+        "duplicate_count": 0,
+        "duplicate_ratio": 0.0,
+        "outlier_count_tukey": 0,
+        "monotonic_increasing": false,
+        "monotonic_decreasing": false,
+        "is_constant": false,
+        "skewness": 0.03926428390422813,
+        "kurtosis_excess": -1.2104589168961795
+      },
+      "string_summary": null,
+      "boolean_summary": null,
+      "temporal_summary": null
+    },
+    {
+      "name": "title",
+      "dominant_type": "string",
+      "non_null_count": 1000,
+      "null_count": 0,
+      "missing_count": 0,
+      "completeness_ratio": 1.0,
+      "null_ratio": 0.0,
+      "distinct_count": 182,
+      "distinct_ratio": 0.182,
+      "uniqueness_ratio": 0.182,
+      "mode_count": 197,
+      "mode_ratio": 0.197,
+      "entropy": 6.457212228486115,
+      "value_type_counts": {
+        "string": 1000
+      },
+      "top_values": [
+        {
+          "value": "",
+          "count": 197,
+          "ratio": 0.197
+        },
+        {
+          "value": "Electrical Engineer",
+          "count": 15,
+          "ratio": 0.015
+        },
+        {
+          "value": "Structural Analysis Engineer",
+          "count": 13,
+          "ratio": 0.013
+        },
+        {
+          "value": "Graphic Designer",
+          "count": 12,
+          "ratio": 0.012
+        },
+        {
+          "value": "Help Desk Technician",
+          "count": 12,
+          "ratio": 0.012
+        }
+      ],
+      "numeric_summary": null,
+      "string_summary": {
+        "count": 1000,
+        "min_length": 0,
+        "max_length": 36,
+        "average_length": 14.637,
+        "median_length": 16.0,
+        "empty_count": 197,
+        "whitespace_only_count": 0,
+        "average_word_count": 1.888,
+        "max_word_count": 4,
+        "date_like_count": 0,
+        "email_like_count": 0,
+        "ip_like_count": 0,
+        "uuid_like_count": 0,
+        "url_like_count": 0,
+        "phone_like_count": 1,
+        "json_like_count": 0,
+        "numeric_like_count": 1,
+        "boolean_like_count": 0,
+        "ascii_only_count": 1000,
+        "hex_like_count": 0,
+        "base64_like_count": 7,
+        "mac_address_like_count": 0,
+        "zip_code_like_count": 0
+      },
+      "boolean_summary": null,
+      "temporal_summary": null
+    }
+  ],
+  "column_pairs": [
+    {
+      "left": "birthdate",
+      "right": "cc",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 60,
+      "equal_scalar_ratio": 0.06,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0006680026720106881,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 941,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 60,
+            "ratio": 0.06
+          },
+          {
+            "value": " Saint Eustatius and Saba \" | 3573395768618030",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 201526258515882",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 201549574751072",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 201626624346689",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 6.4048547871794845,
+        "normalized_mutual_information": 0.8009198503716065,
+        "chi_square": 557199.8999005135,
+        "cramers_v": 0.8865074655413381
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "comments",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 159,
+      "equal_scalar_ratio": 0.15995975855130784,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0011547344110854503,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 818,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 159,
+            "ratio": 0.15995975855130784
+          },
+          {
+            "value": " | Z̮̞̠͙͔ͅḀ̗̞͈̻̗Ḷ͙͎̯̹̞͓G̻O̭̗̮",
+            "count": 3,
+            "ratio": 0.0030181086519114686
+          },
+          {
+            "value": " | -1E2",
+            "count": 2,
+            "ratio": 0.002012072434607646
+          },
+          {
+            "value": " | /dev/null; touch /tmp/blns.fail ; echo",
+            "count": 2,
+            "ratio": 0.002012072434607646
+          },
+          {
+            "value": " | Œ„´‰ˇÁ¨ˆØ∏”’",
+            "count": 2,
+            "ratio": 0.002012072434607646
+          }
+        ],
+        "mutual_information": 1.5045995430366013,
+        "normalized_mutual_information": 0.38306145376348827,
+        "chi_square": 64930.90774813251,
+        "cramers_v": 0.8871427318708426
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "country",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 860,
+        "top_combinations": [
+          {
+            "value": " | China",
+            "count": 38,
+            "ratio": 0.038
+          },
+          {
+            "value": " | Russia",
+            "count": 16,
+            "ratio": 0.016
+          },
+          {
+            "value": " | Indonesia",
+            "count": 14,
+            "ratio": 0.014
+          },
+          {
+            "value": " | France",
+            "count": 10,
+            "ratio": 0.01
+          },
+          {
+            "value": " | Brazil",
+            "count": 9,
+            "ratio": 0.009
+          }
+        ],
+        "mutual_information": 4.2829146838688406,
+        "normalized_mutual_information": 0.6419803733920716,
+        "chi_square": 95837.74396404899,
+        "cramers_v": 0.8974180703413552
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "email",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 5,
+      "equal_scalar_ratio": 0.005,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.000564334085778781,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 996,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": " Saint Eustatius and Saba \" | bwheelergb@last.fm",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | aalvarezn5@amazon.de",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | aandrewskt@disqus.com",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | aberry1l@unc.edu",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 8.379849716703639,
+        "normalized_mutual_information": 0.9170816807704756,
+        "chi_square": 775712.0267614279,
+        "cramers_v": 0.9928025780768913
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "first_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 5,
+      "equal_scalar_ratio": 0.005,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0010152284263959391,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 926,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": " | Arthur",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": " | Anne",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": " | James",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": " | Deborah",
+            "count": 3,
+            "ratio": 0.003
+          }
+        ],
+        "mutual_information": 6.084925309257892,
+        "normalized_mutual_information": 0.7676372651361716,
+        "chi_square": 155301.20234290764,
+        "cramers_v": 0.8878800461548493
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "gender",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 12,
+      "equal_scalar_ratio": 0.012,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0012658227848101266,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 796,
+        "top_combinations": [
+          {
+            "value": " | Female",
+            "count": 94,
+            "ratio": 0.094
+          },
+          {
+            "value": " | Male",
+            "count": 91,
+            "ratio": 0.091
+          },
+          {
+            "value": " | ",
+            "count": 12,
+            "ratio": 0.012
+          },
+          {
+            "value": "10/7/1986 | Female",
+            "count": 2,
+            "ratio": 0.002
+          },
+          {
+            "value": "10/9/1991 | Female",
+            "count": 2,
+            "ratio": 0.002
+          }
+        ],
+        "mutual_information": 1.0247000406419495,
+        "normalized_mutual_information": 0.311068163691061,
+        "chi_square": 1150.4762823685608,
+        "cramers_v": 0.7584445537969671
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "id",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " Saint Eustatius and Saba \" | 588",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 101",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 107",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 11",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 8.432240076229196,
+        "normalized_mutual_information": 0.9198473050068221,
+        "chi_square": 786039.6440000073,
+        "cramers_v": 0.9993896765226439
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "ip_address",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " Saint Eustatius and Saba \" | 126.32.181.33",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 0.234.217.5",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 0.82.180.94",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 10.47.111.83",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 100.241.126.140",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 8.432240076229206,
+        "normalized_mutual_information": 0.9198473050068228,
+        "chi_square": 786039.6440000071,
+        "cramers_v": 0.9993896765226437
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "last_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 939,
+        "top_combinations": [
+          {
+            "value": " | Fuller",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": " | Willis",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": " | Brooks",
+            "count": 3,
+            "ratio": 0.003
+          },
+          {
+            "value": " | Dean",
+            "count": 3,
+            "ratio": 0.003
+          },
+          {
+            "value": " | Howell",
+            "count": 3,
+            "ratio": 0.003
+          }
+        ],
+        "mutual_information": 6.396946650075311,
+        "normalized_mutual_information": 0.7888929466275425,
+        "chi_square": 195481.39460784904,
+        "cramers_v": 0.8914257206739444
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "registration_dttm",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " Saint Eustatius and Saba \" | 1454483889000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454457782000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454458242000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454458536000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454458607000",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 8.422240076229198,
+        "normalized_mutual_information": 0.9192177381655939,
+        "chi_square": 782532.6277868089,
+        "cramers_v": 0.9971577319039441
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "salary",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": " | 100320.59",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 101175.81",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 101509.37",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 101734.8",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 102625.87",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 8.339180168049593,
+        "normalized_mutual_information": 0.9194562068323968,
+        "chi_square": 682261.5536480672,
+        "cramers_v": 0.9993451427527569
+      }
+    },
+    {
+      "left": "birthdate",
+      "right": "title",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 197,
+      "equal_scalar_ratio": 0.197,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0010319917440660474,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 804,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 197,
+            "ratio": 0.197
+          },
+          {
+            "value": " Saint Eustatius and Saba \" | 61871.37",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1/1/1984 | Physical Therapy Assistant",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1/10/1967 | Analog Circuit Design manager",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1/10/2001 | Community Outreach Specialist",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 6.425212228486133,
+        "normalized_mutual_information": 0.8707499646381911,
+        "chi_square": 176820.14161327583,
+        "cramers_v": 0.9883859872245536
+      }
+    },
+    {
+      "left": "cc",
+      "right": "comments",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 244,
+      "equal_scalar_ratio": 0.2454728370221328,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0012658227848101266,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 744,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 244,
+            "ratio": 0.2454728370221328
+          },
+          {
+            "value": " | -1E2",
+            "count": 3,
+            "ratio": 0.0030181086519114686
+          },
+          {
+            "value": " | \"<>?:\"\"{}|_+\"",
+            "count": 2,
+            "ratio": 0.002012072434607646
+          },
+          {
+            "value": " | () { _; } >_[$($())] { touch /tmp/blns.shellshock2.fail; }",
+            "count": 2,
+            "ratio": 0.002012072434607646
+          },
+          {
+            "value": " | ../../../../../../../../../../../etc/passwd%00",
+            "count": 2,
+            "ratio": 0.002012072434607646
+          }
+        ],
+        "mutual_information": 1.4260243413327354,
+        "normalized_mutual_information": 0.3824712935891395,
+        "chi_square": 63733.64456959763,
+        "cramers_v": 0.8789256496221206
+      }
+    },
+    {
+      "left": "cc",
+      "right": "country",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 782,
+        "top_combinations": [
+          {
+            "value": " | China",
+            "count": 48,
+            "ratio": 0.048
+          },
+          {
+            "value": " | Indonesia",
+            "count": 33,
+            "ratio": 0.033
+          },
+          {
+            "value": " | France",
+            "count": 20,
+            "ratio": 0.02
+          },
+          {
+            "value": " | Russia",
+            "count": 17,
+            "ratio": 0.017
+          },
+          {
+            "value": " | Philippines",
+            "count": 13,
+            "ratio": 0.013
+          }
+        ],
+        "mutual_information": 3.8122864278671127,
+        "normalized_mutual_information": 0.602546521298796,
+        "chi_square": 83994.82648030159,
+        "cramers_v": 0.8401421772448564
+      }
+    },
+    {
+      "left": "cc",
+      "right": "email",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 4,
+      "equal_scalar_ratio": 0.004,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0005903187721369539,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 997,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": " | aandrews9n@storify.com",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | aandrewskt@disqus.com",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | abaileyqw@so-net.ne.jp",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | aberryu@ow.ly",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.527985559875818,
+        "normalized_mutual_information": 0.8687069544129534,
+        "chi_square": 696828.7527216511,
+        "cramers_v": 0.9913794529016703
+      }
+    },
+    {
+      "left": "cc",
+      "right": "first_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 4,
+      "equal_scalar_ratio": 0.004,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0011025358324145535,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 858,
+        "top_combinations": [
+          {
+            "value": " | Amy",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": " | Anne",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": " | Heather",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": " | Jesse",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": " | ",
+            "count": 4,
+            "ratio": 0.004
+          }
+        ],
+        "mutual_information": 5.404948723879329,
+        "normalized_mutual_information": 0.7189771840047134,
+        "chi_square": 138637.0279894828,
+        "cramers_v": 0.8388928768501148
+      }
+    },
+    {
+      "left": "cc",
+      "right": "gender",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 16,
+      "equal_scalar_ratio": 0.016,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0014044943820224719,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 712,
+        "top_combinations": [
+          {
+            "value": " | Female",
+            "count": 155,
+            "ratio": 0.155
+          },
+          {
+            "value": " | Male",
+            "count": 120,
+            "ratio": 0.12
+          },
+          {
+            "value": " | ",
+            "count": 16,
+            "ratio": 0.016
+          },
+          {
+            "value": "060402061831873369 | Female",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "0604512080706322395 | Female",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 0.9257114642546185,
+        "normalized_mutual_information": 0.2963174222523515,
+        "chi_square": 1068.9925052315598,
+        "cramers_v": 0.7310925061958848
+      }
+    },
+    {
+      "left": "cc",
+      "right": "id",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 101",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 108",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 113",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 116",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 119",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.583985559875835,
+        "normalized_mutual_information": 0.8723545036671607,
+        "chi_square": 708085.3900000016,
+        "cramers_v": 0.9993547918532248
+      }
+    },
+    {
+      "left": "cc",
+      "right": "ip_address",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 0.234.217.5",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 0.82.180.94",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 101.1.168.216",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 101.98.77.188",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 103.7.155.229",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.583985559875835,
+        "normalized_mutual_information": 0.8723545036671607,
+        "chi_square": 708085.3900000021,
+        "cramers_v": 0.9993547918532252
+      }
+    },
+    {
+      "left": "cc",
+      "right": "last_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 884,
+        "top_combinations": [
+          {
+            "value": " | Fernandez",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": " | Gonzalez",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": " | Howell",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": " | Martinez",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": " | Patterson",
+            "count": 4,
+            "ratio": 0.004
+          }
+        ],
+        "mutual_information": 5.674995896245743,
+        "normalized_mutual_information": 0.7379613708330813,
+        "chi_square": 172504.58800518324,
+        "cramers_v": 0.8373996433141682
+      }
+    },
+    {
+      "left": "cc",
+      "right": "registration_dttm",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 1454457663000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454458010000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454458170000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454458178000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454458727000",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.573985559875819,
+        "normalized_mutual_information": 0.8716416719188211,
+        "chi_square": 704581.1153608265,
+        "cramers_v": 0.9968788494924249
+      }
+    },
+    {
+      "left": "cc",
+      "right": "salary",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": " | 100320.59",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 100391.51",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 100729.54",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 103456.02",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 105287.39",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 7.473194570283733,
+        "normalized_mutual_information": 0.870407280930482,
+        "chi_square": 611473.8476394815,
+        "cramers_v": 0.999305557471185
+      }
+    },
+    {
+      "left": "cc",
+      "right": "title",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 60,
+      "equal_scalar_ratio": 0.06,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.001122334455667789,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 824,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 60,
+            "ratio": 0.06
+          },
+          {
+            "value": " | Senior Cost Accountant",
+            "count": 7,
+            "ratio": 0.007
+          },
+          {
+            "value": " | GIS Technical Architect",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": " | Payment Adjustment Coordinator",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": " | Staff Scientist",
+            "count": 5,
+            "ratio": 0.005
+          }
+        ],
+        "mutual_information": 4.712650207855209,
+        "normalized_mutual_information": 0.6734322753989491,
+        "chi_square": 128668.5819452616,
+        "cramers_v": 0.8431347124534648
+      }
+    },
+    {
+      "left": "comments",
+      "right": "country",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 288,
+        "top_combinations": [
+          {
+            "value": " | China",
+            "count": 150,
+            "ratio": 0.15090543259557343
+          },
+          {
+            "value": " | Indonesia",
+            "count": 80,
+            "ratio": 0.08048289738430583
+          },
+          {
+            "value": " | Russia",
+            "count": 52,
+            "ratio": 0.052313883299798795
+          },
+          {
+            "value": " | Philippines",
+            "count": 37,
+            "ratio": 0.03722334004024145
+          },
+          {
+            "value": " | Portugal",
+            "count": 33,
+            "ratio": 0.03319919517102616
+          }
+        ],
+        "mutual_information": 0.7742151624203535,
+        "normalized_mutual_information": 0.24894523942505764,
+        "chi_square": 9602.294132837624,
+        "cramers_v": 0.3411577677439457
+      }
+    },
+    {
+      "left": "comments",
+      "right": "email",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 13,
+      "equal_scalar_ratio": 0.013078470824949699,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0009416195856873823,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 982,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 13,
+            "ratio": 0.013078470824949699
+          },
+          {
+            "value": " | aalexanderlk@ox.ac.uk",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | aalvarezjp@typepad.com",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | aalvarezn5@amazon.de",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | aandrews80@cdc.gov",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          }
+        ],
+        "mutual_information": 1.8155508190829366,
+        "normalized_mutual_information": 0.4265228645774445,
+        "chi_square": 81393.25883770523,
+        "cramers_v": 0.993257790796176
+      }
+    },
+    {
+      "left": "comments",
+      "right": "first_name",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 13,
+      "equal_scalar_ratio": 0.013078470824949699,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0035587188612099642,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 377,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 13,
+            "ratio": 0.013078470824949699
+          },
+          {
+            "value": " | Peter",
+            "count": 10,
+            "ratio": 0.01006036217303823
+          },
+          {
+            "value": " | Stephen",
+            "count": 10,
+            "ratio": 0.01006036217303823
+          },
+          {
+            "value": " | Alice",
+            "count": 9,
+            "ratio": 0.009054325955734407
+          },
+          {
+            "value": " | Cheryl",
+            "count": 9,
+            "ratio": 0.009054325955734407
+          }
+        ],
+        "mutual_information": 1.16467322003375,
+        "normalized_mutual_information": 0.3152390463021112,
+        "chi_square": 17015.67244116863,
+        "cramers_v": 0.4541426814908915
+      }
+    },
+    {
+      "left": "comments",
+      "right": "gender",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 59,
+      "equal_scalar_ratio": 0.059356136820925554,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.011627906976744186,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 123,
+        "top_combinations": [
+          {
+            "value": " | Female",
+            "count": 382,
+            "ratio": 0.3843058350100604
+          },
+          {
+            "value": " | Male",
+            "count": 370,
+            "ratio": 0.3722334004024145
+          },
+          {
+            "value": " | ",
+            "count": 59,
+            "ratio": 0.059356136820925554
+          },
+          {
+            "value": "$1.00 | Female",
+            "count": 4,
+            "ratio": 0.004024144869215292
+          },
+          {
+            "value": "() { 0; }; touch /tmp/blns.shellshock1.fail; | Male",
+            "count": 3,
+            "ratio": 0.0030181086519114686
+          }
+        ],
+        "mutual_information": 0.12000319971547535,
+        "normalized_mutual_information": 0.07813141887698129,
+        "chi_square": 114.85800271302641,
+        "cramers_v": 0.24036566994527872
+      }
+    },
+    {
+      "left": "comments",
+      "right": "id",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 994,
+        "top_combinations": [
+          {
+            "value": " | 10",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | 1000",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | 101",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | 103",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | 105",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          }
+        ],
+        "mutual_information": 1.8315410440971984,
+        "normalized_mutual_information": 0.4288859791507774,
+        "chi_square": 82170.19517102579,
+        "cramers_v": 0.997987084476968
+      }
+    },
+    {
+      "left": "comments",
+      "right": "ip_address",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 994,
+        "top_combinations": [
+          {
+            "value": " | 0.14.221.162",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | 0.14.50.205",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | 0.234.217.5",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | 0.82.180.94",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          },
+          {
+            "value": " | 1.117.145.216",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          }
+        ],
+        "mutual_information": 1.8315410440971984,
+        "normalized_mutual_information": 0.4288859791507774,
+        "chi_square": 82170.19517102576,
+        "cramers_v": 0.9979870844769679
+      }
+    },
+    {
+      "left": "comments",
+      "right": "last_name",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 427,
+        "top_combinations": [
+          {
+            "value": " | Patterson",
+            "count": 9,
+            "ratio": 0.009054325955734407
+          },
+          {
+            "value": " | Willis",
+            "count": 9,
+            "ratio": 0.009054325955734407
+          },
+          {
+            "value": " | Flores",
+            "count": 8,
+            "ratio": 0.008048289738430584
+          },
+          {
+            "value": " | Jackson",
+            "count": 8,
+            "ratio": 0.008048289738430584
+          },
+          {
+            "value": " | Shaw",
+            "count": 8,
+            "ratio": 0.008048289738430584
+          }
+        ],
+        "mutual_information": 1.2229498100645149,
+        "normalized_mutual_information": 0.3236687251450065,
+        "chi_square": 20525.616608214186,
+        "cramers_v": 0.498787852268435
+      }
+    },
+    {
+      "left": "comments",
+      "right": "registration_dttm",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 990,
+        "top_combinations": [
+          {
+            "value": " | 1454459605000",
+            "count": 2,
+            "ratio": 0.002012072434607646
+          },
+          {
+            "value": " | 1454459806000",
+            "count": 2,
+            "ratio": 0.002012072434607646
+          },
+          {
+            "value": " | 1454494020000",
+            "count": 2,
+            "ratio": 0.002012072434607646
+          },
+          {
+            "value": " | 1454495723000",
+            "count": 2,
+            "ratio": 0.002012072434607646
+          },
+          {
+            "value": " | 1454457660000",
+            "count": 1,
+            "ratio": 0.001006036217303823
+          }
+        ],
+        "mutual_information": 1.8295289716625938,
+        "normalized_mutual_information": 0.4286314117166592,
+        "chi_square": 82071.0032729046,
+        "cramers_v": 0.9973845416345682
+      }
+    },
+    {
+      "left": "comments",
+      "right": "salary",
+      "paired_non_null_count": 926,
+      "overlap_ratio": 0.926,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 926,
+        "top_combinations": [
+          {
+            "value": " | 100269.36",
+            "count": 1,
+            "ratio": 0.0010799136069114472
+          },
+          {
+            "value": " | 100320.59",
+            "count": 1,
+            "ratio": 0.0010799136069114472
+          },
+          {
+            "value": " | 100391.51",
+            "count": 1,
+            "ratio": 0.0010799136069114472
+          },
+          {
+            "value": " | 100606.14",
+            "count": 1,
+            "ratio": 0.0010799136069114472
+          },
+          {
+            "value": " | 100729.54",
+            "count": 1,
+            "ratio": 0.0010799136069114472
+          }
+        ],
+        "mutual_information": 1.8616540191205964,
+        "normalized_mutual_information": 0.43463437545794625,
+        "chi_square": 73763.58747300148,
+        "cramers_v": 0.9978621009857591
+      }
+    },
+    {
+      "left": "comments",
+      "right": "title",
+      "paired_non_null_count": 994,
+      "overlap_ratio": 0.994,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 159,
+      "equal_scalar_ratio": 0.15995975855130784,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0037735849056603774,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 350,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 159,
+            "ratio": 0.15995975855130784
+          },
+          {
+            "value": " | Structural Analysis Engineer",
+            "count": 12,
+            "ratio": 0.012072434607645875
+          },
+          {
+            "value": " | Help Desk Technician",
+            "count": 11,
+            "ratio": 0.011066398390342052
+          },
+          {
+            "value": " | GIS Technical Architect",
+            "count": 10,
+            "ratio": 0.01006036217303823
+          },
+          {
+            "value": " | Graphic Designer",
+            "count": 10,
+            "ratio": 0.01006036217303823
+          }
+        ],
+        "mutual_information": 0.9821793363718765,
+        "normalized_mutual_information": 0.28562714523878585,
+        "chi_square": 15413.540328551628,
+        "cramers_v": 0.43223403699814167
+      }
+    },
+    {
+      "left": "country",
+      "right": "email",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 992,
+        "top_combinations": [
+          {
+            "value": "China | ",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "Philippines | ",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "Indonesia | ",
+            "count": 2,
+            "ratio": 0.002
+          },
+          {
+            "value": "Japan | ",
+            "count": 2,
+            "ratio": 0.002
+          },
+          {
+            "value": "\"Bonaire | bwheelergb@last.fm",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 5.234279475017443,
+        "normalized_mutual_information": 0.7240257065856707,
+        "chi_square": 116805.61591714996,
+        "cramers_v": 0.9907369972011285
+      }
+    },
+    {
+      "left": "country",
+      "right": "first_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 878,
+        "top_combinations": [
+          {
+            "value": "China | ",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "China | Alice",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "China | Gloria",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "China | Joshua",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "Philippines | ",
+            "count": 4,
+            "ratio": 0.004
+          }
+        ],
+        "mutual_information": 3.0257454270972453,
+        "normalized_mutual_information": 0.48245684674125056,
+        "chi_square": 24155.806698045675,
+        "cramers_v": 0.45054408469370083
+      }
+    },
+    {
+      "left": "country",
+      "right": "gender",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 221,
+        "top_combinations": [
+          {
+            "value": "China | Female",
+            "count": 89,
+            "ratio": 0.089
+          },
+          {
+            "value": "China | Male",
+            "count": 88,
+            "ratio": 0.088
+          },
+          {
+            "value": "Indonesia | Male",
+            "count": 45,
+            "ratio": 0.045
+          },
+          {
+            "value": "Indonesia | Female",
+            "count": 43,
+            "ratio": 0.043
+          },
+          {
+            "value": "Russia | Female",
+            "count": 35,
+            "ratio": 0.035
+          }
+        ],
+        "mutual_information": 0.15753968775050708,
+        "normalized_mutual_information": 0.06044690695184557,
+        "chi_square": 182.1478333062576,
+        "cramers_v": 0.3017845533706601
+      }
+    },
+    {
+      "left": "country",
+      "right": "id",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "\"Bonaire | 588",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Afghanistan | 225",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Afghanistan | 602",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Aland Islands | 520",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Albania | 677",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 5.278279475017442,
+        "normalized_mutual_information": 0.7277638003908027,
+        "chi_square": 118060.68199999974,
+        "cramers_v": 0.9960454665468687
+      }
+    },
+    {
+      "left": "country",
+      "right": "ip_address",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "\"Bonaire | 126.32.181.33",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Afghanistan | 210.170.214.235",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Afghanistan | 232.141.179.187",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Aland Islands | 153.253.201.168",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Albania | 0.82.180.94",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 5.278279475017442,
+        "normalized_mutual_information": 0.7277638003908027,
+        "chi_square": 118060.68199999977,
+        "cramers_v": 0.9960454665468688
+      }
+    },
+    {
+      "left": "country",
+      "right": "last_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 900,
+        "top_combinations": [
+          {
+            "value": "China | Jackson",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "China | Nguyen",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "China | Fuller",
+            "count": 3,
+            "ratio": 0.003
+          },
+          {
+            "value": "China | Gutierrez",
+            "count": 3,
+            "ratio": 0.003
+          },
+          {
+            "value": "China | Hanson",
+            "count": 3,
+            "ratio": 0.003
+          }
+        ],
+        "mutual_information": 3.3187213863570655,
+        "normalized_mutual_information": 0.5172987500769093,
+        "chi_square": 27426.742145606095,
+        "cramers_v": 0.48008001911451426
+      }
+    },
+    {
+      "left": "country",
+      "right": "registration_dttm",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 999,
+        "top_combinations": [
+          {
+            "value": "Indonesia | 1454459806000",
+            "count": 2,
+            "ratio": 0.002
+          },
+          {
+            "value": "\"Bonaire | 1454483889000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Afghanistan | 1454471831000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Afghanistan | 1454480043000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Aland Islands | 1454464965000",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 5.270279475017444,
+        "normalized_mutual_information": 0.727025620950422,
+        "chi_square": 117768.3058723662,
+        "cramers_v": 0.9948113535638543
+      }
+    },
+    {
+      "left": "country",
+      "right": "salary",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": "Afghanistan | 220302.18",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Afghanistan | 22099.86",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Aland Islands | 259912.24",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Albania | 146980.49",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Albania | 181413.87",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 5.258983120282197,
+        "normalized_mutual_information": 0.7301637346576644,
+        "chi_square": 105372.83690987085,
+        "cramers_v": 0.9958729918354642
+      }
+    },
+    {
+      "left": "country",
+      "right": "title",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 764,
+        "top_combinations": [
+          {
+            "value": "China | ",
+            "count": 38,
+            "ratio": 0.038
+          },
+          {
+            "value": "Russia | ",
+            "count": 16,
+            "ratio": 0.016
+          },
+          {
+            "value": "Indonesia | ",
+            "count": 14,
+            "ratio": 0.014
+          },
+          {
+            "value": "France | ",
+            "count": 10,
+            "ratio": 0.01
+          },
+          {
+            "value": "Brazil | ",
+            "count": 9,
+            "ratio": 0.009
+          }
+        ],
+        "mutual_information": 2.5138002391239596,
+        "normalized_mutual_information": 0.43058811876542286,
+        "chi_square": 19664.549484610878,
+        "cramers_v": 0.4065074599521269
+      }
+    },
+    {
+      "left": "email",
+      "right": "first_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 16,
+      "equal_scalar_ratio": 0.016,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0008460236886632825,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 985,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 16,
+            "ratio": 0.016
+          },
+          {
+            "value": "aalexanderlk@ox.ac.uk | Adam",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "aalvarezjp@typepad.com | Ashley",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "aalvarezn5@amazon.de | Ashley",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "aandersonbp@mlb.com | Arthur",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.451701361720209,
+        "normalized_mutual_information": 0.8675030100857501,
+        "chi_square": 196006.26000000106,
+        "cramers_v": 0.9974746285083004
+      }
+    },
+    {
+      "left": "email",
+      "right": "gender",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0010131712259371835,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 986,
+        "top_combinations": [
+          {
+            "value": " | Male",
+            "count": 9,
+            "ratio": 0.009
+          },
+          {
+            "value": " | Female",
+            "count": 7,
+            "ratio": 0.007
+          },
+          {
+            "value": "aalexanderlk@ox.ac.uk | Male",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "aalvarezjp@typepad.com | Female",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "aalvarezn5@amazon.de | Female",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 1.2710648442177828,
+        "normalized_mutual_information": 0.3560748254395075,
+        "chi_square": 1430.8093141934537,
+        "cramers_v": 0.8458159711761932
+      }
+    },
+    {
+      "left": "email",
+      "right": "id",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 157",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 202",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 282",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 292",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 398",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 9.901784284662021,
+        "normalized_mutual_information": 0.9967838415419707,
+        "chi_square": 983001.2400000173,
+        "cramers_v": 0.9994923711564875
+      }
+    },
+    {
+      "left": "email",
+      "right": "ip_address",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 143.70.213.238",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 192.59.226.245",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 199.251.4.147",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 228.87.243.103",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 248.2.241.103",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 9.901784284662018,
+        "normalized_mutual_information": 0.9967838415419705,
+        "chi_square": 983001.2400000173,
+        "cramers_v": 0.9994923711564875
+      }
+    },
+    {
+      "left": "email",
+      "right": "last_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 999,
+        "top_combinations": [
+          {
+            "value": " | Flores",
+            "count": 2,
+            "ratio": 0.002
+          },
+          {
+            "value": " | Cole",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | Fuller",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | Johnson",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | Lane",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.735696870988669,
+        "normalized_mutual_information": 0.8803584532303617,
+        "chi_square": 241423.05669047768,
+        "cramers_v": 0.990653592025076
+      }
+    },
+    {
+      "left": "email",
+      "right": "registration_dttm",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 1454459516000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454463181000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454464550000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454470685000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454473249000",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 9.891784284662027,
+        "normalized_mutual_information": 0.9962771449050722,
+        "chi_square": 978001.2500000168,
+        "cramers_v": 0.9969471948652098
+      }
+    },
+    {
+      "left": "email",
+      "right": "salary",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": " | 102158.99",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 104324.94",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 115133.62",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 127912.54",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 155562.05",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 9.7955166167572,
+        "normalized_mutual_information": 0.9965131712126736,
+        "chi_square": 852781.257510728,
+        "cramers_v": 0.9994547363112427
+      }
+    },
+    {
+      "left": "email",
+      "right": "title",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 5,
+      "equal_scalar_ratio": 0.005,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.0008576329331046312,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 996,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": " | Account Coordinator",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | Actuary",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | Associate Professor",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | Chief Design Engineer",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 6.4048218689605605,
+        "normalized_mutual_information": 0.8009912925794082,
+        "chi_square": 177275.34347570682,
+        "cramers_v": 0.9896574089848472
+      }
+    },
+    {
+      "left": "first_name",
+      "right": "gender",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.005,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 255,
+        "top_combinations": [
+          {
+            "value": "Peter | Male",
+            "count": 11,
+            "ratio": 0.011
+          },
+          {
+            "value": "Mark | Male",
+            "count": 10,
+            "ratio": 0.01
+          },
+          {
+            "value": "Norma | Female",
+            "count": 10,
+            "ratio": 0.01
+          },
+          {
+            "value": "Samuel | Male",
+            "count": 10,
+            "ratio": 0.01
+          },
+          {
+            "value": "Stephen | Male",
+            "count": 10,
+            "ratio": 0.01
+          }
+        ],
+        "mutual_information": 1.0357016017929883,
+        "normalized_mutual_information": 0.33445463630074723,
+        "chi_square": 612.3801146840251,
+        "cramers_v": 0.5533444292138601
+      }
+    },
+    {
+      "left": "first_name",
+      "right": "id",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 157",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 202",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 282",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 292",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 398",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.4517013617202075,
+        "normalized_mutual_information": 0.8647129829424968,
+        "chi_square": 196006.26000000123,
+        "cramers_v": 0.9974746285083008
+      }
+    },
+    {
+      "left": "first_name",
+      "right": "ip_address",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 143.70.213.238",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 192.59.226.245",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 199.251.4.147",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 228.87.243.103",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 248.2.241.103",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.451701361720204,
+        "normalized_mutual_information": 0.8647129829424965,
+        "chi_square": 196006.26000000114,
+        "cramers_v": 0.9974746285083006
+      }
+    },
+    {
+      "left": "first_name",
+      "right": "last_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 1,
+      "equal_scalar_ratio": 0.001,
+      "shared_distinct_scalar_count": 12,
+      "scalar_jaccard_index": 0.02771362586605081,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 989,
+        "top_combinations": [
+          {
+            "value": " | Flores",
+            "count": 2,
+            "ratio": 0.002
+          },
+          {
+            "value": "Ashley | Alvarez",
+            "count": 2,
+            "ratio": 0.002
+          },
+          {
+            "value": "Fred | Patterson",
+            "count": 2,
+            "ratio": 0.002
+          },
+          {
+            "value": "Gloria | Hamilton",
+            "count": 2,
+            "ratio": 0.002
+          },
+          {
+            "value": "Harry | Howell",
+            "count": 2,
+            "ratio": 0.002
+          }
+        ],
+        "mutual_information": 5.305613948046856,
+        "normalized_mutual_information": 0.6960248594833436,
+        "chi_square": 47453.85342933888,
+        "cramers_v": 0.4907978246869644
+      }
+    },
+    {
+      "left": "first_name",
+      "right": "registration_dttm",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 1454459516000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454463181000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454464550000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454470685000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454473249000",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.441701361720206,
+        "normalized_mutual_information": 0.8639861444194286,
+        "chi_square": 194922.38642857238,
+        "cramers_v": 0.9947128923544238
+      }
+    },
+    {
+      "left": "first_name",
+      "right": "salary",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": " | 102158.99",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 104324.94",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 115133.62",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 127912.54",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": " | 155562.05",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 7.446052957413459,
+        "normalized_mutual_information": 0.8688252435374771,
+        "chi_square": 181745.87553648092,
+        "cramers_v": 0.9974618406687371
+      }
+    },
+    {
+      "left": "first_name",
+      "right": "title",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 5,
+      "equal_scalar_ratio": 0.005,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.002638522427440633,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 915,
+        "top_combinations": [
+          {
+            "value": " | ",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": "Arthur | ",
+            "count": 5,
+            "ratio": 0.005
+          },
+          {
+            "value": "Anne | ",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "James | ",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "Deborah | ",
+            "count": 3,
+            "ratio": 0.003
+          }
+        ],
+        "mutual_information": 4.1326523490169595,
+        "normalized_mutual_information": 0.5957699877808195,
+        "chi_square": 35343.15102284027,
+        "cramers_v": 0.44188915776526894
+      }
+    },
+    {
+      "left": "gender",
+      "right": "id",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 105",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 109",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 120",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 123",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 130",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 1.2868840347503987,
+        "normalized_mutual_information": 0.3593469518450389,
+        "chi_square": 1440.2140000000056,
+        "cramers_v": 0.8485911854361927
+      }
+    },
+    {
+      "left": "gender",
+      "right": "ip_address",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": " | 104.13.230.181",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 105.52.110.107",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 110.116.116.19",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 111.156.147.232",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 111.188.66.182",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 1.2868840347503987,
+        "normalized_mutual_information": 0.3593469518450389,
+        "chi_square": 1440.214000000012,
+        "cramers_v": 0.8485911854361946
+      }
+    },
+    {
+      "left": "gender",
+      "right": "last_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 485,
+        "top_combinations": [
+          {
+            "value": "Male | Barnes",
+            "count": 7,
+            "ratio": 0.007
+          },
+          {
+            "value": "Female | Flores",
+            "count": 6,
+            "ratio": 0.006
+          },
+          {
+            "value": "Female | Henderson",
+            "count": 6,
+            "ratio": 0.006
+          },
+          {
+            "value": "Female | Willis",
+            "count": 6,
+            "ratio": 0.006
+          },
+          {
+            "value": "Male | Butler",
+            "count": 6,
+            "ratio": 0.006
+          }
+        ],
+        "mutual_information": 0.3637777003405098,
+        "normalized_mutual_information": 0.11483735804061881,
+        "chi_square": 318.4245656228309,
+        "cramers_v": 0.3990141386109212
+      }
+    },
+    {
+      "left": "gender",
+      "right": "registration_dttm",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 999,
+        "top_combinations": [
+          {
+            "value": "Male | 1454519251000",
+            "count": 2,
+            "ratio": 0.002
+          },
+          {
+            "value": " | 1454457660000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454457782000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454458727000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": " | 1454458932000",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 1.2788840347503978,
+        "normalized_mutual_information": 0.3572923521892373,
+        "chi_square": 1428.5216904373808,
+        "cramers_v": 0.8451395418619877
+      }
+    },
+    {
+      "left": "gender",
+      "right": "salary",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": "Female | 100320.59",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Female | 100391.51",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Female | 100729.54",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Female | 100733.44",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Female | 101509.37",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 0.9991494535485845,
+        "normalized_mutual_information": 0.31826186106777,
+        "chi_square": 466.54935622318004,
+        "cramers_v": 0.7075234540336482
+      }
+    },
+    {
+      "left": "gender",
+      "right": "title",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 12,
+      "equal_scalar_ratio": 0.012,
+      "shared_distinct_scalar_count": 1,
+      "scalar_jaccard_index": 0.005434782608695652,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 340,
+        "top_combinations": [
+          {
+            "value": "Female | ",
+            "count": 94,
+            "ratio": 0.094
+          },
+          {
+            "value": "Male | ",
+            "count": 91,
+            "ratio": 0.091
+          },
+          {
+            "value": " | ",
+            "count": 12,
+            "ratio": 0.012
+          },
+          {
+            "value": "Male | Graphic Designer",
+            "count": 11,
+            "ratio": 0.011
+          },
+          {
+            "value": "Female | Electrical Engineer",
+            "count": 8,
+            "ratio": 0.008
+          }
+        ],
+        "mutual_information": 0.2729924660671026,
+        "normalized_mutual_information": 0.09470184169789295,
+        "chi_square": 283.04717507395344,
+        "cramers_v": 0.3761962088285536
+      }
+    },
+    {
+      "left": "id",
+      "right": "ip_address",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "1 | 1.197.201.2",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "10 | 143.28.251.245",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "100 | 13.54.121.138",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1000 | 217.1.147.132",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "101 | 93.9.95.6",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 9.965784284662018,
+        "normalized_mutual_information": 1.0,
+        "chi_square": 998001.0000000185,
+        "cramers_v": 0.9994998749374702
+      }
+    },
+    {
+      "left": "id",
+      "right": "last_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "1 | Jordan",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "10 | Stewart",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "100 | Weaver",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1000 | Meyer",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "101 | Hansen",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.79769687098867,
+        "normalized_mutual_information": 0.8845602778146845,
+        "chi_square": 245004.88600000186,
+        "cramers_v": 0.9979753609875441
+      }
+    },
+    {
+      "left": "id",
+      "right": "registration_dttm",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": -256724570.5,
+        "pearson_correlation": -0.03331155364609832,
+        "spearman_correlation": -0.0320128464930392,
+        "slope": -3080.6979266979265,
+        "intercept": 1454500891080.3123,
+        "r_squared": 0.0011096596063168863
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "1 | 1454486129000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "10 | 1454524187000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "100 | 1454514595000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1000 | 1454493138000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "101 | 1454521118000",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 9.95578428466202,
+        "normalized_mutual_information": 0.9994981574175715,
+        "chi_square": 993001.010000018,
+        "cramers_v": 0.9994973636179807
+      }
+    },
+    {
+      "left": "id",
+      "right": "salary",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": 24013.17540560686,
+        "pearson_correlation": 0.001043574204133791,
+        "spearman_correlation": 0.002003882035993835,
+        "slope": 0.2883867275305105,
+        "intercept": 148862.43163322634,
+        "r_squared": 1.0890471195334753e-6
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": "1 | 49756.53",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "10 | 27234.28",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "100 | 175694.61",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "1000 | 222561.13",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "101 | 241582.88",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 9.86418614465419,
+        "normalized_mutual_information": 1.0,
+        "chi_square": 866760.9999999983,
+        "cramers_v": 0.9994633753302856
+      }
+    },
+    {
+      "left": "id",
+      "right": "title",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "1 | Internal Auditor",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "10 | Health Coach IV",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "100 | Dental Hygienist",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1000 | ",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "101 | ",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 6.457212228486114,
+        "normalized_mutual_information": 0.8049460787619244,
+        "chi_square": 180044.15999999986,
+        "cramers_v": 0.9973560628091146
+      }
+    },
+    {
+      "left": "ip_address",
+      "right": "last_name",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "0.14.221.162 | Flores",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "0.14.50.205 | Austin",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "0.234.217.5 | Boyd",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "0.82.180.94 | Snyder",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1.117.145.216 | Mcdonald",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.79769687098867,
+        "normalized_mutual_information": 0.8845602778146845,
+        "chi_square": 245004.88600000183,
+        "cramers_v": 0.997975360987544
+      }
+    },
+    {
+      "left": "ip_address",
+      "right": "registration_dttm",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "0.14.221.162 | 1454495961000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "0.14.50.205 | 1454538620000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "0.234.217.5 | 1454488583000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "0.82.180.94 | 1454512884000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1.117.145.216 | 1454473324000",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 9.95578428466202,
+        "normalized_mutual_information": 0.9994981574175713,
+        "chi_square": 993001.010000018,
+        "cramers_v": 0.9994973636179807
+      }
+    },
+    {
+      "left": "ip_address",
+      "right": "salary",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": "0.14.221.162 | 274191.96",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "0.14.50.205 | 168447.99",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "0.234.217.5 | 192187.5",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "0.82.180.94 | 146980.49",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "1.117.145.216 | 280888.16",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 9.86418614465419,
+        "normalized_mutual_information": 1.0,
+        "chi_square": 866760.9999999983,
+        "cramers_v": 0.9994633753302856
+      }
+    },
+    {
+      "left": "ip_address",
+      "right": "title",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "0.14.221.162 | Office Assistant I",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "0.14.50.205 | Internal Auditor",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "0.234.217.5 | ",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "0.82.180.94 | ",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1.117.145.216 | Database Administrator III",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 6.457212228486117,
+        "normalized_mutual_information": 0.8049460787619246,
+        "chi_square": 180044.15999999968,
+        "cramers_v": 0.9973560628091142
+      }
+    },
+    {
+      "left": "last_name",
+      "right": "registration_dttm",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "Adams | 1454473451000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Adams | 1454514075000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Adams | 1454539417000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Alexander | 1454469295000",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "Alexander | 1454471070000",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 7.787696870988668,
+        "normalized_mutual_information": 0.8838694545523874,
+        "chi_square": 243812.07585714463,
+        "cramers_v": 0.9955430675863738
+      }
+    },
+    {
+      "left": "last_name",
+      "right": "salary",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": "Adams | 136458.65",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Adams | 210773.28",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Adams | 67749.83",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Alexander | 170605.29",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "Alexander | 256068.38",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 7.795001620133794,
+        "normalized_mutual_information": 0.8889502887287795,
+        "chi_square": 228344.5772532196,
+        "cramers_v": 0.997975412343347
+      }
+    },
+    {
+      "left": "last_name",
+      "right": "title",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 926,
+        "top_combinations": [
+          {
+            "value": "Fuller | ",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "Willis | ",
+            "count": 4,
+            "ratio": 0.004
+          },
+          {
+            "value": "Brooks | ",
+            "count": 3,
+            "ratio": 0.003
+          },
+          {
+            "value": "Dean | ",
+            "count": 3,
+            "ratio": 0.003
+          },
+          {
+            "value": "Howell | ",
+            "count": 3,
+            "ratio": 0.003
+          }
+        ],
+        "mutual_information": 4.4479188023322305,
+        "normalized_mutual_information": 0.626831980967516,
+        "chi_square": 43506.59350946492,
+        "cramers_v": 0.49027331147207587
+      }
+    },
+    {
+      "left": "registration_dttm",
+      "right": "salary",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": {
+        "covariance": -11279745370.096718,
+        "pearson_correlation": -0.005303598451579394,
+        "spearman_correlation": -0.004885199975832697,
+        "slope": -0.000015856968583947177,
+        "intercept": 23212959.680365536,
+        "r_squared": 0.000028128156535595347
+      },
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": "1454457663000 | 194214.08",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "1454457674000 | 282503.77",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "1454457684000 | 263412.02",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "1454457705000 | 25806.31",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "1454457740000 | 276712.79",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 9.855602453667066,
+        "normalized_mutual_information": 0.999564811580541,
+        "chi_square": 863033.0085836892,
+        "cramers_v": 0.9994610641437264
+      }
+    },
+    {
+      "left": "registration_dttm",
+      "right": "title",
+      "paired_non_null_count": 1000,
+      "overlap_ratio": 1.0,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 1000,
+        "top_combinations": [
+          {
+            "value": "1454457660000 | Help Desk Technician",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1454457663000 | Internal Auditor",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1454457674000 | Business Systems Development Analyst",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1454457684000 | Assistant Professor",
+            "count": 1,
+            "ratio": 0.001
+          },
+          {
+            "value": "1454457705000 | Budget/Accounting Analyst II",
+            "count": 1,
+            "ratio": 0.001
+          }
+        ],
+        "mutual_information": 6.447212228486112,
+        "normalized_mutual_information": 0.8041030273846319,
+        "chi_square": 179236.5835487067,
+        "cramers_v": 0.9951167608237803
+      }
+    },
+    {
+      "left": "salary",
+      "right": "title",
+      "paired_non_null_count": 932,
+      "overlap_ratio": 0.932,
+      "both_null_or_missing_count": 0,
+      "equal_scalar_count": 0,
+      "equal_scalar_ratio": 0.0,
+      "shared_distinct_scalar_count": 0,
+      "scalar_jaccard_index": 0.0,
+      "numeric_relationship": null,
+      "categorical_relationship": {
+        "distinct_pair_count": 932,
+        "top_combinations": [
+          {
+            "value": "100269.36 | Dental Hygienist",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "100320.59 | ",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "100391.51 | Operator",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "100606.14 | Account Executive",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          },
+          {
+            "value": "100729.54 | Accounting Assistant IV",
+            "count": 1,
+            "ratio": 0.001072961373390558
+          }
+        ],
+        "mutual_information": 6.431006700637171,
+        "normalized_mutual_information": 0.8074373808248992,
+        "chi_square": 165005.7854077243,
+        "cramers_v": 0.9973133407300272
+      }
+    }
+  ]
+}
