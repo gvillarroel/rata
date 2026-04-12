@@ -1,8 +1,16 @@
-# Commands
+# Command Reference
 
-`rata` is the main CLI for dataset inspection, schema extraction, transformation, and synthetic-data generation.
+This page is the practical reference for every `rata` command.
 
-## Supported Formats
+## General Rule
+
+Use this format:
+
+```powershell
+rata <command> [options]
+```
+
+Supported input formats:
 
 - `csv`
 - `json`
@@ -10,32 +18,42 @@
 - `parquet`
 - `avro`
 
-## Stats
+## `rata stats`
 
-Generate dataset statistics and structure analysis.
+Create a full statistics report for a dataset.
 
 ```powershell
-rata stats <dataset-path>
-rata stats <dataset-path> --output json
+# Print a readable report in the terminal
+rata stats datasets\iris.csv
+
+# Print the same report as JSON
+rata stats datasets\iris.csv --output json
 ```
 
 Options:
 
 - `--output markdown|json`
 
-Notes:
+Default:
 
-- `markdown` is the default output format.
-- The report includes dataset-level stats, per-column stats, structure analysis, and pairwise column relationships.
+- `markdown`
 
-## Schema
+## `rata schema`
 
-Infer a schema from a dataset and render it in different formats.
+Infer a schema from a dataset.
 
 ```powershell
-rata schema <dataset-path>
-rata schema <dataset-path> --format json-schema
-rata schema <dataset-path> --format avro --name user_record
+# Show a readable schema
+rata schema datasets\cars.json
+
+# Export JSON Schema
+rata schema datasets\cars.json --format json-schema
+
+# Export Avro schema with a custom name
+rata schema datasets\userdata1.avro --format avro --name UserRecord
+
+# Export OpenAPI schema
+rata schema datasets\news_headlines.jsonl --format openapi --name NewsHeadline
 ```
 
 Options:
@@ -43,19 +61,23 @@ Options:
 - `--format markdown|json|json-schema|openapi|avro|typescript|python`
 - `--name <schema-name>`
 
-Notes:
+Default:
 
-- `markdown` is the default schema output.
-- The inferred schema is observational and based on the input data, not on an external contract.
+- `markdown`
 
-## Head
+## `rata head`
 
-Preview the first rows of any supported dataset.
+Show the first rows of a dataset.
 
 ```powershell
-rata head <dataset-path>
-rata head <dataset-path> --rows 10
-rata head <dataset-path> --output json
+# Show the first 5 rows
+rata head datasets\iris.csv
+
+# Show the first 10 rows
+rata head datasets\cars.json --rows 10
+
+# Return the preview as JSON
+rata head datasets\news_headlines.jsonl --output json
 ```
 
 Options:
@@ -64,18 +86,24 @@ Options:
 - `-n <n>`
 - `--output markdown|json`
 
-Notes:
+Default:
 
-- `markdown` is the default output format.
-- The response includes metadata plus the first `N` rows.
+- `rows = 5`
+- `output = markdown`
 
-## Transform
+## `rata transform`
 
 Convert one dataset format into another.
 
 ```powershell
-rata transform <input-path> <output-path>
-rata transform <input-path> <output-path> --format parquet
+# Convert CSV to Parquet
+rata transform datasets\iris.csv datasets\converted\iris.parquet
+
+# Convert JSON to JSONL
+rata transform datasets\cars.json datasets\converted\cars.jsonl
+
+# Force the output format even if the extension is unusual
+rata transform datasets\iris.csv datasets\converted\iris.data --format parquet
 ```
 
 Options:
@@ -84,49 +112,112 @@ Options:
 
 Notes:
 
-- If `--format` is omitted, the output format is inferred from the output file extension.
-- Nested arrays and objects are preserved in `json` and `jsonl`.
-- When writing `csv`, `parquet`, or `avro`, nested values are serialized as JSON strings.
+- If `--format` is omitted, Rata uses the output file extension.
+- Nested objects and arrays are preserved in `json` and `jsonl`.
+- For `csv`, `parquet`, and `avro`, nested values are written as JSON strings.
 
-## Synth
+## `rata train df`
 
-Synthetic-data generation commands live under `rata synth`.
-
-### SMOTE
-
-Generate synthetic minority samples using SMOTE.
+Train a reusable tabular diffusion model.
 
 ```powershell
-rata synth smote <input-path> <output-path> --target <column>
-rata synth smote <input-path> <output-path> --target <column> --seed 42
-rata synth smote <input-path> <output-path> --target <column> --features x,y,z --format parquet
+# Train a model with the default output path
+# Output: models\iris.df.json
+rata train df datasets\iris.csv
+
+# Train a model with an explicit output path
+rata train df datasets\cars.json datasets\converted\cars-diffusion-model.json --seed 42
 ```
 
 Options:
 
-- `--target <column>` required label column
+- `--timesteps <n>`
+- `--examples-per-row <n>`
+- `--ridge-alpha <value>`
+- `--seed <n>`
+- `--features a,b,c`
+
+Behavior:
+
+- If `MODEL_OUTPUT` is omitted, Rata writes the model to `models\<dataset-stem>.df.json`.
+- If `--features` is omitted, Rata trains on the fully numeric columns it can detect.
+- This first version trains Gaussian diffusion on numeric columns.
+
+## `rata gen df`
+
+Generate a synthetic dataset from a trained diffusion model.
+
+```powershell
+# Generate a dataset with the default output path
+# Output: datasets\generated\iris.df-iris.json
+rata gen df models\iris.df.json datasets\iris.csv
+
+# Generate with an explicit output path and row count
+rata gen df datasets\converted\cars-diffusion-model.json datasets\cars.json datasets\converted\cars-diffusion-generated.json --rows 406 --seed 7
+```
+
+Options:
+
+- `--rows <n>`
+- `--seed <n>`
+- `--format csv|json|jsonl|parquet|avro`
+
+Behavior:
+
+- If `OUTPUT_PATH` is omitted, Rata writes to `datasets\generated\`.
+- The reference dataset is used to recover schema and bootstrap passthrough non-numeric columns.
+- Numeric columns are generated by the reverse diffusion process from the trained model artifact.
+
+## `rata synth smote`
+
+Generate minority-class synthetic rows with SMOTE.
+
+```powershell
+# Basic SMOTE run
+rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.json --target class
+
+# Deterministic run with a fixed seed
+rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.json --target class --seed 42
+
+# Explicit feature selection
+rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.parquet --target class --features x,y --format parquet
+```
+
+Options:
+
+- `--target <column>` required
 - `--minority-label <label>`
 - `--samples <n>`
+- `--target-rows <n>`
 - `--k <n>`
 - `--seed <n>`
 - `--features a,b,c`
 - `--format csv|json|jsonl|parquet|avro`
 
-Notes:
+Behavior:
 
-- If `--samples` is omitted, the synthetic row count defaults to the input row count.
-- If `--minority-label` is omitted, the least frequent target value is used.
-- If `--features` is omitted, numeric feature columns are auto-detected.
-- The report includes `stats_diff` and an `evaluation` block with utility and privacy proxy metrics.
+- If `--samples` is omitted, Rata adds as many synthetic rows as the input row count.
+- If `--target-rows` is provided, Rata downsamples the augmented dataset to the exact final row count you requested.
+- If `--minority-label` is omitted, Rata auto-detects the least frequent target value.
+- If `--features` is omitted, Rata auto-detects numeric feature columns.
 
-### DP Noise
+Output:
+
+- JSON report with generation settings, `stats_diff`, and `evaluation`.
+
+## `rata synth dp-noise`
 
 Generate a DP-style perturbed dataset by adding Laplace noise to numeric columns.
 
 ```powershell
-rata synth dp-noise <input-path> <output-path>
-rata synth dp-noise <input-path> <output-path> --epsilon 1.0 --seed 42
-rata synth dp-noise <input-path> <output-path> --features x,y,z --format parquet
+# Perturb all numeric columns
+rata synth dp-noise datasets\iris.csv datasets\converted\iris-dp-noise.parquet
+
+# Use a fixed epsilon and seed
+rata synth dp-noise datasets\iris.csv datasets\converted\iris-dp-noise.parquet --epsilon 1.0 --seed 42
+
+# Perturb only selected columns
+rata synth dp-noise datasets\cars.json datasets\converted\cars-dp-noise.json --epsilon 1.0 --seed 42 --features Acceleration,Cylinders,Displacement,Weight_in_lbs
 ```
 
 Options:
@@ -136,15 +227,30 @@ Options:
 - `--features a,b,c`
 - `--format csv|json|jsonl|parquet|avro`
 
-Notes:
+Behavior:
 
-- `epsilon` defaults to `1.0`.
-- If `--features` is omitted, all fully numeric columns are perturbed.
-- Non-numeric columns are preserved unchanged.
-- The report includes `stats_diff` and an `evaluation` block so it can be compared directly with SMOTE outputs.
+- If `--features` is omitted, Rata perturbs every fully numeric column.
+- Non-numeric columns are preserved.
+- Row count stays the same.
 
-## Output Conventions
+Output:
 
-- `stats`, `schema`, and `head` support both `markdown` and `json` outputs.
-- `transform`, `synth smote`, and `synth dp-noise` return JSON reports.
-- Output dataset formats are inferred from the destination path unless `--format` is provided.
+- JSON report with generation settings, `stats_diff`, and `evaluation`.
+
+## Output Summary
+
+```powershell
+# Human-readable output
+rata stats datasets\iris.csv
+rata schema datasets\iris.csv
+rata head datasets\iris.csv
+
+# Machine-readable output
+rata stats datasets\iris.csv --output json
+rata head datasets\iris.csv --output json
+rata transform datasets\iris.csv datasets\converted\iris.parquet
+rata train df datasets\iris.csv
+rata gen df models\iris.df.json datasets\iris.csv
+rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.json --target class
+rata synth dp-noise datasets\iris.csv datasets\converted\iris-dp-noise.parquet
+```

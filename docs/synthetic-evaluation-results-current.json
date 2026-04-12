@@ -1,0 +1,287 @@
+[
+  {
+    "Dataset": "iris.csv",
+    "Source": "datasets/iris.csv",
+    "OriginalRows": 150,
+    "TargetColumn": "species",
+    "NumericColumns": "petal_length, petal_width, sepal_length, sepal_width",
+    "Diffusion": {
+      "Rows": 150,
+      "TrainingMse": 0.609276531025098,
+      "MeanAbsPearsonDelta": 0.1199144852332561,
+      "MaxAbsPearsonDelta": 0.21108088182366222,
+      "DcrMedian": 0.5886836420694812,
+      "DcrP5": 0.22986411496102366,
+      "ExactReplayRatio": 0,
+      "ExactNumericReplayRatio": 0,
+      "TopPairs": [
+        {
+          "Pair": "petal_width/sepal_width",
+          "Delta": 0.21108088182366222,
+          "Original": -0.3661259325364395,
+          "Candidate": -0.15504505071277727
+        },
+        {
+          "Pair": "sepal_length/sepal_width",
+          "Delta": 0.19419719207823516,
+          "Original": -0.11756978413300205,
+          "Candidate": 0.07662740794523312
+        },
+        {
+          "Pair": "petal_length/sepal_width",
+          "Delta": 0.17350856090283323,
+          "Original": -0.42844010433054003,
+          "Candidate": -0.2549315434277068
+        }
+      ]
+    },
+    "Smote": {
+      "Rows": 150,
+      "MinorityLabel": "setosa",
+      "MeanAbsPearsonDelta": 0.03301838613552572,
+      "MaxAbsPearsonDelta": 0.0729383409146166,
+      "DcrMedian": 0.808546733720376,
+      "DcrP5": 0.24102356287724935,
+      "ExactReplayRatio": 0.47333333333333333,
+      "ExactNumericReplayRatio": 0.47333333333333333,
+      "TopPairs": [
+        {
+          "Pair": "petal_width/sepal_width",
+          "Delta": 0.0729383409146166,
+          "Original": -0.3661259325364395,
+          "Candidate": -0.4390642734510561
+        },
+        {
+          "Pair": "petal_length/sepal_width",
+          "Delta": 0.05776062491981204,
+          "Original": -0.42844010433054003,
+          "Candidate": -0.48620072925035207
+        },
+        {
+          "Pair": "sepal_length/sepal_width",
+          "Delta": 0.03444140408943468,
+          "Original": -0.11756978413300205,
+          "Candidate": -0.15201118822243673
+        }
+      ]
+    },
+    "Notes": []
+  },
+  {
+    "Dataset": "cars.json",
+    "Source": "datasets/cars.json",
+    "OriginalRows": 406,
+    "TargetColumn": "Origin",
+    "NumericColumns": "Acceleration, Cylinders, Displacement, Horsepower, Miles_per_Gallon, Weight_in_lbs",
+    "Diffusion": {
+      "Rows": 406,
+      "TrainingMse": 0.5859228010694514,
+      "MeanAbsPearsonDelta": 0.47165936401113034,
+      "MaxAbsPearsonDelta": 0.950318232784793,
+      "DcrMedian": 1.082448955258335,
+      "DcrP5": 0.46274563813971087,
+      "ExactReplayRatio": 0,
+      "ExactNumericReplayRatio": 0,
+      "TopPairs": [
+        {
+          "Pair": "Displacement/Horsepower",
+          "Delta": 0.950318232784793,
+          "Original": 0.8983263139804304,
+          "Candidate": -0.05199191880436255
+        },
+        {
+          "Pair": "Horsepower/Weight_in_lbs",
+          "Delta": 0.9470552826919927,
+          "Original": 0.8665862223908412,
+          "Candidate": -0.0804690603011515
+        },
+        {
+          "Pair": "Cylinders/Horsepower",
+          "Delta": 0.9068560550779946,
+          "Original": 0.8441582976660666,
+          "Candidate": -0.06269775741192797
+        }
+      ]
+    },
+    "Smote": {
+      "Rows": 406,
+      "MinorityLabel": "Europe",
+      "MeanAbsPearsonDelta": 0.07505866595299923,
+      "MaxAbsPearsonDelta": 0.16717620795389038,
+      "DcrMedian": 0.6290211460957567,
+      "DcrP5": 0.3897034108421289,
+      "ExactReplayRatio": 0.4753694581280788,
+      "ExactNumericReplayRatio": 0.4753694581280788,
+      "TopPairs": [
+        {
+          "Pair": "Acceleration/Weight_in_lbs",
+          "Delta": 0.16717620795389038,
+          "Original": -0.4300858050916272,
+          "Candidate": -0.2629095971377368
+        },
+        {
+          "Pair": "Displacement/Miles_per_Gallon",
+          "Delta": 0.11268946133510727,
+          "Original": -0.8042028248058988,
+          "Candidate": -0.6915133634707915
+        },
+        {
+          "Pair": "Cylinders/Miles_per_Gallon",
+          "Delta": 0.11063726301805499,
+          "Original": -0.7753962854205555,
+          "Candidate": -0.6647590224025005
+        }
+      ]
+    },
+    "Notes": []
+  },
+  {
+    "Dataset": "news_headlines.jsonl",
+    "Source": "datasets/news_headlines.jsonl",
+    "OriginalRows": 200,
+    "TargetColumn": "",
+    "NumericColumns": "",
+    "Diffusion": null,
+    "Smote": null,
+    "Notes": [
+      "Diffusion not evaluated: dataset has no fully numeric columns.",
+      "SMOTE not evaluated: no suitable low-cardinality label column."
+    ]
+  },
+  {
+    "Dataset": "userdata1.avro",
+    "Source": "datasets/userdata1.avro",
+    "OriginalRows": 1000,
+    "TargetColumn": "gender",
+    "NumericColumns": "cc, id, salary",
+    "Diffusion": {
+      "Rows": 1000,
+      "TrainingMse": 0.7934546909522504,
+      "MeanAbsPearsonDelta": 0.06455393412601355,
+      "MaxAbsPearsonDelta": 0.09834675798720192,
+      "DcrMedian": 0.059928153206428796,
+      "DcrP5": 0.017784551821715584,
+      "ExactReplayRatio": 0,
+      "ExactNumericReplayRatio": 0,
+      "TopPairs": [
+        {
+          "Pair": "id/salary",
+          "Delta": 0.09834675798720192,
+          "Original": 0.0006681003523796111,
+          "Candidate": 0.09901485833958154
+        },
+        {
+          "Pair": "cc/salary",
+          "Delta": 0.07059517026124794,
+          "Original": 0.008773662664396522,
+          "Candidate": -0.06182150759685142
+        },
+        {
+          "Pair": "cc/id",
+          "Delta": 0.0247198741295908,
+          "Original": 0.030111315122896283,
+          "Candidate": 0.05483118925248708
+        }
+      ]
+    },
+    "Smote": {
+      "Rows": 1000,
+      "MinorityLabel": "Male",
+      "MeanAbsPearsonDelta": 0.023329780956396127,
+      "MaxAbsPearsonDelta": 0.03507618674874329,
+      "DcrMedian": 0.06160611326818667,
+      "DcrP5": 0.016864699149490472,
+      "ExactReplayRatio": 0.501,
+      "ExactNumericReplayRatio": 0.501,
+      "TopPairs": [
+        {
+          "Pair": "cc/id",
+          "Delta": 0.03507618674874329,
+          "Original": 0.030111315122896283,
+          "Candidate": -0.004964871625847009
+        },
+        {
+          "Pair": "id/salary",
+          "Delta": 0.03292267160554123,
+          "Original": 0.0006681003523796111,
+          "Candidate": 0.03359077195792084
+        },
+        {
+          "Pair": "cc/salary",
+          "Delta": 0.001990484514903865,
+          "Original": 0.008773662664396522,
+          "Candidate": 0.006783178149492657
+        }
+      ]
+    },
+    "Notes": []
+  },
+  {
+    "Dataset": "userdata1.parquet",
+    "Source": "datasets/userdata1.parquet",
+    "OriginalRows": 1000,
+    "TargetColumn": "gender",
+    "NumericColumns": "id, registration_dttm, salary",
+    "Diffusion": {
+      "Rows": 1000,
+      "TrainingMse": 0.7852305982310217,
+      "MeanAbsPearsonDelta": 0.018773102708682973,
+      "MaxAbsPearsonDelta": 0.039436862289759046,
+      "DcrMedian": 0.20058004039107646,
+      "DcrP5": 0.0866056344349343,
+      "ExactReplayRatio": 0,
+      "ExactNumericReplayRatio": 0,
+      "TopPairs": [
+        {
+          "Pair": "id/salary",
+          "Delta": 0.039436862289759046,
+          "Original": 0.001043574204133791,
+          "Candidate": -0.038393288085625255
+        },
+        {
+          "Pair": "registration_dttm/salary",
+          "Delta": 0.00905713000810325,
+          "Original": -0.005303598451579394,
+          "Candidate": 0.0037535315565238574
+        },
+        {
+          "Pair": "id/registration_dttm",
+          "Delta": 0.00782531582818662,
+          "Original": -0.03331155364609832,
+          "Candidate": -0.025486237817911702
+        }
+      ]
+    },
+    "Smote": {
+      "Rows": 1000,
+      "MinorityLabel": "Male",
+      "MeanAbsPearsonDelta": 0.03355497182230627,
+      "MaxAbsPearsonDelta": 0.06426673056271422,
+      "DcrMedian": 0.151386964831216,
+      "DcrP5": 0.07375820828927082,
+      "ExactReplayRatio": 0.501,
+      "ExactNumericReplayRatio": 0.501,
+      "TopPairs": [
+        {
+          "Pair": "id/registration_dttm",
+          "Delta": 0.06426673056271422,
+          "Original": -0.03331155364609832,
+          "Candidate": 0.030955176916615895
+        },
+        {
+          "Pair": "registration_dttm/salary",
+          "Delta": 0.02739131146518465,
+          "Original": -0.005303598451579394,
+          "Candidate": 0.022087713013605254
+        },
+        {
+          "Pair": "id/salary",
+          "Delta": 0.00900687343901993,
+          "Original": 0.001043574204133791,
+          "Candidate": 0.010050447643153722
+        }
+      ]
+    },
+    "Notes": []
+  }
+]

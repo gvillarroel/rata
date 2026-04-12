@@ -132,8 +132,9 @@ Evaluation metrics included in the SMOTE report:
   - `nearest_neighbor_distance_ratio`
   - `real_to_real_distance_baseline`
   - counts of synthetic rows below the real-data DCR `p5` and `median` baselines
+  - `rare_value_alerts` for shared non-numeric scalar columns
 
-These privacy metrics are useful diagnostics, not privacy guarantees. The report includes an explicit caveat that nearest-neighbor metrics such as DCR and NNDR do not replace membership inference attacks.
+These privacy metrics are useful diagnostics, not privacy guarantees. The report includes explicit caveats that nearest-neighbor metrics such as DCR and NNDR do not replace membership inference attacks, and that rare-value alerts are release-review signals rather than a formal anonymity proof.
 
 Current limitation:
 

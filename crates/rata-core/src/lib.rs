@@ -6,6 +6,8 @@ use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+mod diffusion;
+
 use anyhow::{Context, Result, anyhow, bail};
 use apache_avro::{
     Codec as AvroCodec, Reader as AvroReader, Schema as AvroSchema, Writer as AvroWriter,
@@ -21,7 +23,16 @@ use rand::{Rng, SeedableRng, rngs::StdRng};
 use serde::Serialize;
 use serde_json::{Map as JsonMap, Number as JsonNumber, Value as JsonValue};
 
+pub use diffusion::{
+    DiffusionGenerateOptions, DiffusionGenerateReport, DiffusionTrainOptions, DiffusionTrainReport,
+    generate_from_diffusion_model, train_diffusion_model,
+};
+
 pub type Record = JsonMap<String, JsonValue>;
+
+const DEFAULT_RARE_VALUE_ALERT_THRESHOLD: usize = 5;
+const MAX_RARE_VALUE_ALERTS: usize = 10;
+const MAX_RARE_VALUE_EXAMPLES: usize = 5;
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -168,6 +179,7 @@ pub struct SyntheticDataPrivacyReport {
     pub real_to_real_distance_baseline: DistanceSummary,
     pub synthetic_below_real_dcr_p5_count: usize,
     pub synthetic_below_real_dcr_median_count: usize,
+    pub rare_value_alerts: RareValueAlertSummary,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -179,6 +191,29 @@ pub struct DistanceSummary {
     pub mean: f64,
     pub p95: f64,
     pub max: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct RareValueAlertSummary {
+    pub threshold: usize,
+    pub reviewed_columns: usize,
+    pub columns_with_alerts: usize,
+    pub alerts: Vec<RareValueAlert>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct RareValueAlert {
+    pub column: String,
+    pub reference_distinct_value_count: usize,
+    pub synthetic_distinct_value_count: usize,
+    pub reference_unique_value_count: usize,
+    pub synthetic_unique_value_count: usize,
+    pub reference_rare_value_count: usize,
+    pub synthetic_rare_value_count: usize,
+    pub overlapping_unique_value_count: usize,
+    pub overlapping_rare_value_count: usize,
+    pub overlapping_unique_examples: Vec<String>,
+    pub overlapping_rare_examples: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -590,6 +625,7 @@ pub fn smote_dataset(
     target_column: &str,
     minority_label: Option<&str>,
     synthetic_samples: Option<usize>,
+    target_rows: Option<usize>,
     k: usize,
     seed: Option<u64>,
     feature_columns: &[String],
@@ -603,6 +639,11 @@ pub fn smote_dataset(
     let source_format = DatasetFormat::detect(input_path)?;
     let target_format = output_format.unwrap_or(DatasetFormat::detect(output_path)?);
     let records = load_records(input_path, source_format)?;
+    if let Some(target_rows) = target_rows {
+        if target_rows == 0 {
+            bail!("target_rows must be greater than zero");
+        }
+    }
     let synthetic_samples = synthetic_samples.unwrap_or(records.len());
     if synthetic_samples == 0 {
         bail!("synthetic sample count must be greater than zero");
@@ -674,9 +715,21 @@ pub fn smote_dataset(
         augmented.push(synthetic);
     }
 
-    write_records(output_path, target_format, &augmented)?;
+    let final_records = if let Some(target_rows) = target_rows {
+        if target_rows > augmented.len() {
+            bail!(
+                "target_rows `{target_rows}` is greater than the available augmented row count `{}`",
+                augmented.len()
+            );
+        }
+        sample_records(&augmented, target_rows, &mut rng)
+    } else {
+        augmented.clone()
+    };
+
+    write_records(output_path, target_format, &final_records)?;
     let original_stats = compute_stats(input_path, source_format, &records);
-    let generated_stats = compute_stats(output_path, target_format, &augmented);
+    let generated_stats = compute_stats(output_path, target_format, &final_records);
     let minority_reference_records = minority_rows
         .iter()
         .map(|row| row.record.clone())
@@ -699,7 +752,7 @@ pub fn smote_dataset(
         feature_columns: resolved_features,
         original_row_count: records.len(),
         synthetic_row_count: synthetic_samples,
-        output_row_count: augmented.len(),
+        output_row_count: final_records.len(),
         k: effective_k,
         seed,
         stats_diff: diff_dataset_stats(&original_stats, &generated_stats),
@@ -1558,6 +1611,19 @@ fn nearest_neighbor_indices(seed_index: usize, rows: &[MinorityRow], k: usize) -
         .collect()
 }
 
+fn sample_records(records: &[Record], target_rows: usize, rng: &mut SmoteRng) -> Vec<Record> {
+    let mut indices = (0..records.len()).collect::<Vec<_>>();
+    for current in 0..target_rows.min(indices.len()) {
+        let swap_index = rng.random_range(current..indices.len());
+        indices.swap(current, swap_index);
+    }
+    indices
+        .into_iter()
+        .take(target_rows)
+        .map(|index| records[index].clone())
+        .collect()
+}
+
 fn euclidean_distance(left: &HashMap<String, f64>, right: &HashMap<String, f64>) -> f64 {
     left.iter()
         .map(|(feature, left_value)| {
@@ -2020,6 +2086,11 @@ fn evaluate_generation_records(
     let nndr_summary = summarize_distance_distribution(&nndr_values);
     let real_dcr_p5 = percentile(&real_baseline, 0.05);
     let real_dcr_median = percentile(&real_baseline, 0.5);
+    let rare_value_alerts = summarize_rare_value_alerts(
+        reference_records,
+        synthetic_records,
+        DEFAULT_RARE_VALUE_ALERT_THRESHOLD,
+    );
 
     Ok(GenerationEvaluationReport {
         reference_population: reference_population.to_string(),
@@ -2051,6 +2122,7 @@ fn evaluate_generation_records(
                 .iter()
                 .filter(|value| **value <= real_dcr_median)
                 .count(),
+            rare_value_alerts,
         },
         references: evaluation_references(),
         caveats,
@@ -2077,6 +2149,168 @@ fn collect_feature_vectors_from_records(
                 .collect::<Result<Vec<_>>>()
         })
         .collect()
+}
+
+fn summarize_rare_value_alerts(
+    reference_records: &[Record],
+    synthetic_records: &[Record],
+    threshold: usize,
+) -> RareValueAlertSummary {
+    let reviewed_columns =
+        detect_common_non_numeric_scalar_columns(reference_records, synthetic_records);
+    let mut alerts = reviewed_columns
+        .iter()
+        .filter_map(|column| {
+            rare_value_alert_for_column(reference_records, synthetic_records, column, threshold)
+        })
+        .collect::<Vec<_>>();
+    alerts.sort_by(|left, right| {
+        right
+            .overlapping_unique_value_count
+            .cmp(&left.overlapping_unique_value_count)
+            .then_with(|| {
+                right
+                    .overlapping_rare_value_count
+                    .cmp(&left.overlapping_rare_value_count)
+            })
+            .then_with(|| {
+                right
+                    .synthetic_unique_value_count
+                    .cmp(&left.synthetic_unique_value_count)
+            })
+            .then_with(|| left.column.cmp(&right.column))
+    });
+    let columns_with_alerts = alerts.len();
+    alerts.truncate(MAX_RARE_VALUE_ALERTS);
+
+    RareValueAlertSummary {
+        threshold,
+        reviewed_columns: reviewed_columns.len(),
+        columns_with_alerts,
+        alerts,
+    }
+}
+
+fn detect_common_non_numeric_scalar_columns(
+    reference_records: &[Record],
+    synthetic_records: &[Record],
+) -> Vec<String> {
+    let reference_columns = collect_column_names(reference_records)
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    let synthetic_columns = collect_column_names(synthetic_records)
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+
+    reference_columns
+        .intersection(&synthetic_columns)
+        .filter(|column| is_non_numeric_scalar_column(reference_records, synthetic_records, column))
+        .cloned()
+        .collect()
+}
+
+fn is_non_numeric_scalar_column(
+    reference_records: &[Record],
+    synthetic_records: &[Record],
+    column: &str,
+) -> bool {
+    let mut saw_value = false;
+    for record in reference_records.iter().chain(synthetic_records) {
+        let Some(value) = record.get(column) else {
+            continue;
+        };
+        match value {
+            JsonValue::Null => {}
+            JsonValue::Bool(_) | JsonValue::String(_) => {
+                saw_value = true;
+            }
+            JsonValue::Number(_) | JsonValue::Array(_) | JsonValue::Object(_) => {
+                return false;
+            }
+        }
+    }
+
+    saw_value
+}
+
+fn rare_value_alert_for_column(
+    reference_records: &[Record],
+    synthetic_records: &[Record],
+    column: &str,
+    threshold: usize,
+) -> Option<RareValueAlert> {
+    let reference_counts = scalar_value_frequencies(reference_records, column);
+    let synthetic_counts = scalar_value_frequencies(synthetic_records, column);
+    if synthetic_counts.is_empty() {
+        return None;
+    }
+
+    let reference_unique_value_count = reference_counts
+        .values()
+        .filter(|count| **count == 1)
+        .count();
+    let synthetic_unique_value_count = synthetic_counts
+        .values()
+        .filter(|count| **count == 1)
+        .count();
+    let reference_rare_value_count = reference_counts
+        .values()
+        .filter(|count| **count < threshold)
+        .count();
+    let synthetic_rare_value_count = synthetic_counts
+        .values()
+        .filter(|count| **count < threshold)
+        .count();
+    if synthetic_unique_value_count == 0 && synthetic_rare_value_count == 0 {
+        return None;
+    }
+
+    let overlapping_unique_values = synthetic_counts
+        .iter()
+        .filter_map(|(value, count)| {
+            (*count == 1 && reference_counts.contains_key(value)).then_some(value.clone())
+        })
+        .collect::<Vec<_>>();
+    let overlapping_rare_values = synthetic_counts
+        .iter()
+        .filter_map(|(value, count)| {
+            (*count < threshold && reference_counts.contains_key(value)).then_some(value.clone())
+        })
+        .collect::<Vec<_>>();
+
+    Some(RareValueAlert {
+        column: column.to_string(),
+        reference_distinct_value_count: reference_counts.len(),
+        synthetic_distinct_value_count: synthetic_counts.len(),
+        reference_unique_value_count,
+        synthetic_unique_value_count,
+        reference_rare_value_count,
+        synthetic_rare_value_count,
+        overlapping_unique_value_count: overlapping_unique_values.len(),
+        overlapping_rare_value_count: overlapping_rare_values.len(),
+        overlapping_unique_examples: truncate_sorted_strings(overlapping_unique_values),
+        overlapping_rare_examples: truncate_sorted_strings(overlapping_rare_values),
+    })
+}
+
+fn scalar_value_frequencies(records: &[Record], column: &str) -> BTreeMap<String, usize> {
+    let mut counts = BTreeMap::new();
+    for record in records {
+        let Some(value) = record.get(column) else {
+            continue;
+        };
+        let Some(signature) = canonical_non_numeric_scalar_value(value) else {
+            continue;
+        };
+        *counts.entry(signature).or_insert(0) += 1;
+    }
+    counts
+}
+
+fn truncate_sorted_strings(mut values: Vec<String>) -> Vec<String> {
+    values.sort();
+    values.truncate(MAX_RARE_VALUE_EXAMPLES);
+    values
 }
 
 fn detect_numeric_columns(records: &[Record]) -> Vec<String> {
@@ -2139,6 +2373,10 @@ fn smote_evaluation_caveats() -> Vec<String> {
     vec![
         "DCR and NNDR are nearest-neighbor privacy proxies. They do not replace membership inference attacks.".to_string(),
         "The utility and privacy evaluation compares synthetic rows against the minority-class reference rows used by SMOTE, not against the full original dataset.".to_string(),
+        format!(
+            "Rare-value alerts review only shared non-numeric scalar columns and use a default frequency threshold of {}. Treat them as release-review diagnostics, not as an automatic anonymity guarantee.",
+            DEFAULT_RARE_VALUE_ALERT_THRESHOLD
+        ),
     ]
 }
 
@@ -2147,6 +2385,10 @@ fn dp_noise_evaluation_caveats(epsilon: f64) -> Vec<String> {
         "DCR and NNDR are nearest-neighbor privacy proxies. They do not replace membership inference attacks.".to_string(),
         format!("This generator applies Laplace noise with epsilon={epsilon} to numeric columns. Treat it as a lightweight DP-style perturbation method, not as an audited end-to-end private synthetic-data release."),
         "Noise is clipped to the observed numeric range of each column, which is pragmatic for data quality but weakens any strict formal privacy interpretation.".to_string(),
+        format!(
+            "Rare-value alerts review only shared non-numeric scalar columns and use a default frequency threshold of {}. Treat them as release-review diagnostics, not as an automatic anonymity guarantee.",
+            DEFAULT_RARE_VALUE_ALERT_THRESHOLD
+        ),
     ]
 }
 
@@ -3303,6 +3545,14 @@ fn scalar_value_label(value: &JsonValue) -> Option<String> {
 fn value_as_f64(value: &JsonValue) -> Option<f64> {
     match value {
         JsonValue::Number(number) => number.as_f64(),
+        _ => None,
+    }
+}
+
+fn canonical_non_numeric_scalar_value(value: &JsonValue) -> Option<String> {
+    match value {
+        JsonValue::Bool(boolean) => Some(boolean.to_string()),
+        JsonValue::String(text) => Some(text.clone()),
         _ => None,
     }
 }
@@ -4727,6 +4977,7 @@ mod tests {
             "class",
             Some("minority"),
             None,
+            None,
             5,
             Some(42),
             &[],
@@ -4762,8 +5013,21 @@ mod tests {
                 .count
                 > 0
         );
+        assert_eq!(
+            report.evaluation.privacy.rare_value_alerts.threshold,
+            DEFAULT_RARE_VALUE_ALERT_THRESHOLD
+        );
+        assert!(report.evaluation.privacy.rare_value_alerts.reviewed_columns >= 1);
+        assert!(
+            report
+                .evaluation
+                .privacy
+                .rare_value_alerts
+                .columns_with_alerts
+                >= 1
+        );
         assert_eq!(report.evaluation.references.len(), 3);
-        assert_eq!(report.evaluation.caveats.len(), 2);
+        assert_eq!(report.evaluation.caveats.len(), 3);
         assert!(
             report
                 .stats_diff
@@ -4787,6 +5051,44 @@ mod tests {
             assert!(row.get("y").and_then(JsonValue::as_f64).unwrap() >= 1.0);
             assert!(row.get("y").and_then(JsonValue::as_f64).unwrap() <= 1.1);
         }
+
+        std::fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
+    fn generates_smote_dataset_with_exact_target_rows() {
+        let temp_root = unique_test_dir("smote-target-rows");
+        std::fs::create_dir_all(&temp_root).unwrap();
+
+        let input_path = temp_root.join("imbalanced.json");
+        let output_path = temp_root.join("smote-target.json");
+        let payload = serde_json::json!([
+            { "x": 1.0, "y": 1.0, "class": "minority", "note": "a" },
+            { "x": 1.2, "y": 1.1, "class": "minority", "note": "b" },
+            { "x": 5.0, "y": 5.0, "class": "majority", "note": "c" },
+            { "x": 5.2, "y": 5.1, "class": "majority", "note": "d" },
+            { "x": 5.3, "y": 5.4, "class": "majority", "note": "e" }
+        ]);
+        std::fs::write(&input_path, serde_json::to_string_pretty(&payload).unwrap()).unwrap();
+
+        let report = smote_dataset(
+            &input_path,
+            &output_path,
+            None,
+            "class",
+            Some("minority"),
+            None,
+            Some(5),
+            5,
+            Some(42),
+            &[],
+        )
+        .unwrap();
+
+        assert_eq!(report.synthetic_row_count, 5);
+        assert_eq!(report.output_row_count, 5);
+        let transformed = load_records(&output_path, DatasetFormat::Json).unwrap();
+        assert_eq!(transformed.len(), 5);
 
         std::fs::remove_dir_all(&temp_root).unwrap();
     }
@@ -4819,7 +5121,19 @@ mod tests {
         );
         assert_eq!(report.evaluation.reference_row_count, 3);
         assert_eq!(report.evaluation.synthetic_row_count, 3);
-        assert_eq!(report.evaluation.caveats.len(), 3);
+        assert_eq!(
+            report.evaluation.privacy.rare_value_alerts.reviewed_columns,
+            1
+        );
+        assert_eq!(
+            report
+                .evaluation
+                .privacy
+                .rare_value_alerts
+                .columns_with_alerts,
+            1
+        );
+        assert_eq!(report.evaluation.caveats.len(), 4);
         assert!(output_path.exists());
 
         let transformed = load_records(&output_path, DatasetFormat::Json).unwrap();
@@ -4836,6 +5150,91 @@ mod tests {
         );
 
         std::fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
+    fn flags_overlapping_rare_values_in_privacy_evaluation() {
+        let reference = vec![
+            JsonMap::from_iter([
+                ("x".to_string(), JsonValue::Number(1.into())),
+                ("diagnosis".to_string(), JsonValue::String("A".to_string())),
+            ]),
+            JsonMap::from_iter([
+                ("x".to_string(), JsonValue::Number(2.into())),
+                ("diagnosis".to_string(), JsonValue::String("A".to_string())),
+            ]),
+            JsonMap::from_iter([
+                ("x".to_string(), JsonValue::Number(3.into())),
+                ("diagnosis".to_string(), JsonValue::String("B".to_string())),
+            ]),
+            JsonMap::from_iter([
+                ("x".to_string(), JsonValue::Number(4.into())),
+                ("diagnosis".to_string(), JsonValue::String("C".to_string())),
+            ]),
+        ];
+        let synthetic = vec![
+            JsonMap::from_iter([
+                (
+                    "x".to_string(),
+                    JsonValue::Number(JsonNumber::from_f64(1.1).unwrap()),
+                ),
+                ("diagnosis".to_string(), JsonValue::String("A".to_string())),
+            ]),
+            JsonMap::from_iter([
+                (
+                    "x".to_string(),
+                    JsonValue::Number(JsonNumber::from_f64(2.1).unwrap()),
+                ),
+                ("diagnosis".to_string(), JsonValue::String("B".to_string())),
+            ]),
+            JsonMap::from_iter([
+                (
+                    "x".to_string(),
+                    JsonValue::Number(JsonNumber::from_f64(3.1).unwrap()),
+                ),
+                ("diagnosis".to_string(), JsonValue::String("B".to_string())),
+            ]),
+            JsonMap::from_iter([
+                (
+                    "x".to_string(),
+                    JsonValue::Number(JsonNumber::from_f64(4.1).unwrap()),
+                ),
+                ("diagnosis".to_string(), JsonValue::String("C".to_string())),
+            ]),
+        ];
+
+        let report = evaluate_generation_records(
+            "reference_vs_synthetic",
+            &reference,
+            &synthetic,
+            &["x".to_string()],
+            Vec::new(),
+        )
+        .unwrap();
+
+        assert_eq!(report.privacy.rare_value_alerts.threshold, 5);
+        assert_eq!(report.privacy.rare_value_alerts.reviewed_columns, 1);
+        assert_eq!(report.privacy.rare_value_alerts.columns_with_alerts, 1);
+        assert_eq!(report.privacy.rare_value_alerts.alerts.len(), 1);
+
+        let alert = &report.privacy.rare_value_alerts.alerts[0];
+        assert_eq!(alert.column, "diagnosis");
+        assert_eq!(alert.reference_distinct_value_count, 3);
+        assert_eq!(alert.synthetic_distinct_value_count, 3);
+        assert_eq!(alert.reference_unique_value_count, 2);
+        assert_eq!(alert.synthetic_unique_value_count, 2);
+        assert_eq!(alert.reference_rare_value_count, 3);
+        assert_eq!(alert.synthetic_rare_value_count, 3);
+        assert_eq!(alert.overlapping_unique_value_count, 2);
+        assert_eq!(alert.overlapping_rare_value_count, 3);
+        assert_eq!(
+            alert.overlapping_unique_examples,
+            vec!["A".to_string(), "C".to_string()]
+        );
+        assert_eq!(
+            alert.overlapping_rare_examples,
+            vec!["A".to_string(), "B".to_string(), "C".to_string()]
+        );
     }
 
     fn unique_test_dir(label: &str) -> std::path::PathBuf {

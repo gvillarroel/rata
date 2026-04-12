@@ -1,110 +1,171 @@
 # Generate Synthetic Data
 
-Rata currently supports two synthetic-data strategies:
+Rata currently supports two generation strategies:
 
-- `smote` for minority-class oversampling in labeled tabular datasets
-- `dp-noise` for numeric perturbation with Laplace noise
+- `smote`
+- `dp-noise`
+- `train df` + `gen df` for tabular diffusion
 
-Both generators return a JSON report with:
+Both return a JSON report with:
 
-- generation settings
+- the parameters used
 - `stats_diff` between original and generated data
-- `evaluation` metrics for utility and privacy proxies
+- `evaluation` with utility and privacy diagnostics
+
+## When To Use Which Method
+
+Use `smote` when:
+
+- you have a label column
+- one class is underrepresented
+- the useful feature columns are numeric
+
+Use `dp-noise` when:
+
+- you want to keep the same number of rows
+- you want to perturb numeric values
+- you want a simple privacy/utility baseline
+
+Use diffusion when:
+
+- you want a trainable generative model artifact
+- you want to reuse the model for multiple generations
+- your core signal is mostly numeric tabular data
 
 ## SMOTE
 
-Use SMOTE when:
-
-- the dataset has a label column
-- one class is underrepresented
-- the feature columns are numeric
-
-Basic example:
+### Basic Example
 
 ```powershell
+# Generate synthetic rows for the minority class
 rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.json --target class --seed 42
 ```
 
-Useful options:
+### More Controlled Example
 
-- `--target <column>` required label column
-- `--minority-label <label>` to override auto-detection
-- `--samples <n>` synthetic rows to add
-- `--k <n>` nearest-neighbor count
-- `--seed <n>` deterministic generation
-- `--features a,b,c` explicit numeric feature set
-- `--format <format>` output format override
+```powershell
+# Explicitly choose the minority label, number of rows, and feature columns
+rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.parquet --target class --minority-label minority --samples 100 --features x,y --seed 42 --format parquet
+```
 
-Notes:
+### Practical Notes
 
 - If `--samples` is omitted, Rata adds as many synthetic rows as the input row count.
-- If `--minority-label` is omitted, Rata uses the least frequent target value.
+- If `--target-rows` is provided, Rata trims the final dataset to the exact output size you want.
+- If `--minority-label` is omitted, Rata auto-detects the least frequent target value.
 - Non-feature columns are copied from the seed minority row.
 
 ## DP Noise
 
-Use DP noise when:
-
-- the dataset is mostly numeric
-- you want to perturb values instead of creating new rows
-- you want a simple privacy/utility trade-off baseline
-
-Basic example:
+### Basic Example
 
 ```powershell
+# Add Laplace noise to every numeric column
 rata synth dp-noise datasets\iris.csv datasets\converted\iris-dp-noise.parquet --epsilon 1.0 --seed 42
 ```
 
-Useful options:
+### Select Specific Columns
 
-- `--epsilon <value>` lower means more noise
-- `--seed <n>` deterministic perturbation
-- `--features a,b,c` restrict noise to selected numeric columns
-- `--format <format>` output format override
+```powershell
+# Only perturb the selected numeric columns
+rata synth dp-noise datasets\cars.json datasets\converted\cars-dp-noise.json --epsilon 1.0 --seed 42 --features Acceleration,Cylinders,Displacement,Weight_in_lbs
+```
 
-Notes:
+### Practical Notes
 
 - Row count stays the same.
 - Non-numeric columns stay unchanged.
-- Noisy numeric values are clipped to the observed column range.
-- This is a practical DP-style method, not a formal audited privacy release pipeline.
+- Noisy values are clipped to the observed min/max range.
+- This is a practical DP-style method, not an audited formal privacy pipeline.
 
-## Evaluation Metrics
+## Diffusion
 
-Generation reports include quality and privacy diagnostics.
+This is the new Rust-native train/generate path inspired by DDPM and TabDDPM-style tabular diffusion.
 
-Quality metrics:
+### Fastest Path
+
+```powershell
+# Train a diffusion model
+# Default output: models\iris.df.json
+rata train df datasets\iris.csv
+
+# Generate synthetic rows from that model
+# Default output: datasets\generated\iris.df-iris.json
+rata gen df models\iris.df.json datasets\iris.csv
+```
+
+### Explicit Paths
+
+```powershell
+# Save the model artifact wherever you want
+rata train df datasets\cars.json datasets\converted\cars-diffusion-model.json --seed 42
+
+# Generate a new dataset from the saved model
+rata gen df datasets\converted\cars-diffusion-model.json datasets\cars.json datasets\converted\cars-diffusion-generated.json --rows 406 --seed 7
+```
+
+### What This Version Does
+
+- trains a Gaussian diffusion model for numeric columns
+- saves a reusable model artifact as JSON
+- generates synthetic numeric columns from the reverse diffusion process
+- bootstraps non-numeric columns from the reference dataset so the output keeps a usable schema
+
+### Current Limitation
+
+- full categorical diffusion is not implemented yet
+- non-numeric columns are not generated by the model itself in this first version
+- the denoiser is intentionally lightweight and modular, so it can be replaced later by an MLP or transformer
+
+## How To Read The Evaluation Block
+
+### Quality
+
+Look at:
 
 - `propensity_mse`
-- `propensity_classifier_accuracy`
 - `propensity_classifier_balanced_accuracy`
 - `propensity_classifier_auc`
 - `mean_univariate_ks_distance`
-- `max_univariate_ks_distance`
-- correlation drift summaries
+- correlation drift
 
-Privacy proxy metrics:
+Rough interpretation:
+
+- lower `propensity_mse` is generally better
+- balanced accuracy near `0.5` means the classifier is close to random guessing
+- lower KS drift means the distributions are closer
+- lower correlation drift means column relationships changed less
+
+### Privacy Proxies
+
+Look at:
 
 - exact row replay
 - exact feature replay
-- distance to closest record (`DCR`)
-- nearest-neighbor distance ratio (`NNDR`)
+- `DCR`
+- `NNDR`
 - real-to-real DCR baseline
+- rare-value alerts on shared categorical/string columns
 
 Important:
 
-- These privacy metrics are diagnostics, not guarantees.
-- Low DCR or low NNDR should be treated as a warning sign.
+- these are warning signals, not guarantees
+- low DCR can mean a synthetic row is too close to a real row
+- low NNDR can mean a synthetic row is unusually tied to one real row
+- rare-value alerts help review singular or low-frequency copied values before release, but they are not a formal anonymity proof
 
-## How To Read Results
+## Suggested Validation Workflow
 
-In general:
+```powershell
+# 1. Generate synthetic data
+rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.json --target class --seed 42
 
-- lower `propensity_mse` means the synthetic data is harder to separate from the reference data
-- `balanced_accuracy` near `0.5` means the classifier is close to random guessing
-- lower KS drift means the marginals are closer
-- lower correlation drift means relationships between columns are more stable
-- low DCR can indicate rows that are too close to real records
+# 2. Inspect the generated file
+rata head datasets\converted\imbalanced-smote.json
+
+# 3. Compare its stats
+rata stats datasets\converted\imbalanced-smote.json
+```
 
 ## Related Docs
 

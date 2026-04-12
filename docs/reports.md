@@ -1,69 +1,86 @@
 # Reports And Output
 
-Rata can return either human-readable Markdown or machine-readable JSON, depending on the command.
+Rata produces two kinds of output:
 
-## Output By Command
+- human-friendly terminal output
+- machine-friendly JSON output
 
-- `rata stats` supports `markdown` and `json`
-- `rata schema` supports multiple schema render formats
-- `rata head` supports `markdown` and `json`
-- `rata transform` returns a JSON report
-- `rata synth smote` returns a JSON report
-- `rata synth dp-noise` returns a JSON report
+## What Each Command Returns
 
-## Generated Reports For Local Datasets
+- `rata stats` -> Markdown by default, JSON with `--output json`
+- `rata schema` -> schema formats such as Markdown, JSON Schema, OpenAPI, Avro, TypeScript, and Python
+- `rata head` -> Markdown by default, JSON with `--output json`
+- `rata transform` -> JSON report
+- `rata synth smote` -> JSON report
+- `rata synth dp-noise` -> JSON report
 
-To generate reports for every local dataset in `datasets/`:
+## Generate Reports For All Local Datasets
 
 ```powershell
+# Read all files in datasets/ and save reports into docs/reports/
 ./scripts/generate-stats-reports.ps1
 ```
 
-This writes output into [reports](C:\Users\villa\dev\rata\docs\reports).
+This creates:
 
-Each dataset gets:
+- one Markdown report per dataset
+- one JSON report per dataset
 
-- one Markdown report
-- one JSON report
+The generated files are stored in [reports](C:\Users\villa\dev\rata\docs\reports).
 
-## What A Stats Report Contains
+## Readable Output
 
-A full stats report can include:
+Use readable output when you want to inspect things manually.
 
-- dataset path, format, row count, and column count
-- type and structure summaries
-- nested field paths
-- semantic hints
-- per-column distributions
+```powershell
+# Read a stats report directly in the terminal
+rata stats datasets\iris.csv
+
+# Preview a file quickly
+rata head datasets\cars.json --rows 3
+```
+
+## JSON Output
+
+Use JSON output when you want to compare runs or automate checks.
+
+```powershell
+# Export stats as JSON
+rata stats datasets\iris.csv --output json
+
+# Export a preview as JSON
+rata head datasets\news_headlines.jsonl --output json
+```
+
+## What A Stats Report Usually Contains
+
+A stats report can include:
+
+- row and column counts
+- dominant types
+- null and missing values
+- distinct counts
 - numeric summaries
 - string summaries
-- boolean and temporal summaries
-- pairwise numeric and categorical relationships
+- structure summaries
+- semantic hints
+- pairwise relationships
 
-## What A Synthetic Generation Report Contains
+## What A Synthetic Generation Report Usually Contains
 
-Synthetic-data commands return:
+A generation report can include:
 
-- input and output paths
-- generation parameters
-- row counts
+- source and output paths
+- selected parameters
 - selected feature columns
-- `stats_diff` between original and generated datasets
-- `evaluation` for quality and privacy diagnostics
+- `stats_diff`
+- `evaluation`
 
-## When To Use Markdown vs JSON
+The `evaluation` section focuses on:
 
-Use Markdown when:
-
-- you want to read the output directly in the terminal
-- you want a quick summary
-- you want to keep user-facing reports
-
-Use JSON when:
-
-- you want to automate checks
-- you want to compare runs
-- you want to feed the output to another tool
+- quality
+- drift
+- privacy proxy metrics
 
 ## Related Docs
 

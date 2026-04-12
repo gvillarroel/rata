@@ -5,4 +5,5 @@
 - Use `.specs/adr/*.md` for ADRs.
 - Use `.specs/issues/*.md` for issues.
 - Use `.specs/requirements/*.md` for requirements.
+- Use `.specs/spikes/$SPIKE_FOLDER` for spikes.
 - Use `docs/` for official documentation for users.

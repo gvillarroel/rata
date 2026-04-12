@@ -1,86 +1,93 @@
 # Analyze Datasets
 
-Use these commands when you want to understand a dataset before transforming or generating synthetic data.
+Use this page when your goal is to understand a dataset before doing anything else.
 
-## Preview The First Rows
+## Step 1: Preview The File
 
-Use `head` to quickly inspect shape and values.
+Start with `head`. It is the fastest way to confirm that the file is readable and that the rows look as expected.
 
 ```powershell
+# Preview the first rows of a CSV file
 rata head datasets\iris.csv
+
+# Preview only 3 rows from a JSON file
 rata head datasets\cars.json --rows 3
+
+# Get the preview as JSON
 rata head datasets\news_headlines.jsonl --output json
 ```
 
-Use this when:
+## Step 2: Run The Full Stats Report
 
-- you want to confirm the file is readable
-- you want to inspect column names
-- you want to see raw example rows
-
-## Compute Statistics
-
-Use `stats` when you need a full dataset profile.
+Use `stats` when you want the full profile.
 
 ```powershell
+# Print a readable report
 rata stats datasets\iris.csv
+
+# Print the same report as JSON
 rata stats datasets\userdata1.parquet --output json
 ```
 
-The report includes:
+The report can include:
 
 - row and column counts
-- per-column nulls, distinct values, dominant types, and top values
-- numeric summaries such as min, max, mean, median, percentiles, variance, and outlier counts
-- string summaries such as length distribution and semantic hints
-- structure summaries for arrays, objects, and nested fields
-- pairwise relationships such as correlation, overlap, and categorical association
+- nulls and missing values
+- distinct values and top values
+- numeric summaries
+- string summaries
+- nested structure summaries
+- type detection
+- correlations and pairwise relationships
 
-## Extract A Schema
+## Step 3: Extract A Schema
 
-Use `schema` when you want a reusable structural definition.
+Use `schema` when you need a reusable shape for another system or another team.
 
 ```powershell
+# Show a readable schema
 rata schema datasets\cars.json
+
+# Export JSON Schema
 rata schema datasets\cars.json --format json-schema
+
+# Export Avro schema
 rata schema datasets\userdata1.avro --format avro --name UserRecord
+
+# Export OpenAPI schema
 rata schema datasets\news_headlines.jsonl --format openapi --name NewsHeadline
 ```
 
-Available schema formats:
+## Step 4: Convert The Dataset If Needed
 
-- `markdown`
-- `json`
-- `json-schema`
-- `openapi`
-- `avro`
-- `typescript`
-- `python`
-
-## Convert Between Formats
-
-Use `transform` when the dataset needs to move to another format.
+Use `transform` when the file format is not convenient for the next step.
 
 ```powershell
+# Convert CSV to Parquet
 rata transform datasets\iris.csv datasets\converted\iris.parquet
+
+# Convert JSON to JSONL
 rata transform datasets\cars.json datasets\converted\cars.jsonl
+
+# Convert JSONL to Avro
 rata transform datasets\news_headlines.jsonl datasets\converted\news_headlines.avro
 ```
 
-You can force the output format explicitly:
+You can also force the output format:
 
 ```powershell
+# Force Parquet output even with a custom file extension
 rata transform datasets\iris.csv datasets\converted\iris.data --format parquet
 ```
 
-## Recommended Workflow
+## Recommended Order
 
-For a new dataset, the safest order is:
+For most datasets, this order is the most practical:
 
 1. `rata head <file>`
 2. `rata stats <file>`
 3. `rata schema <file> --format json-schema`
-4. `rata transform <input> <output>` if you need another format
+4. `rata transform <input> <output>` only if needed
 
 ## Related Docs
 

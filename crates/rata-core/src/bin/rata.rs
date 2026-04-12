@@ -3,10 +3,11 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
 use rata_core::{
-    DatasetFormat, analyze_dataset, analyze_schema, dp_noise_dataset, preview_dataset,
+    DatasetFormat, DiffusionGenerateOptions, DiffusionTrainOptions, analyze_dataset,
+    analyze_schema, dp_noise_dataset, generate_from_diffusion_model, preview_dataset,
     render_head_markdown, render_markdown, render_schema_avro, render_schema_json,
     render_schema_json_schema, render_schema_markdown, render_schema_openapi, render_schema_python,
-    render_schema_typescript, smote_dataset, transform_dataset,
+    render_schema_typescript, smote_dataset, train_diffusion_model, transform_dataset,
 };
 
 #[derive(Debug, Parser)]
@@ -24,6 +25,8 @@ enum Command {
     Head(HeadCommand),
     Transform(TransformCommand),
     Synth(SynthCommand),
+    Train(TrainCommand),
+    Gen(GenCommand),
 }
 
 #[derive(Debug, Parser)]
@@ -70,10 +73,32 @@ struct SynthCommand {
     command: SynthSubcommand,
 }
 
+#[derive(Debug, Parser)]
+struct TrainCommand {
+    #[command(subcommand)]
+    command: TrainSubcommand,
+}
+
+#[derive(Debug, Parser)]
+struct GenCommand {
+    #[command(subcommand)]
+    command: GenSubcommand,
+}
+
 #[derive(Debug, clap::Subcommand)]
 enum SynthSubcommand {
     Smote(SmoteCommand),
     DpNoise(DpNoiseCommand),
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum TrainSubcommand {
+    Df(TrainDiffusionCommand),
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum GenSubcommand {
+    Df(GenerateDiffusionCommand),
 }
 
 #[derive(Debug, Parser)]
@@ -88,6 +113,8 @@ struct SmoteCommand {
     minority_label: Option<String>,
     #[arg(long)]
     samples: Option<usize>,
+    #[arg(long)]
+    target_rows: Option<usize>,
     #[arg(long, default_value_t = 5)]
     k: usize,
     #[arg(long)]
@@ -110,6 +137,40 @@ struct DpNoiseCommand {
     seed: Option<u64>,
     #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
     features: Vec<String>,
+    #[arg(long, value_enum)]
+    format: Option<TransformFormat>,
+}
+
+#[derive(Debug, Parser)]
+struct TrainDiffusionCommand {
+    #[arg(value_name = "DATASET_INPUT")]
+    input: PathBuf,
+    #[arg(value_name = "MODEL_OUTPUT")]
+    output: Option<PathBuf>,
+    #[arg(long, default_value_t = 100)]
+    timesteps: usize,
+    #[arg(long, default_value_t = 8)]
+    examples_per_row: usize,
+    #[arg(long, default_value_t = 1e-3)]
+    ridge_alpha: f64,
+    #[arg(long)]
+    seed: Option<u64>,
+    #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
+    features: Vec<String>,
+}
+
+#[derive(Debug, Parser)]
+struct GenerateDiffusionCommand {
+    #[arg(value_name = "MODEL")]
+    model: PathBuf,
+    #[arg(value_name = "DATASET_INPUT")]
+    input: PathBuf,
+    #[arg(value_name = "OUTPUT_PATH")]
+    output: Option<PathBuf>,
+    #[arg(long)]
+    rows: Option<usize>,
+    #[arg(long)]
+    seed: Option<u64>,
     #[arg(long, value_enum)]
     format: Option<TransformFormat>,
 }
@@ -204,6 +265,7 @@ fn main() -> Result<()> {
                     &command.target,
                     command.minority_label.as_deref(),
                     command.samples,
+                    command.target_rows,
                     command.k,
                     command.seed,
                     &command.features,
@@ -222,7 +284,74 @@ fn main() -> Result<()> {
                 println!("{}", serde_json::to_string_pretty(&report)?);
             }
         },
+        Command::Train(command) => match command.command {
+            TrainSubcommand::Df(command) => {
+                let output_path = default_diffusion_model_path(&command.input, command.output);
+                let report = train_diffusion_model(
+                    &command.input,
+                    &output_path,
+                    DiffusionTrainOptions {
+                        timesteps: command.timesteps,
+                        train_examples_per_row: command.examples_per_row,
+                        ridge_alpha: command.ridge_alpha,
+                        seed: command.seed,
+                        features: command.features,
+                    },
+                )?;
+                println!("{}", serde_json::to_string_pretty(&report)?);
+            }
+        },
+        Command::Gen(command) => match command.command {
+            GenSubcommand::Df(command) => {
+                let output_path = default_diffusion_generated_path(
+                    &command.model,
+                    &command.input,
+                    command.output,
+                );
+                let report = generate_from_diffusion_model(
+                    &command.model,
+                    &command.input,
+                    &output_path,
+                    DiffusionGenerateOptions {
+                        rows: command.rows,
+                        seed: command.seed,
+                        output_format: command.format.map(Into::into),
+                    },
+                )?;
+                println!("{}", serde_json::to_string_pretty(&report)?);
+            }
+        },
     }
 
     Ok(())
+}
+
+fn default_diffusion_model_path(input: &std::path::Path, explicit: Option<PathBuf>) -> PathBuf {
+    explicit.unwrap_or_else(|| {
+        let stem = input
+            .file_stem()
+            .and_then(|value| value.to_str())
+            .unwrap_or("dataset");
+        PathBuf::from("models").join(format!("{stem}.df.json"))
+    })
+}
+
+fn default_diffusion_generated_path(
+    model: &std::path::Path,
+    input: &std::path::Path,
+    explicit: Option<PathBuf>,
+) -> PathBuf {
+    explicit.unwrap_or_else(|| {
+        let model_stem = model
+            .file_stem()
+            .and_then(|value| value.to_str())
+            .unwrap_or("model");
+        let input_stem = input
+            .file_stem()
+            .and_then(|value| value.to_str())
+            .unwrap_or("dataset");
+        PathBuf::from("datasets")
+            .join("generated")
+            .join(format!("{model_stem}-{input_stem}.json"))
+    })
 }

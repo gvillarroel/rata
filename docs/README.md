@@ -1,46 +1,93 @@
-# Rata Documentation
+# Rata Docs
 
-Rata is a CLI for exploring datasets, extracting schemas, converting formats, and generating synthetic data.
+Rata helps you inspect datasets, extract schemas, convert formats, and generate synthetic data.
 
-This documentation is organized by task so users can start quickly and then drill into the detailed command reference only when needed.
+If you are new to the project, start here.
 
-## Start Here
+## Quick Start
+
+### 1. Look at a file
+
+```powershell
+# Show the first 5 rows of a dataset
+rata head datasets\iris.csv
+```
+
+### 2. Generate a readable report
+
+```powershell
+# Create a human-friendly stats report in the terminal
+rata stats datasets\iris.csv
+```
+
+### 3. Extract a schema
+
+```powershell
+# Infer a JSON Schema from the dataset
+rata schema datasets\iris.csv --format json-schema
+```
+
+### 4. Convert the file
+
+```powershell
+# Convert CSV to Parquet
+rata transform datasets\iris.csv datasets\converted\iris.parquet
+```
+
+### 5. Generate synthetic data
+
+```powershell
+# Train a diffusion model and save it to models\iris.df.json
+rata train df datasets\iris.csv
+
+# Generate a synthetic dataset and save it to datasets\generated\
+rata gen df models\iris.df.json datasets\iris.csv
+
+# Oversample the minority class with SMOTE
+rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.json --target class --seed 42
+
+# Add DP-style noise to numeric columns
+rata synth dp-noise datasets\iris.csv datasets\converted\iris-dp-noise.parquet --epsilon 1.0 --seed 42
+```
+
+## Guides
 
 - [Getting Started](C:\Users\villa\dev\rata\docs\getting-started.md)
 - [Analyze Datasets](C:\Users\villa\dev\rata\docs\analyze-datasets.md)
 - [Generate Synthetic Data](C:\Users\villa\dev\rata\docs\synthetic-data.md)
 - [Reports And Output](C:\Users\villa\dev\rata\docs\reports.md)
+- [Synthetic Evaluation Results](C:\Users\villa\dev\rata\docs\synthetic-evaluation-results.md)
 
 ## Reference
 
 - [Commands](C:\Users\villa\dev\rata\docs\commands.md)
 - [Automatic Stats Report](C:\Users\villa\dev\rata\docs\automatic-stats-report.md)
 
-## Typical Flows
+## Common Tasks
 
-### Inspect a dataset
-
-```powershell
-rata head datasets\iris.csv
-rata stats datasets\iris.csv
-rata schema datasets\iris.csv --format json-schema
-```
-
-### Convert a dataset
+### Create reports for all local datasets
 
 ```powershell
-rata transform datasets\iris.csv datasets\converted\iris.parquet
-```
-
-### Generate synthetic data
-
-```powershell
-rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.json --target class --seed 42
-rata synth dp-noise datasets\iris.csv datasets\converted\iris-dp-noise.parquet --epsilon 1.0 --seed 42
-```
-
-### Generate reports for all local datasets
-
-```powershell
+# Scan datasets/ and write Markdown + JSON reports into docs/reports/
 ./scripts/generate-stats-reports.ps1
+```
+
+### Inspect a JSON dataset
+
+```powershell
+# Preview raw rows
+rata head datasets\cars.json --rows 3
+
+# Then run the full profile
+rata stats datasets\cars.json
+```
+
+### Export a schema for another system
+
+```powershell
+# Create an OpenAPI-compatible schema
+rata schema datasets\news_headlines.jsonl --format openapi --name NewsHeadline
+
+# Create an Avro schema
+rata schema datasets\userdata1.avro --format avro --name UserRecord
 ```
