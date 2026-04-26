@@ -52,16 +52,19 @@ rata synth dp-noise datasets\iris.csv datasets\converted\iris-dp-noise.parquet -
 
 ## Guides
 
-- [Getting Started](C:\Users\villa\dev\rata\docs\getting-started.md)
-- [Analyze Datasets](C:\Users\villa\dev\rata\docs\analyze-datasets.md)
-- [Generate Synthetic Data](C:\Users\villa\dev\rata\docs\synthetic-data.md)
-- [Reports And Output](C:\Users\villa\dev\rata\docs\reports.md)
-- [Synthetic Evaluation Results](C:\Users\villa\dev\rata\docs\synthetic-evaluation-results.md)
+- [Getting Started](getting-started.md)
+- [Analyze Datasets](analyze-datasets.md)
+- [Generate Synthetic Data](synthetic-data.md)
+- [Reports And Output](reports.md)
+- [Synthetic Evaluation Results](synthetic-evaluation-results.md)
 
 ## Reference
 
-- [Commands](C:\Users\villa\dev\rata\docs\commands.md)
-- [Automatic Stats Report](C:\Users\villa\dev\rata\docs\automatic-stats-report.md)
+- [Architecture](architecture.md)
+- [Commands](commands.md)
+- [Automatic Stats Report](automatic-stats-report.md)
+- [Privacy Review](privacy-review.md)
+- [Repository Review](repository-review.md)
 
 ## Common Tasks
 

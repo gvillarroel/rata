@@ -26,7 +26,7 @@ This creates:
 - one Markdown report per dataset
 - one JSON report per dataset
 
-The generated files are stored in [reports](C:\Users\villa\dev\rata\docs\reports).
+The generated files are stored in [reports](reports/).
 
 ## Readable Output
 
@@ -82,8 +82,10 @@ The `evaluation` section focuses on:
 - drift
 - privacy proxy metrics
 
+Current privacy diagnostics include exact row replay, exact feature replay, numeric and non-numeric scalar signature replay, nearest-neighbor metrics, and rare-value alerts for copied string/boolean or numeric values. These diagnostics are release-review signals, not formal anonymity guarantees.
+
 ## Related Docs
 
-- [Analyze Datasets](C:\Users\villa\dev\rata\docs\analyze-datasets.md)
-- [Generate Synthetic Data](C:\Users\villa\dev\rata\docs\synthetic-data.md)
-- [Commands](C:\Users\villa\dev\rata\docs\commands.md)
+- [Analyze Datasets](analyze-datasets.md)
+- [Generate Synthetic Data](synthetic-data.md)
+- [Commands](commands.md)

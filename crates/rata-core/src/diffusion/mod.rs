@@ -11,7 +11,11 @@ use nalgebra::{DMatrix, DVector};
 use rand::{Rng, SeedableRng, rngs::StdRng};
 use serde::{Deserialize, Serialize};
 
-use crate::{DatasetFormat, analyze_dataset, load_records, write_records};
+use crate::{
+    DatasetFormat, GenerationEvaluationReport, PrivacyColumnPolicy, PrivacyColumnPolicyReport,
+    analyze_dataset, apply_privacy_column_policy, evaluate_generation_records, load_records,
+    privacy_policy_feature_columns, write_records,
+};
 
 use self::linear::{fit_ridge_multi_target, predict_row};
 use self::preprocess::{FeatureSelection, build_output_records, prepare_numeric_dataset};
@@ -38,21 +42,12 @@ impl Default for DiffusionTrainOptions {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct DiffusionGenerateOptions {
     pub rows: Option<usize>,
     pub seed: Option<u64>,
     pub output_format: Option<DatasetFormat>,
-}
-
-impl Default for DiffusionGenerateOptions {
-    fn default() -> Self {
-        Self {
-            rows: None,
-            seed: None,
-            output_format: None,
-        }
-    }
+    pub privacy_column_policy: PrivacyColumnPolicy,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -105,7 +100,9 @@ pub struct DiffusionGenerateReport {
     pub numeric_columns: Vec<String>,
     pub passthrough_columns: Vec<String>,
     pub seed: Option<u64>,
+    pub privacy_column_policy: PrivacyColumnPolicyReport,
     pub generated_stats: crate::DatasetStats,
+    pub evaluation: GenerationEvaluationReport,
     pub caveats: Vec<String>,
 }
 
@@ -245,19 +242,30 @@ pub fn generate_from_diffusion_model(
         .unwrap_or(DatasetFormat::detect(output_path.as_ref())?);
     let mut rng = diffusion_rng(options.seed);
     let generated_numeric = sample_numeric_matrix(&model, row_count, &mut rng);
-    let generated_records = build_output_records(
+    let mut generated_records = build_output_records(
         &reference_records,
         &reference_view,
         &generated_numeric,
         &model.passthrough_columns,
         &mut rng,
     )?;
+    let privacy_column_policy_report =
+        apply_privacy_column_policy(&mut generated_records, &options.privacy_column_policy)?;
+    let evaluation_features =
+        privacy_policy_feature_columns(&model.numeric_columns, &options.privacy_column_policy);
 
     if let Some(parent) = output_path.as_ref().parent() {
         std::fs::create_dir_all(parent)?;
     }
     write_records(output_path.as_ref(), output_format, &generated_records)?;
     let generated_stats = analyze_dataset(output_path.as_ref())?;
+    let evaluation = evaluate_generation_records(
+        "reference_dataset_vs_diffusion_output",
+        &reference_records,
+        &generated_records,
+        &evaluation_features,
+        diffusion_generation_evaluation_caveats(),
+    )?;
 
     Ok(DiffusionGenerateReport {
         model_path: model_path.as_ref().to_path_buf(),
@@ -268,7 +276,9 @@ pub fn generate_from_diffusion_model(
         numeric_columns: model.numeric_columns,
         passthrough_columns: model.passthrough_columns,
         seed: options.seed,
+        privacy_column_policy: privacy_column_policy_report,
         generated_stats,
+        evaluation,
         caveats: diffusion_generation_caveats(),
     })
 }
@@ -428,6 +438,15 @@ fn diffusion_generation_caveats() -> Vec<String> {
     ]
 }
 
+fn diffusion_generation_evaluation_caveats() -> Vec<String> {
+    vec![
+        "DCR and NNDR are nearest-neighbor privacy proxies. They do not replace membership inference attacks.".to_string(),
+        "The final-output privacy evaluation compares generated diffusion rows against the reference dataset used during generation.".to_string(),
+        "Exact numeric and non-numeric signature replay is evaluated over every common scalar column, including passthrough columns.".to_string(),
+        "Passthrough columns are copied from sampled reference rows unless they are removed before generation.".to_string(),
+    ]
+}
+
 #[cfg(test)]
 mod tests {
     use std::fs;
@@ -435,7 +454,7 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::JsonValue;
+    use crate::{JsonValue, PrivacyColumnPolicy};
 
     #[test]
     fn trains_and_generates_numeric_diffusion_model() {
@@ -481,11 +500,33 @@ mod tests {
                 rows: Some(6),
                 seed: Some(7),
                 output_format: None,
+                privacy_column_policy: PrivacyColumnPolicy::default(),
             },
         )
         .unwrap();
 
         assert_eq!(gen_report.generated_row_count, 6);
+        assert_eq!(
+            gen_report.evaluation.reference_population,
+            "reference_dataset_vs_diffusion_output"
+        );
+        assert_eq!(gen_report.evaluation.reference_row_count, 4);
+        assert_eq!(gen_report.evaluation.synthetic_row_count, 6);
+        assert_eq!(
+            gen_report
+                .evaluation
+                .privacy
+                .exact_non_numeric_signature_match_count,
+            6
+        );
+        assert!(
+            gen_report
+                .evaluation
+                .privacy
+                .rare_value_alerts
+                .columns_with_alerts
+                >= 1
+        );
         assert!(output_path.exists());
         let generated = load_records(&output_path, DatasetFormat::Json).unwrap();
         assert_eq!(generated.len(), 6);
@@ -495,6 +536,78 @@ mod tests {
                 .all(|row| row.get("age").and_then(JsonValue::as_f64).is_some())
         );
         assert!(generated.iter().all(|row| row.get("segment").is_some()));
+
+        fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
+    fn applies_privacy_column_policy_to_diffusion_passthrough() {
+        let temp_root = unique_test_dir("diffusion-policy");
+        fs::create_dir_all(&temp_root).unwrap();
+        let input_path = temp_root.join("input.json");
+        let model_path = temp_root.join("model.json");
+        let output_path = temp_root.join("generated.json");
+        let payload = json!([
+            { "age": 21.0, "income": 1000.0, "email": "a@example.test", "segment": "a" },
+            { "age": 25.0, "income": 1200.0, "email": "b@example.test", "segment": "b" },
+            { "age": 31.0, "income": 1800.0, "email": "c@example.test", "segment": "a" },
+            { "age": 35.0, "income": 2200.0, "email": "d@example.test", "segment": "c" }
+        ]);
+        fs::write(&input_path, serde_json::to_string_pretty(&payload).unwrap()).unwrap();
+
+        train_diffusion_model(
+            &input_path,
+            &model_path,
+            DiffusionTrainOptions {
+                timesteps: 16,
+                train_examples_per_row: 4,
+                ridge_alpha: 1e-3,
+                seed: Some(42),
+                features: Vec::new(),
+            },
+        )
+        .unwrap();
+
+        let gen_report = generate_from_diffusion_model(
+            &model_path,
+            &input_path,
+            &output_path,
+            DiffusionGenerateOptions {
+                rows: Some(6),
+                seed: Some(7),
+                output_format: None,
+                privacy_column_policy: PrivacyColumnPolicy {
+                    drop_columns: vec!["email".to_string()],
+                    mask_columns: vec!["segment".to_string()],
+                    fail_columns: Vec::new(),
+                },
+            },
+        )
+        .unwrap();
+
+        assert_eq!(
+            gen_report.privacy_column_policy.dropped_columns,
+            vec!["email".to_string()]
+        );
+        assert_eq!(
+            gen_report.privacy_column_policy.masked_columns,
+            vec!["segment".to_string()]
+        );
+        assert_eq!(
+            gen_report
+                .evaluation
+                .privacy
+                .exact_non_numeric_signature_match_count,
+            0
+        );
+
+        let generated = load_records(&output_path, DatasetFormat::Json).unwrap();
+        assert!(generated.iter().all(|row| !row.contains_key("email")));
+        assert!(
+            generated.iter().all(|row| {
+                row.get("segment") == Some(&JsonValue::String("[MASKED]".to_string()))
+            })
+        );
 
         fs::remove_dir_all(&temp_root).unwrap();
     }

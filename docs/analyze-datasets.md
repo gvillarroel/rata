@@ -91,6 +91,6 @@ For most datasets, this order is the most practical:
 
 ## Related Docs
 
-- [Getting Started](C:\Users\villa\dev\rata\docs\getting-started.md)
-- [Reports And Output](C:\Users\villa\dev\rata\docs\reports.md)
-- [Commands](C:\Users\villa\dev\rata\docs\commands.md)
+- [Getting Started](getting-started.md)
+- [Reports And Output](reports.md)
+- [Commands](commands.md)

@@ -10,10 +10,13 @@
       "TrainingMse": 0.609276531025098,
       "MeanAbsPearsonDelta": 0.1199144852332561,
       "MaxAbsPearsonDelta": 0.21108088182366222,
-      "DcrMedian": 0.5886836420694812,
-      "DcrP5": 0.22986411496102366,
-      "ExactReplayRatio": 0,
-      "ExactNumericReplayRatio": 0,
+      "DcrMedian": 0.49279187000593205,
+      "DcrP5": 0.20686065413319957,
+      "ExactReplayRatio": 0.0,
+      "ExactNumericReplayRatio": 0.0,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 0,
+      "RareNumericValueColumns": 4,
       "TopPairs": [
         {
           "Pair": "petal_width/sepal_width",
@@ -38,30 +41,66 @@
     "Smote": {
       "Rows": 150,
       "MinorityLabel": "setosa",
-      "MeanAbsPearsonDelta": 0.03285899245800205,
-      "MaxAbsPearsonDelta": 0.07158585851846078,
-      "DcrMedian": 0.8069894050348885,
-      "DcrP5": 0.24084778668128162,
+      "MeanAbsPearsonDelta": 0.03287442299043674,
+      "MaxAbsPearsonDelta": 0.07174882576639785,
+      "DcrMedian": 0.004410349600379884,
+      "DcrP5": 0.0,
       "ExactReplayRatio": 0.47333333333333333,
       "ExactNumericReplayRatio": 0.47333333333333333,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 0,
+      "RareNumericValueColumns": 4,
       "TopPairs": [
         {
           "Pair": "petal_width/sepal_width",
-          "Delta": 0.07158585851846078,
+          "Delta": 0.07174882576639785,
           "Original": -0.3661259325364395,
-          "Candidate": -0.43771179105490027
+          "Candidate": -0.43787475830283734
         },
         {
           "Pair": "petal_length/sepal_width",
-          "Delta": 0.05776062491981204,
+          "Delta": 0.05769475212890385,
           "Original": -0.42844010433054003,
-          "Candidate": -0.48620072925035207
+          "Candidate": -0.4861348564594439
         },
         {
           "Pair": "sepal_length/sepal_width",
           "Delta": 0.03444140408943468,
           "Original": -0.11756978413300205,
           "Candidate": -0.15201118822243673
+        }
+      ]
+    },
+    "DpNoise": {
+      "Rows": 150,
+      "Epsilon": 1.0,
+      "MeanAbsPearsonDelta": 0.5204531208218485,
+      "MaxAbsPearsonDelta": 0.9287106541190864,
+      "DcrMedian": 1.938267913324075,
+      "DcrP5": 0.6857253515085586,
+      "ExactReplayRatio": 0.0,
+      "ExactNumericReplayRatio": 0.0,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 0,
+      "RareNumericValueColumns": 4,
+      "TopPairs": [
+        {
+          "Pair": "petal_length/sepal_length",
+          "Delta": 0.9287106541190864,
+          "Original": 0.8717537758865828,
+          "Candidate": -0.05695687823250357
+        },
+        {
+          "Pair": "petal_length/petal_width",
+          "Delta": 0.7970365621855723,
+          "Original": 0.9628654314027956,
+          "Candidate": 0.16582886921722328
+        },
+        {
+          "Pair": "petal_width/sepal_length",
+          "Delta": 0.6639702607036692,
+          "Original": 0.8179411262715758,
+          "Candidate": 0.15397086556790662
         }
       ]
     },
@@ -78,10 +117,13 @@
       "TrainingMse": 0.5859228010694514,
       "MeanAbsPearsonDelta": 0.47165936401113034,
       "MaxAbsPearsonDelta": 0.950318232784793,
-      "DcrMedian": 1.082448955258335,
-      "DcrP5": 0.46274563813971087,
-      "ExactReplayRatio": 0,
-      "ExactNumericReplayRatio": 0,
+      "DcrMedian": 0.43339180917735504,
+      "DcrP5": 0.17727772220294533,
+      "ExactReplayRatio": 0.0,
+      "ExactNumericReplayRatio": 0.0,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 1,
+      "RareNumericValueColumns": 6,
       "TopPairs": [
         {
           "Pair": "Displacement/Horsepower",
@@ -108,10 +150,13 @@
       "MinorityLabel": "Europe",
       "MeanAbsPearsonDelta": 0.07505866595299923,
       "MaxAbsPearsonDelta": 0.16717620795389038,
-      "DcrMedian": 0.6290211460957567,
-      "DcrP5": 0.3897034108421289,
+      "DcrMedian": 0.011209937725500715,
+      "DcrP5": 0.0,
       "ExactReplayRatio": 0.4753694581280788,
       "ExactNumericReplayRatio": 0.4753694581280788,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 1,
+      "RareNumericValueColumns": 6,
       "TopPairs": [
         {
           "Pair": "Acceleration/Weight_in_lbs",
@@ -133,6 +178,39 @@
         }
       ]
     },
+    "DpNoise": {
+      "Rows": 406,
+      "Epsilon": 1.0,
+      "MeanAbsPearsonDelta": 0.6105339480395949,
+      "MaxAbsPearsonDelta": 0.9233880145720997,
+      "DcrMedian": 2.1377601211906323,
+      "DcrP5": 0.6649231323345834,
+      "ExactReplayRatio": 0.0,
+      "ExactNumericReplayRatio": 0.0,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 1,
+      "RareNumericValueColumns": 5,
+      "TopPairs": [
+        {
+          "Pair": "Cylinders/Weight_in_lbs",
+          "Delta": 0.9233880145720997,
+          "Original": 0.8952204775128884,
+          "Candidate": -0.028167537059211354
+        },
+        {
+          "Pair": "Cylinders/Displacement",
+          "Delta": 0.9040422787406577,
+          "Original": 0.9517870386276701,
+          "Candidate": 0.04774475988701241
+        },
+        {
+          "Pair": "Displacement/Weight_in_lbs",
+          "Delta": 0.8922042443608217,
+          "Original": 0.9324746504807496,
+          "Candidate": 0.04027040611992794
+        }
+      ]
+    },
     "Notes": []
   },
   {
@@ -143,8 +221,10 @@
     "NumericColumns": "",
     "Diffusion": null,
     "Smote": null,
+    "DpNoise": null,
     "Notes": [
       "Diffusion not evaluated: dataset has no fully numeric columns.",
+      "DP noise not evaluated: dataset has no fully numeric columns.",
       "SMOTE not evaluated: no suitable low-cardinality label column."
     ]
   },
@@ -159,10 +239,13 @@
       "TrainingMse": 0.7934546909522504,
       "MeanAbsPearsonDelta": 0.06455393412601355,
       "MaxAbsPearsonDelta": 0.09834675798720192,
-      "DcrMedian": 0.059928153206428796,
-      "DcrP5": 0.017784551821715584,
-      "ExactReplayRatio": 0,
-      "ExactNumericReplayRatio": 0,
+      "DcrMedian": 0.0008855726318768853,
+      "DcrP5": 8.286728999494787E-05,
+      "ExactReplayRatio": 0.0,
+      "ExactNumericReplayRatio": 0.0,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 9,
+      "RareNumericValueColumns": 3,
       "TopPairs": [
         {
           "Pair": "id/salary",
@@ -189,10 +272,13 @@
       "MinorityLabel": "Male",
       "MeanAbsPearsonDelta": 0.023329780956396127,
       "MaxAbsPearsonDelta": 0.03507618674874329,
-      "DcrMedian": 0.06160611326818667,
-      "DcrP5": 0.016864699149490472,
+      "DcrMedian": 0.0,
+      "DcrP5": 0.0,
       "ExactReplayRatio": 0.501,
       "ExactNumericReplayRatio": 0.501,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 9,
+      "RareNumericValueColumns": 3,
       "TopPairs": [
         {
           "Pair": "cc/id",
@@ -214,6 +300,39 @@
         }
       ]
     },
+    "DpNoise": {
+      "Rows": 1000,
+      "Epsilon": 1.0,
+      "MeanAbsPearsonDelta": 0.01427207867168104,
+      "MaxAbsPearsonDelta": 0.032510873062941384,
+      "DcrMedian": 0.0,
+      "DcrP5": 0.0,
+      "ExactReplayRatio": 0.002,
+      "ExactNumericReplayRatio": 0.002,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 9,
+      "RareNumericValueColumns": 3,
+      "TopPairs": [
+        {
+          "Pair": "id/salary",
+          "Delta": 0.032510873062941384,
+          "Original": 0.0006681003523796111,
+          "Candidate": -0.031842772710561774
+        },
+        {
+          "Pair": "cc/id",
+          "Delta": 0.010305362952101736,
+          "Original": 0.030111315122896283,
+          "Candidate": 0.019805952170794547
+        },
+        {
+          "Pair": "cc/salary",
+          "Delta": 0.0,
+          "Original": 0.008773662664396522,
+          "Candidate": 0.008773662664396522
+        }
+      ]
+    },
     "Notes": []
   },
   {
@@ -227,10 +346,13 @@
       "TrainingMse": 0.7852305982310217,
       "MeanAbsPearsonDelta": 0.018773102708682973,
       "MaxAbsPearsonDelta": 0.039436862289759046,
-      "DcrMedian": 0.20058004039107646,
-      "DcrP5": 0.0866056344349343,
-      "ExactReplayRatio": 0,
-      "ExactNumericReplayRatio": 0,
+      "DcrMedian": 0.04939693013838062,
+      "DcrP5": 0.0142584027821464,
+      "ExactReplayRatio": 0.0,
+      "ExactNumericReplayRatio": 0.0,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 9,
+      "RareNumericValueColumns": 3,
       "TopPairs": [
         {
           "Pair": "id/salary",
@@ -257,10 +379,13 @@
       "MinorityLabel": "Male",
       "MeanAbsPearsonDelta": 0.03355497182230627,
       "MaxAbsPearsonDelta": 0.06426673056271422,
-      "DcrMedian": 0.151386964831216,
-      "DcrP5": 0.07375820828927082,
+      "DcrMedian": 0.0,
+      "DcrP5": 0.0,
       "ExactReplayRatio": 0.501,
       "ExactNumericReplayRatio": 0.501,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 9,
+      "RareNumericValueColumns": 3,
       "TopPairs": [
         {
           "Pair": "id/registration_dttm",
@@ -279,6 +404,39 @@
           "Delta": 0.00900687343901993,
           "Original": 0.001043574204133791,
           "Candidate": 0.010050447643153722
+        }
+      ]
+    },
+    "DpNoise": {
+      "Rows": 1000,
+      "Epsilon": 1.0,
+      "MeanAbsPearsonDelta": 0.032787153596905635,
+      "MaxAbsPearsonDelta": 0.06620703444840358,
+      "DcrMedian": 0.05783667234470412,
+      "DcrP5": 0.02353767057817654,
+      "ExactReplayRatio": 0.0,
+      "ExactNumericReplayRatio": 0.0,
+      "ExactNonNumericReplayRatio": 1.0,
+      "RareValueColumns": 9,
+      "RareNumericValueColumns": 3,
+      "TopPairs": [
+        {
+          "Pair": "id/registration_dttm",
+          "Delta": 0.06620703444840358,
+          "Original": -0.03331155364609832,
+          "Candidate": 0.032895480802305255
+        },
+        {
+          "Pair": "registration_dttm/salary",
+          "Delta": 0.019960194965365264,
+          "Original": -0.005303598451579394,
+          "Candidate": 0.014656596513785869
+        },
+        {
+          "Pair": "id/salary",
+          "Delta": 0.012194231376948075,
+          "Original": 0.001043574204133791,
+          "Candidate": 0.013237805581081867
         }
       ]
     },

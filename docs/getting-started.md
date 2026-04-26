@@ -103,7 +103,7 @@ For a new dataset, this order usually works best:
 
 ## Next Pages
 
-- [Analyze Datasets](C:\Users\villa\dev\rata\docs\analyze-datasets.md)
-- [Generate Synthetic Data](C:\Users\villa\dev\rata\docs\synthetic-data.md)
-- [Reports And Output](C:\Users\villa\dev\rata\docs\reports.md)
-- [Commands](C:\Users\villa\dev\rata\docs\commands.md)
+- [Analyze Datasets](analyze-datasets.md)
+- [Generate Synthetic Data](synthetic-data.md)
+- [Reports And Output](reports.md)
+- [Commands](commands.md)

@@ -112,6 +112,7 @@ Current scope:
 - Preserves the original dataset and appends synthetic minority rows.
 - Computes stats for the original and generated datasets and includes a stats-diff summary in the SMOTE report.
 - Adds an `evaluation` section to the SMOTE report with paper-based quality and privacy proxies over the minority reference set used for generation.
+- Adds a `final_output_evaluation` section that compares the written output against the full original dataset.
 - Auto-detects numeric feature columns when `--features` is omitted.
 - Non-feature columns are copied from the seed minority row.
 
@@ -128,11 +129,13 @@ Evaluation metrics included in the SMOTE report:
 - Privacy proxies:
   - `exact_row_match_count`
   - `exact_feature_match_count`
+  - numeric and non-numeric scalar signature replay counts
   - `distance_to_closest_record`
   - `nearest_neighbor_distance_ratio`
   - `real_to_real_distance_baseline`
   - counts of synthetic rows below the real-data DCR `p5` and `median` baselines
   - `rare_value_alerts` for shared non-numeric scalar columns
+  - `rare_numeric_value_alerts` for shared numeric scalar columns
 
 These privacy metrics are useful diagnostics, not privacy guarantees. The report includes explicit caveats that nearest-neighbor metrics such as DCR and NNDR do not replace membership inference attacks, and that rare-value alerts are release-review signals rather than a formal anonymity proof.
 
@@ -160,7 +163,7 @@ Current scope:
 - Preserves row count and perturbs numeric columns with Laplace noise.
 - Keeps non-numeric columns unchanged.
 - Clips noisy numeric values back to each column's observed range.
-- Produces the same `stats_diff` and `evaluation` sections used by SMOTE so utility/privacy diagnostics are comparable across generators.
+- Produces `stats_diff` and `evaluation` sections with numeric and non-numeric replay diagnostics.
 
 Current limitation:
 

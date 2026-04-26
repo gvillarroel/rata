@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
 use rata_core::{
-    DatasetFormat, DiffusionGenerateOptions, DiffusionTrainOptions, analyze_dataset,
-    analyze_schema, dp_noise_dataset, generate_from_diffusion_model, preview_dataset,
-    render_head_markdown, render_markdown, render_schema_avro, render_schema_json,
+    DatasetFormat, DiffusionGenerateOptions, DiffusionTrainOptions, PrivacyColumnPolicy,
+    SmoteOptions, analyze_dataset, analyze_schema, dp_noise_dataset, generate_from_diffusion_model,
+    preview_dataset, render_head_markdown, render_markdown, render_schema_avro, render_schema_json,
     render_schema_json_schema, render_schema_markdown, render_schema_openapi, render_schema_python,
     render_schema_typescript, smote_dataset, train_diffusion_model, transform_dataset,
 };
@@ -121,6 +121,14 @@ struct SmoteCommand {
     seed: Option<u64>,
     #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
     features: Vec<String>,
+    #[arg(long)]
+    synthetic_only: bool,
+    #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
+    drop_columns: Vec<String>,
+    #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
+    mask_columns: Vec<String>,
+    #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
+    fail_on_columns: Vec<String>,
     #[arg(long, value_enum)]
     format: Option<TransformFormat>,
 }
@@ -137,6 +145,12 @@ struct DpNoiseCommand {
     seed: Option<u64>,
     #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
     features: Vec<String>,
+    #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
+    drop_columns: Vec<String>,
+    #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
+    mask_columns: Vec<String>,
+    #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
+    fail_on_columns: Vec<String>,
     #[arg(long, value_enum)]
     format: Option<TransformFormat>,
 }
@@ -173,6 +187,12 @@ struct GenerateDiffusionCommand {
     seed: Option<u64>,
     #[arg(long, value_enum)]
     format: Option<TransformFormat>,
+    #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
+    drop_columns: Vec<String>,
+    #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
+    mask_columns: Vec<String>,
+    #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
+    fail_on_columns: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -261,14 +281,22 @@ fn main() -> Result<()> {
                 let report = smote_dataset(
                     &command.input,
                     &command.output,
-                    command.format.map(Into::into),
                     &command.target,
-                    command.minority_label.as_deref(),
-                    command.samples,
-                    command.target_rows,
-                    command.k,
-                    command.seed,
-                    &command.features,
+                    SmoteOptions {
+                        output_format: command.format.map(Into::into),
+                        minority_label: command.minority_label,
+                        synthetic_samples: command.samples,
+                        target_rows: command.target_rows,
+                        k: Some(command.k),
+                        seed: command.seed,
+                        feature_columns: command.features,
+                        synthetic_only: command.synthetic_only,
+                        privacy_column_policy: privacy_column_policy(
+                            command.drop_columns,
+                            command.mask_columns,
+                            command.fail_on_columns,
+                        ),
+                    },
                 )?;
                 println!("{}", serde_json::to_string_pretty(&report)?);
             }
@@ -280,6 +308,11 @@ fn main() -> Result<()> {
                     command.epsilon,
                     command.seed,
                     &command.features,
+                    privacy_column_policy(
+                        command.drop_columns,
+                        command.mask_columns,
+                        command.fail_on_columns,
+                    ),
                 )?;
                 println!("{}", serde_json::to_string_pretty(&report)?);
             }
@@ -316,6 +349,11 @@ fn main() -> Result<()> {
                         rows: command.rows,
                         seed: command.seed,
                         output_format: command.format.map(Into::into),
+                        privacy_column_policy: privacy_column_policy(
+                            command.drop_columns,
+                            command.mask_columns,
+                            command.fail_on_columns,
+                        ),
                     },
                 )?;
                 println!("{}", serde_json::to_string_pretty(&report)?);
@@ -324,6 +362,18 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn privacy_column_policy(
+    drop_columns: Vec<String>,
+    mask_columns: Vec<String>,
+    fail_columns: Vec<String>,
+) -> PrivacyColumnPolicy {
+    PrivacyColumnPolicy {
+        drop_columns,
+        mask_columns,
+        fail_columns,
+    }
 }
 
 fn default_diffusion_model_path(input: &std::path::Path, explicit: Option<PathBuf>) -> PathBuf {
