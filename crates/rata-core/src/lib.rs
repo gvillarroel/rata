@@ -1207,12 +1207,20 @@ pub fn render_head_markdown(preview: &DatasetPreview) -> String {
 }
 
 pub fn load_records(path: &Path, format: DatasetFormat) -> Result<Vec<Record>> {
+    load_records_limited(path, format, None)
+}
+
+pub fn load_records_limited(
+    path: &Path,
+    format: DatasetFormat,
+    max_rows: Option<usize>,
+) -> Result<Vec<Record>> {
     match format {
-        DatasetFormat::Csv => load_csv(path),
-        DatasetFormat::Json => load_json(path),
-        DatasetFormat::Jsonl => load_jsonl(path),
-        DatasetFormat::Parquet => load_parquet(path),
-        DatasetFormat::Avro => load_avro(path),
+        DatasetFormat::Csv => load_csv(path, max_rows),
+        DatasetFormat::Json => load_json(path, max_rows),
+        DatasetFormat::Jsonl => load_jsonl(path, max_rows),
+        DatasetFormat::Parquet => load_parquet(path, max_rows),
+        DatasetFormat::Avro => load_avro(path, max_rows),
     }
 }
 
@@ -1347,7 +1355,7 @@ fn write_avro(path: &Path, records: &[Record]) -> Result<()> {
     Ok(())
 }
 
-fn load_csv(path: &Path) -> Result<Vec<Record>> {
+fn load_csv(path: &Path, max_rows: Option<usize>) -> Result<Vec<Record>> {
     let mut reader = csv::Reader::from_path(path)
         .with_context(|| format!("failed to open csv file {}", path.display()))?;
     let headers = reader
@@ -1357,6 +1365,9 @@ fn load_csv(path: &Path) -> Result<Vec<Record>> {
 
     let mut records = Vec::new();
     for row in reader.records() {
+        if max_rows.is_some_and(|limit| records.len() >= limit) {
+            break;
+        }
         let row = row.with_context(|| format!("failed to read csv row from {}", path.display()))?;
         let mut record = Record::new();
         for (header, value) in headers.iter().zip(row.iter()) {
@@ -1368,7 +1379,7 @@ fn load_csv(path: &Path) -> Result<Vec<Record>> {
     Ok(records)
 }
 
-fn load_json(path: &Path) -> Result<Vec<Record>> {
+fn load_json(path: &Path, max_rows: Option<usize>) -> Result<Vec<Record>> {
     let mut file =
         File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
     let mut content = String::new();
@@ -1379,21 +1390,29 @@ fn load_json(path: &Path) -> Result<Vec<Record>> {
         .with_context(|| format!("invalid json in {}", path.display()))?;
 
     match value {
-        JsonValue::Array(items) => items
-            .into_iter()
-            .map(json_value_to_record)
-            .collect::<Result<Vec<_>>>(),
-        JsonValue::Object(map) => Ok(vec![map]),
+        JsonValue::Array(items) => {
+            let limit = max_rows.unwrap_or(usize::MAX);
+            items
+                .into_iter()
+                .take(limit)
+                .map(json_value_to_record)
+                .collect::<Result<Vec<_>>>()
+        }
+        JsonValue::Object(map) if max_rows != Some(0) => Ok(vec![map]),
+        JsonValue::Object(_) => Ok(Vec::new()),
         _ => bail!("json dataset must be an object or an array of objects"),
     }
 }
 
-fn load_jsonl(path: &Path) -> Result<Vec<Record>> {
+fn load_jsonl(path: &Path, max_rows: Option<usize>) -> Result<Vec<Record>> {
     let file = File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
     let reader = BufReader::new(file);
     let mut records = Vec::new();
 
     for (line_index, line) in reader.lines().enumerate() {
+        if max_rows.is_some_and(|limit| records.len() >= limit) {
+            break;
+        }
         let line = line.with_context(|| {
             format!(
                 "failed to read line {} from {}",
@@ -1419,7 +1438,7 @@ fn load_jsonl(path: &Path) -> Result<Vec<Record>> {
     Ok(records)
 }
 
-fn load_parquet(path: &Path) -> Result<Vec<Record>> {
+fn load_parquet(path: &Path, max_rows: Option<usize>) -> Result<Vec<Record>> {
     let file = File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
     let reader = SerializedFileReader::new(file)
         .with_context(|| format!("failed to read parquet file {}", path.display()))?;
@@ -1429,6 +1448,9 @@ fn load_parquet(path: &Path) -> Result<Vec<Record>> {
 
     let mut records = Vec::new();
     for row in iter {
+        if max_rows.is_some_and(|limit| records.len() >= limit) {
+            break;
+        }
         let row =
             row.with_context(|| format!("failed to decode parquet row from {}", path.display()))?;
         records.push(parquet_row_to_record(&row)?);
@@ -1437,13 +1459,16 @@ fn load_parquet(path: &Path) -> Result<Vec<Record>> {
     Ok(records)
 }
 
-fn load_avro(path: &Path) -> Result<Vec<Record>> {
+fn load_avro(path: &Path, max_rows: Option<usize>) -> Result<Vec<Record>> {
     let file = File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
     let reader =
         AvroReader::new(file).with_context(|| format!("failed to read avro {}", path.display()))?;
     let mut records = Vec::new();
 
     for value in reader {
+        if max_rows.is_some_and(|limit| records.len() >= limit) {
+            break;
+        }
         let value = value
             .with_context(|| format!("failed to decode avro value from {}", path.display()))?;
         records.push(avro_value_to_record(value)?);
@@ -5260,6 +5285,37 @@ mod tests {
         assert_eq!(
             transformed[1].get("score"),
             Some(&JsonValue::Number(20.into()))
+        );
+
+        std::fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
+    fn loads_bounded_records_without_full_dataset_scan() {
+        let temp_root = unique_test_dir("bounded-load");
+        std::fs::create_dir_all(&temp_root).unwrap();
+
+        let csv_path = temp_root.join("sample.csv");
+        std::fs::write(&csv_path, "id,name\n1,alice\n2,bob\n3,carol\n").unwrap();
+        let csv_records = load_records_limited(&csv_path, DatasetFormat::Csv, Some(2)).unwrap();
+        assert_eq!(csv_records.len(), 2);
+        assert_eq!(
+            csv_records[1].get("name"),
+            Some(&JsonValue::String("bob".to_string()))
+        );
+
+        let jsonl_path = temp_root.join("sample.jsonl");
+        std::fs::write(
+            &jsonl_path,
+            "{\"id\":1,\"name\":\"alice\"}\n{\"id\":2,\"name\":\"bob\"}\n{\"id\":3,\"name\":\"carol\"}\n",
+        )
+        .unwrap();
+        let jsonl_records =
+            load_records_limited(&jsonl_path, DatasetFormat::Jsonl, Some(1)).unwrap();
+        assert_eq!(jsonl_records.len(), 1);
+        assert_eq!(
+            jsonl_records[0].get("id"),
+            Some(&JsonValue::Number(1.into()))
         );
 
         std::fs::remove_dir_all(&temp_root).unwrap();

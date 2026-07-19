@@ -2,12 +2,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiffusionSchedule {
+    #[serde(default = "default_schedule_kind")]
+    pub kind: String,
     pub betas: Vec<f64>,
     pub alphas: Vec<f64>,
     pub alpha_bars: Vec<f64>,
 }
 
 impl DiffusionSchedule {
+    #[allow(dead_code)]
     pub fn linear(timesteps: usize, beta_start: f64, beta_end: f64) -> Self {
         let mut betas = Vec::with_capacity(timesteps);
         let mut alphas = Vec::with_capacity(timesteps);
@@ -29,9 +32,23 @@ impl DiffusionSchedule {
         }
 
         Self {
+            kind: default_schedule_kind(),
             betas,
             alphas,
             alpha_bars,
         }
     }
+
+    pub fn rectified_flow() -> Self {
+        Self {
+            kind: "rectified_flow".to_string(),
+            betas: Vec::new(),
+            alphas: Vec::new(),
+            alpha_bars: Vec::new(),
+        }
+    }
+}
+
+fn default_schedule_kind() -> String {
+    "linear_beta".to_string()
 }

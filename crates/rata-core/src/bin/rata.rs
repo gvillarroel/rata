@@ -171,6 +171,8 @@ struct TrainDiffusionCommand {
     seed: Option<u64>,
     #[arg(long, value_delimiter = ',', value_name = "COLUMN")]
     features: Vec<String>,
+    #[arg(long)]
+    max_rows: Option<usize>,
 }
 
 #[derive(Debug, Parser)]
@@ -183,6 +185,8 @@ struct GenerateDiffusionCommand {
     output: Option<PathBuf>,
     #[arg(long)]
     rows: Option<usize>,
+    #[arg(long)]
+    reference_max_rows: Option<usize>,
     #[arg(long)]
     seed: Option<u64>,
     #[arg(long, value_enum)]
@@ -329,6 +333,7 @@ fn main() -> Result<()> {
                         ridge_alpha: command.ridge_alpha,
                         seed: command.seed,
                         features: command.features,
+                        max_rows: command.max_rows,
                     },
                 )?;
                 println!("{}", serde_json::to_string_pretty(&report)?);
@@ -349,6 +354,7 @@ fn main() -> Result<()> {
                         rows: command.rows,
                         seed: command.seed,
                         output_format: command.format.map(Into::into),
+                        reference_max_rows: command.reference_max_rows,
                         privacy_column_policy: privacy_column_policy(
                             command.drop_columns,
                             command.mask_columns,
