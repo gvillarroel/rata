@@ -2,7 +2,8 @@ param(
     [string]$OutputMarkdown = "docs/synthetic-evaluation-results.md",
     [string]$WorkDir = "datasets/converted/evaluation",
     [int]$SeedTrain = 42,
-    [int]$SeedGenerate = 7
+    [int]$SeedGenerate = 7,
+    [double]$DpEpsilon = 1.0
 )
 
 $ErrorActionPreference = "Stop"
@@ -119,11 +120,31 @@ function Get-ExactReplayRatio {
 }
 
 function Get-StandardizedRows {
+    param($Rows, [string[]]$NumericColumns, $Scale)
+
+    if ($null -eq $Scale) {
+        $Scale = Get-StandardizationScale -Rows $Rows -NumericColumns $NumericColumns
+    }
+
+    $means = $Scale.Means
+    $stddevs = $Scale.Stddevs
+
+    @(
+        $Rows | ForEach-Object {
+            $vector = @()
+            foreach ($column in $NumericColumns) {
+                $vector += (([double]($_.$column) - $means[$column]) / $stddevs[$column])
+            }
+            ,$vector
+        }
+    )
+}
+
+function Get-StandardizationScale {
     param($Rows, [string[]]$NumericColumns)
 
     $means = @{}
     $stddevs = @{}
-
     foreach ($column in $NumericColumns) {
         $values = @($Rows | ForEach-Object { [double]($_.$column) })
         $mean = ($values | Measure-Object -Average).Average
@@ -138,15 +159,10 @@ function Get-StandardizedRows {
         $stddevs[$column] = $stddev
     }
 
-    @(
-        $Rows | ForEach-Object {
-            $vector = @()
-            foreach ($column in $NumericColumns) {
-                $vector += (([double]($_.$column) - $means[$column]) / $stddevs[$column])
-            }
-            ,$vector
-        }
-    )
+    [pscustomobject]@{
+        Means = $means
+        Stddevs = $stddevs
+    }
 }
 
 function Get-Distance {
@@ -170,8 +186,9 @@ function Get-DcrSummary {
         }
     }
 
-    $standardOriginal = Get-StandardizedRows -Rows $OriginalRows -NumericColumns $NumericColumns
-    $standardCandidate = Get-StandardizedRows -Rows $CandidateRows -NumericColumns $NumericColumns
+    $scale = Get-StandardizationScale -Rows $OriginalRows -NumericColumns $NumericColumns
+    $standardOriginal = Get-StandardizedRows -Rows $OriginalRows -NumericColumns $NumericColumns -Scale $scale
+    $standardCandidate = Get-StandardizedRows -Rows $CandidateRows -NumericColumns $NumericColumns -Scale $scale
     $distances = @()
 
     foreach ($candidate in $standardCandidate) {
@@ -213,6 +230,43 @@ function Format-Number {
     [string]::Format([System.Globalization.CultureInfo]::InvariantCulture, "{0:N4}", [double]$Value)
 }
 
+function Format-PrivacySummary {
+    param($Method)
+    if ($null -eq $Method) { return "n/a" }
+
+    "DCR median " + (Format-Number $Method.DcrMedian) +
+        ", replay " + (Format-Number $Method.ExactReplayRatio) +
+        ", numeric replay " + (Format-Number $Method.ExactNumericReplayRatio) +
+        ", non-numeric replay " + (Format-Number $Method.ExactNonNumericReplayRatio)
+}
+
+function Format-CorrelationSummary {
+    param($Method)
+    if ($null -eq $Method) { return "n/a" }
+
+    "mean " + (Format-Number $Method.MeanAbsPearsonDelta) +
+        ", max " + (Format-Number $Method.MaxAbsPearsonDelta)
+}
+
+function Get-CorePrivacySummary {
+    param($Evaluation)
+
+    if ($null -eq $Evaluation -or $null -eq $Evaluation.privacy) {
+        return $null
+    }
+
+    $privacy = $Evaluation.privacy
+    [pscustomobject]@{
+        DcrMedian = $privacy.distance_to_closest_record.median
+        DcrP5 = $privacy.distance_to_closest_record.p5
+        ExactReplayRatio = $privacy.exact_row_match_ratio
+        ExactNumericReplayRatio = $privacy.exact_numeric_signature_match_ratio
+        ExactNonNumericReplayRatio = $privacy.exact_non_numeric_signature_match_ratio
+        RareValueColumns = $privacy.rare_value_alerts.columns_with_alerts
+        RareNumericValueColumns = $privacy.rare_numeric_value_alerts.columns_with_alerts
+    }
+}
+
 function Get-EvaluationSummary {
     param(
         [string]$DatasetPath,
@@ -238,6 +292,7 @@ function Get-EvaluationSummary {
         NumericColumns = ($numericColumns -join ", ")
         Diffusion = $null
         Smote = $null
+        DpNoise = $null
         Notes = @()
     }
 
@@ -250,7 +305,7 @@ function Get-EvaluationSummary {
         $diffHeadPath = Join-Path $WorkRoot "$safeName.diffusion.head.json"
 
         $diffTrain = Invoke-RataJson -Command "rata train df `"$DatasetPath`" `"$modelPath`" --seed $SeedTrain" -OutputPath $diffTrainPath
-        $null = Invoke-RataJson -Command "rata gen df `"$modelPath`" `"$DatasetPath`" `"$diffDataPath`" --rows $($originalStats.row_count) --seed $SeedGenerate" -OutputPath $diffGenPath
+        $diffGen = Invoke-RataJson -Command "rata gen df `"$modelPath`" `"$DatasetPath`" `"$diffDataPath`" --rows $($originalStats.row_count) --seed $SeedGenerate" -OutputPath $diffGenPath
         $diffStats = Invoke-RataJson -Command "rata stats `"$diffDataPath`" --output json" -OutputPath $diffStatsPath
         $diffHead = Invoke-RataJson -Command "rata head `"$diffDataPath`" --rows $($originalStats.row_count) --output json" -OutputPath $diffHeadPath
         $diffRows = @($diffHead.rows)
@@ -259,20 +314,50 @@ function Get-EvaluationSummary {
         $diffPrivacy = Get-DcrSummary -OriginalRows $originalRows -CandidateRows $diffRows -NumericColumns $numericColumns
         $diffExact = Get-ExactReplayRatio -OriginalRows $originalRows -CandidateRows $diffRows -Columns @($originalHead.columns)
         $diffExactNumeric = Get-ExactReplayRatio -OriginalRows $originalRows -CandidateRows $diffRows -Columns $numericColumns
+        $diffCorePrivacy = Get-CorePrivacySummary -Evaluation $diffGen.evaluation
 
         $summary.Diffusion = [ordered]@{
             Rows = $diffStats.row_count
             TrainingMse = $diffTrain.training_mse
             MeanAbsPearsonDelta = $diffCorr.MeanAbsPearsonDelta
             MaxAbsPearsonDelta = $diffCorr.MaxAbsPearsonDelta
-            DcrMedian = $diffPrivacy.Median
-            DcrP5 = $diffPrivacy.P5
-            ExactReplayRatio = $diffExact
-            ExactNumericReplayRatio = $diffExactNumeric
+            DcrMedian = if ($diffCorePrivacy) { $diffCorePrivacy.DcrMedian } else { $diffPrivacy.Median }
+            DcrP5 = if ($diffCorePrivacy) { $diffCorePrivacy.DcrP5 } else { $diffPrivacy.P5 }
+            ExactReplayRatio = if ($diffCorePrivacy) { $diffCorePrivacy.ExactReplayRatio } else { $diffExact }
+            ExactNumericReplayRatio = if ($diffCorePrivacy) { $diffCorePrivacy.ExactNumericReplayRatio } else { $diffExactNumeric }
+            ExactNonNumericReplayRatio = if ($diffCorePrivacy) { $diffCorePrivacy.ExactNonNumericReplayRatio } else { $null }
+            RareValueColumns = if ($diffCorePrivacy) { $diffCorePrivacy.RareValueColumns } else { $null }
+            RareNumericValueColumns = if ($diffCorePrivacy) { $diffCorePrivacy.RareNumericValueColumns } else { $null }
             TopPairs = @($diffCorr.TopPairs)
+        }
+
+        $dpPath = Join-Path $WorkRoot "$safeName.dp-noise.json"
+        $dpReportPath = Join-Path $WorkRoot "$safeName.dp-noise.report.json"
+        $dpStatsPath = Join-Path $WorkRoot "$safeName.dp-noise.stats.json"
+
+        $dpReport = Invoke-RataJson -Command "rata synth dp-noise `"$DatasetPath`" `"$dpPath`" --epsilon $DpEpsilon --seed $SeedTrain" -OutputPath $dpReportPath
+        $dpStats = Invoke-RataJson -Command "rata stats `"$dpPath`" --output json" -OutputPath $dpStatsPath
+
+        $dpCorr = Get-CorrelationSummary -OriginalStats $originalStats -CandidateStats $dpStats
+        $dpCorePrivacy = Get-CorePrivacySummary -Evaluation $dpReport.evaluation
+
+        $summary.DpNoise = [ordered]@{
+            Rows = $dpStats.row_count
+            Epsilon = $DpEpsilon
+            MeanAbsPearsonDelta = $dpCorr.MeanAbsPearsonDelta
+            MaxAbsPearsonDelta = $dpCorr.MaxAbsPearsonDelta
+            DcrMedian = if ($dpCorePrivacy) { $dpCorePrivacy.DcrMedian } else { $null }
+            DcrP5 = if ($dpCorePrivacy) { $dpCorePrivacy.DcrP5 } else { $null }
+            ExactReplayRatio = if ($dpCorePrivacy) { $dpCorePrivacy.ExactReplayRatio } else { $null }
+            ExactNumericReplayRatio = if ($dpCorePrivacy) { $dpCorePrivacy.ExactNumericReplayRatio } else { $null }
+            ExactNonNumericReplayRatio = if ($dpCorePrivacy) { $dpCorePrivacy.ExactNonNumericReplayRatio } else { $null }
+            RareValueColumns = if ($dpCorePrivacy) { $dpCorePrivacy.RareValueColumns } else { $null }
+            RareNumericValueColumns = if ($dpCorePrivacy) { $dpCorePrivacy.RareNumericValueColumns } else { $null }
+            TopPairs = @($dpCorr.TopPairs)
         }
     } else {
         $summary.Notes += "Diffusion not evaluated: dataset has no fully numeric columns."
+        $summary.Notes += "DP noise not evaluated: dataset has no fully numeric columns."
     }
 
     if ($TargetColumn) {
@@ -291,16 +376,20 @@ function Get-EvaluationSummary {
         $smotePrivacy = Get-DcrSummary -OriginalRows $originalRows -CandidateRows $smoteRows -NumericColumns $numericColumns
         $smoteExact = Get-ExactReplayRatio -OriginalRows $originalRows -CandidateRows $smoteRows -Columns @($originalHead.columns)
         $smoteExactNumeric = Get-ExactReplayRatio -OriginalRows $originalRows -CandidateRows $smoteRows -Columns $numericColumns
+        $smoteCorePrivacy = Get-CorePrivacySummary -Evaluation $smoteReport.final_output_evaluation
 
         $summary.Smote = [ordered]@{
             Rows = $smoteStats.row_count
             MinorityLabel = $smoteReport.minority_label
             MeanAbsPearsonDelta = $smoteCorr.MeanAbsPearsonDelta
             MaxAbsPearsonDelta = $smoteCorr.MaxAbsPearsonDelta
-            DcrMedian = $smotePrivacy.Median
-            DcrP5 = $smotePrivacy.P5
-            ExactReplayRatio = $smoteExact
-            ExactNumericReplayRatio = $smoteExactNumeric
+            DcrMedian = if ($smoteCorePrivacy) { $smoteCorePrivacy.DcrMedian } else { $smotePrivacy.Median }
+            DcrP5 = if ($smoteCorePrivacy) { $smoteCorePrivacy.DcrP5 } else { $smotePrivacy.P5 }
+            ExactReplayRatio = if ($smoteCorePrivacy) { $smoteCorePrivacy.ExactReplayRatio } else { $smoteExact }
+            ExactNumericReplayRatio = if ($smoteCorePrivacy) { $smoteCorePrivacy.ExactNumericReplayRatio } else { $smoteExactNumeric }
+            ExactNonNumericReplayRatio = if ($smoteCorePrivacy) { $smoteCorePrivacy.ExactNonNumericReplayRatio } else { $null }
+            RareValueColumns = if ($smoteCorePrivacy) { $smoteCorePrivacy.RareValueColumns } else { $null }
+            RareNumericValueColumns = if ($smoteCorePrivacy) { $smoteCorePrivacy.RareNumericValueColumns } else { $null }
             TopPairs = @($smoteCorr.TopPairs)
         }
     } else {
@@ -319,7 +408,7 @@ function Write-MarkdownReport {
     $lines = New-Object System.Collections.Generic.List[string]
     $lines.Add("# Synthetic Generator Evaluation")
     $lines.Add("")
-    $lines.Add("This document compares the Rust diffusion path and SMOTE on the local test datasets.")
+    $lines.Add("This document compares the Rust diffusion path, SMOTE, and DP noise on the local test datasets.")
     $lines.Add("")
     $lines.Add("Priority order used in this evaluation:")
     $lines.Add("")
@@ -332,27 +421,22 @@ function Write-MarkdownReport {
     $lines.Add("- DCR median and DCR p5: nearest-neighbor distance from synthetic rows to original rows over common numeric columns")
     $lines.Add("- exact replay ratio: exact full-row matches against the original dataset")
     $lines.Add("- exact numeric replay ratio: exact matches on numeric columns only")
+    $lines.Add("- exact non-numeric replay ratio: exact matches on common non-numeric scalar signatures")
     $lines.Add("- mean abs Pearson delta: average absolute Pearson correlation drift over numeric column pairs")
     $lines.Add("- max abs Pearson delta: largest Pearson correlation drift over numeric column pairs")
     $lines.Add("")
-    $lines.Add("| Dataset | Rows | Target | Diffusion Privacy | Diffusion Corr | SMOTE Privacy | SMOTE Corr | Notes |")
-    $lines.Add("| --- | ---: | --- | --- | --- | --- | --- | --- |")
+    $lines.Add("| Dataset | Rows | Target | Diffusion Privacy | Diffusion Corr | SMOTE Privacy | SMOTE Corr | DP Noise Privacy | DP Noise Corr | Notes |")
+    $lines.Add("| --- | ---: | --- | --- | --- | --- | --- | --- | --- | --- |")
 
     foreach ($summary in $Summaries) {
-        $diffPrivacy = if ($summary.Diffusion) {
-            "DCR median " + (Format-Number $summary.Diffusion.DcrMedian) + ", replay " + (Format-Number $summary.Diffusion.ExactReplayRatio) + ", numeric replay " + (Format-Number $summary.Diffusion.ExactNumericReplayRatio)
-        } else { "n/a" }
-        $diffCorr = if ($summary.Diffusion) {
-            "mean " + (Format-Number $summary.Diffusion.MeanAbsPearsonDelta) + ", max " + (Format-Number $summary.Diffusion.MaxAbsPearsonDelta)
-        } else { "n/a" }
-        $smotePrivacy = if ($summary.Smote) {
-            "DCR median " + (Format-Number $summary.Smote.DcrMedian) + ", replay " + (Format-Number $summary.Smote.ExactReplayRatio) + ", numeric replay " + (Format-Number $summary.Smote.ExactNumericReplayRatio)
-        } else { "n/a" }
-        $smoteCorr = if ($summary.Smote) {
-            "mean " + (Format-Number $summary.Smote.MeanAbsPearsonDelta) + ", max " + (Format-Number $summary.Smote.MaxAbsPearsonDelta)
-        } else { "n/a" }
+        $diffPrivacy = Format-PrivacySummary -Method $summary.Diffusion
+        $diffCorr = Format-CorrelationSummary -Method $summary.Diffusion
+        $smotePrivacy = Format-PrivacySummary -Method $summary.Smote
+        $smoteCorr = Format-CorrelationSummary -Method $summary.Smote
+        $dpPrivacy = Format-PrivacySummary -Method $summary.DpNoise
+        $dpCorr = Format-CorrelationSummary -Method $summary.DpNoise
         $notes = if ($summary.Notes.Count -gt 0) { ($summary.Notes -join " ") } else { "" }
-        $lines.Add("| $($summary.Dataset) | $($summary.OriginalRows) | $($summary.TargetColumn) | $diffPrivacy | $diffCorr | $smotePrivacy | $smoteCorr | $notes |")
+        $lines.Add("| $($summary.Dataset) | $($summary.OriginalRows) | $($summary.TargetColumn) | $diffPrivacy | $diffCorr | $smotePrivacy | $smoteCorr | $dpPrivacy | $dpCorr | $notes |")
     }
 
     foreach ($summary in $Summaries) {
@@ -378,6 +462,9 @@ function Write-MarkdownReport {
             $lines.Add("- DCR p5: ``$(Format-Number $summary.Diffusion.DcrP5)``")
             $lines.Add("- Exact replay ratio: ``$(Format-Number $summary.Diffusion.ExactReplayRatio)``")
             $lines.Add("- Exact numeric replay ratio: ``$(Format-Number $summary.Diffusion.ExactNumericReplayRatio)``")
+            $lines.Add("- Exact non-numeric replay ratio: ``$(Format-Number $summary.Diffusion.ExactNonNumericReplayRatio)``")
+            $lines.Add("- Rare non-numeric value columns: ``$($summary.Diffusion.RareValueColumns)``")
+            $lines.Add("- Rare numeric value columns: ``$($summary.Diffusion.RareNumericValueColumns)``")
             $lines.Add("- Mean absolute Pearson delta: ``$(Format-Number $summary.Diffusion.MeanAbsPearsonDelta)``")
             $lines.Add("- Max absolute Pearson delta: ``$(Format-Number $summary.Diffusion.MaxAbsPearsonDelta)``")
             if ($summary.Diffusion.TopPairs.Count -gt 0) {
@@ -397,11 +484,36 @@ function Write-MarkdownReport {
             $lines.Add("- DCR p5: ``$(Format-Number $summary.Smote.DcrP5)``")
             $lines.Add("- Exact replay ratio: ``$(Format-Number $summary.Smote.ExactReplayRatio)``")
             $lines.Add("- Exact numeric replay ratio: ``$(Format-Number $summary.Smote.ExactNumericReplayRatio)``")
+            $lines.Add("- Exact non-numeric replay ratio: ``$(Format-Number $summary.Smote.ExactNonNumericReplayRatio)``")
+            $lines.Add("- Rare non-numeric value columns: ``$($summary.Smote.RareValueColumns)``")
+            $lines.Add("- Rare numeric value columns: ``$($summary.Smote.RareNumericValueColumns)``")
             $lines.Add("- Mean absolute Pearson delta: ``$(Format-Number $summary.Smote.MeanAbsPearsonDelta)``")
             $lines.Add("- Max absolute Pearson delta: ``$(Format-Number $summary.Smote.MaxAbsPearsonDelta)``")
             if ($summary.Smote.TopPairs.Count -gt 0) {
                 $lines.Add("- Top drift pairs:")
                 foreach ($pair in $summary.Smote.TopPairs) {
+                    $lines.Add("  - ``$($pair.Pair)`` delta ``$(Format-Number $pair.Delta)``")
+                }
+            }
+        }
+
+        if ($summary.DpNoise) {
+            $lines.Add("")
+            $lines.Add("### DP Noise")
+            $lines.Add("")
+            $lines.Add("- Epsilon: ``$(Format-Number $summary.DpNoise.Epsilon)``")
+            $lines.Add("- DCR median: ``$(Format-Number $summary.DpNoise.DcrMedian)``")
+            $lines.Add("- DCR p5: ``$(Format-Number $summary.DpNoise.DcrP5)``")
+            $lines.Add("- Exact replay ratio: ``$(Format-Number $summary.DpNoise.ExactReplayRatio)``")
+            $lines.Add("- Exact numeric replay ratio: ``$(Format-Number $summary.DpNoise.ExactNumericReplayRatio)``")
+            $lines.Add("- Exact non-numeric replay ratio: ``$(Format-Number $summary.DpNoise.ExactNonNumericReplayRatio)``")
+            $lines.Add("- Rare non-numeric value columns: ``$($summary.DpNoise.RareValueColumns)``")
+            $lines.Add("- Rare numeric value columns: ``$($summary.DpNoise.RareNumericValueColumns)``")
+            $lines.Add("- Mean absolute Pearson delta: ``$(Format-Number $summary.DpNoise.MeanAbsPearsonDelta)``")
+            $lines.Add("- Max absolute Pearson delta: ``$(Format-Number $summary.DpNoise.MaxAbsPearsonDelta)``")
+            if ($summary.DpNoise.TopPairs.Count -gt 0) {
+                $lines.Add("- Top drift pairs:")
+                foreach ($pair in $summary.DpNoise.TopPairs) {
                     $lines.Add("  - ``$($pair.Pair)`` delta ``$(Format-Number $pair.Delta)``")
                 }
             }
@@ -412,7 +524,11 @@ function Write-MarkdownReport {
     if ($parent) {
         New-Item -ItemType Directory -Force -Path $parent | Out-Null
     }
-    Set-Content -Path $OutputPath -Value $lines
+    [System.IO.File]::WriteAllText(
+        [System.IO.Path]::GetFullPath($OutputPath),
+        (($lines -join "`n") + "`n"),
+        [System.Text.UTF8Encoding]::new($false)
+    )
 }
 
 New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null
@@ -430,4 +546,9 @@ $summaries = foreach ($dataset in $datasets) {
 }
 
 Write-MarkdownReport -Summaries $summaries -OutputPath $OutputMarkdown
-$summaries | ConvertTo-Json -Depth 8 | Set-Content (([System.IO.Path]::ChangeExtension($OutputMarkdown, ".json")))
+$jsonText = (($summaries | ConvertTo-Json -Depth 8) -replace "`r`n", "`n") -replace "`r", "`n"
+[System.IO.File]::WriteAllText(
+    [System.IO.Path]::GetFullPath([System.IO.Path]::ChangeExtension($OutputMarkdown, ".json")),
+    ($jsonText + "`n"),
+    [System.Text.UTF8Encoding]::new($false)
+)

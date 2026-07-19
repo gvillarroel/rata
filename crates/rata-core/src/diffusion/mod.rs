@@ -11,7 +11,11 @@ use nalgebra::{DMatrix, DVector};
 use rand::{Rng, SeedableRng, rngs::StdRng};
 use serde::{Deserialize, Serialize};
 
-use crate::{DatasetFormat, analyze_dataset, load_records, write_records};
+use crate::{
+    DatasetFormat, GenerationEvaluationReport, PrivacyColumnPolicy, PrivacyColumnPolicyReport,
+    analyze_dataset, apply_privacy_column_policy, evaluate_generation_records,
+    load_records_limited, privacy_policy_feature_columns, write_records,
+};
 
 use self::linear::{fit_ridge_multi_target, predict_row};
 use self::preprocess::{FeatureSelection, build_output_records, prepare_numeric_dataset};
@@ -24,6 +28,7 @@ pub struct DiffusionTrainOptions {
     pub ridge_alpha: f64,
     pub seed: Option<u64>,
     pub features: Vec<String>,
+    pub max_rows: Option<usize>,
 }
 
 impl Default for DiffusionTrainOptions {
@@ -34,25 +39,18 @@ impl Default for DiffusionTrainOptions {
             ridge_alpha: 1e-3,
             seed: None,
             features: Vec::new(),
+            max_rows: None,
         }
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct DiffusionGenerateOptions {
     pub rows: Option<usize>,
     pub seed: Option<u64>,
     pub output_format: Option<DatasetFormat>,
-}
-
-impl Default for DiffusionGenerateOptions {
-    fn default() -> Self {
-        Self {
-            rows: None,
-            seed: None,
-            output_format: None,
-        }
-    }
+    pub privacy_column_policy: PrivacyColumnPolicy,
+    pub reference_max_rows: Option<usize>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -83,6 +81,7 @@ pub struct LinearDenoiser {
 pub struct DiffusionTrainReport {
     pub source_path: PathBuf,
     pub model_output_path: PathBuf,
+    pub method: String,
     pub timesteps: usize,
     pub row_count: usize,
     pub numeric_columns: Vec<String>,
@@ -98,6 +97,7 @@ pub struct DiffusionTrainReport {
 #[derive(Debug, Clone, Serialize)]
 pub struct DiffusionGenerateReport {
     pub model_path: PathBuf,
+    pub model_method: String,
     pub reference_dataset_path: PathBuf,
     pub output_path: PathBuf,
     pub output_format: DatasetFormat,
@@ -105,7 +105,9 @@ pub struct DiffusionGenerateReport {
     pub numeric_columns: Vec<String>,
     pub passthrough_columns: Vec<String>,
     pub seed: Option<u64>,
+    pub privacy_column_policy: PrivacyColumnPolicyReport,
     pub generated_stats: crate::DatasetStats,
+    pub evaluation: GenerationEvaluationReport,
     pub caveats: Vec<String>,
 }
 
@@ -133,16 +135,12 @@ pub fn train_diffusion_model(
 
     let input_path = dataset_input.as_ref();
     let format = DatasetFormat::detect(input_path)?;
-    let records = load_records(input_path, format)?;
+    let records = load_records_limited(input_path, format, options.max_rows)?;
     let dataset = prepare_numeric_dataset(
         &records,
         &FeatureSelection::ExplicitOrAuto(&options.features),
     )?;
-    if dataset.numeric.columns.is_empty() {
-        bail!("diffusion training requires at least one numeric column");
-    }
-
-    let schedule = DiffusionSchedule::linear(options.timesteps, 1e-4, 0.02);
+    let schedule = DiffusionSchedule::rectified_flow();
     let input_dim = dataset.numeric.columns.len() + 3;
     let output_dim = dataset.numeric.columns.len();
     let total_examples = dataset.numeric.matrix.nrows() * options.train_examples_per_row;
@@ -153,20 +151,17 @@ pub fn train_diffusion_model(
     let mut rng = diffusion_rng(options.seed);
     let mut row_index = 0usize;
     for row in 0..dataset.numeric.matrix.nrows() {
-        let x0 = dataset.numeric.matrix.row(row).transpose();
+        let x1 = dataset.numeric.matrix.row(row).transpose();
         for _ in 0..options.train_examples_per_row {
-            let timestep = rng.random_range(0..options.timesteps);
-            let alpha_bar = schedule.alpha_bars[timestep];
-            let sqrt_alpha_bar = alpha_bar.sqrt();
-            let sqrt_one_minus_alpha_bar = (1.0 - alpha_bar).sqrt();
-
+            let time = sample_logit_normal_time(&mut rng);
             let noise = gaussian_vector(output_dim, &mut rng);
-            let xt = x0.scale(sqrt_alpha_bar) + noise.scale(sqrt_one_minus_alpha_bar);
-            let features = timestep_features(timestep, options.timesteps);
+            let xt = noise.scale(1.0 - time) + x1.scale(time);
+            let velocity = &x1 - &noise;
+            let features = continuous_time_features(time);
 
             for feature_index in 0..output_dim {
                 x_train[(row_index, feature_index)] = xt[feature_index];
-                y_train[(row_index, feature_index)] = noise[feature_index];
+                y_train[(row_index, feature_index)] = velocity[feature_index];
             }
             x_train[(row_index, output_dim)] = features[0];
             x_train[(row_index, output_dim + 1)] = features[1];
@@ -175,14 +170,19 @@ pub fn train_diffusion_model(
         }
     }
 
-    let weights = fit_ridge_multi_target(&x_train, &y_train, options.ridge_alpha)
-        .context("failed to fit diffusion denoiser")?;
+    let weights = if output_dim == 0 {
+        DMatrix::zeros(input_dim, output_dim)
+    } else {
+        fit_ridge_multi_target(&x_train, &y_train, options.ridge_alpha)
+            .context("failed to fit diffusion denoiser")?
+    };
     let training_predictions = &x_train * &weights;
     let mse = mean_squared_error(&training_predictions, &y_train);
+    let method = "tabular_rectified_flow_ridge".to_string();
 
     let artifact = DiffusionModelArtifact {
         version: "0.1.0".to_string(),
-        method: "tabular_gaussian_ddpm_linear".to_string(),
+        method: method.clone(),
         source_path: input_path.to_path_buf(),
         timesteps: options.timesteps,
         feature_count: output_dim,
@@ -205,6 +205,7 @@ pub fn train_diffusion_model(
     Ok(DiffusionTrainReport {
         source_path: input_path.to_path_buf(),
         model_output_path: model_output_path.as_ref().to_path_buf(),
+        method,
         timesteps: options.timesteps,
         row_count: records.len(),
         numeric_columns: artifact.numeric_columns.clone(),
@@ -227,7 +228,8 @@ pub fn generate_from_diffusion_model(
     let model = read_model_artifact(model_path.as_ref())?;
     let reference_path = reference_dataset_input.as_ref();
     let reference_format = DatasetFormat::detect(reference_path)?;
-    let reference_records = load_records(reference_path, reference_format)?;
+    let reference_records =
+        load_records_limited(reference_path, reference_format, options.reference_max_rows)?;
     if reference_records.is_empty() {
         bail!("reference dataset is empty");
     }
@@ -245,22 +247,34 @@ pub fn generate_from_diffusion_model(
         .unwrap_or(DatasetFormat::detect(output_path.as_ref())?);
     let mut rng = diffusion_rng(options.seed);
     let generated_numeric = sample_numeric_matrix(&model, row_count, &mut rng);
-    let generated_records = build_output_records(
+    let mut generated_records = build_output_records(
         &reference_records,
         &reference_view,
         &generated_numeric,
         &model.passthrough_columns,
         &mut rng,
     )?;
+    let privacy_column_policy_report =
+        apply_privacy_column_policy(&mut generated_records, &options.privacy_column_policy)?;
+    let evaluation_features =
+        privacy_policy_feature_columns(&model.numeric_columns, &options.privacy_column_policy);
 
     if let Some(parent) = output_path.as_ref().parent() {
         std::fs::create_dir_all(parent)?;
     }
     write_records(output_path.as_ref(), output_format, &generated_records)?;
     let generated_stats = analyze_dataset(output_path.as_ref())?;
+    let evaluation = evaluate_generation_records(
+        "reference_dataset_vs_diffusion_output",
+        &reference_records,
+        &generated_records,
+        &evaluation_features,
+        diffusion_generation_evaluation_caveats(),
+    )?;
 
     Ok(DiffusionGenerateReport {
         model_path: model_path.as_ref().to_path_buf(),
+        model_method: model.method,
         reference_dataset_path: reference_path.to_path_buf(),
         output_path: output_path.as_ref().to_path_buf(),
         output_format,
@@ -268,12 +282,64 @@ pub fn generate_from_diffusion_model(
         numeric_columns: model.numeric_columns,
         passthrough_columns: model.passthrough_columns,
         seed: options.seed,
+        privacy_column_policy: privacy_column_policy_report,
         generated_stats,
+        evaluation,
         caveats: diffusion_generation_caveats(),
     })
 }
 
 fn sample_numeric_matrix(
+    model: &DiffusionModelArtifact,
+    row_count: usize,
+    rng: &mut StdRng,
+) -> DMatrix<f64> {
+    if model.method == "tabular_rectified_flow_ridge" {
+        return sample_rectified_flow_matrix(model, row_count, rng);
+    }
+
+    sample_ddpm_matrix(model, row_count, rng)
+}
+
+fn sample_rectified_flow_matrix(
+    model: &DiffusionModelArtifact,
+    row_count: usize,
+    rng: &mut StdRng,
+) -> DMatrix<f64> {
+    let mut current = DMatrix::from_fn(row_count, model.feature_count, |_, _| {
+        sample_standard_normal(rng)
+    });
+    let steps = model.timesteps.max(1);
+    for step in 0..steps {
+        let time = step as f64 / steps as f64;
+        let next_time = (step + 1) as f64 / steps as f64;
+        let delta = next_time - time;
+
+        for row in 0..row_count {
+            let xt = current.row(row).transpose();
+            let velocity = predict_flow_velocity(&model.denoiser, &xt, time);
+            let euler = &xt + velocity.clone().scale(delta);
+            let next_velocity = predict_flow_velocity(&model.denoiser, &euler, next_time);
+            let x_next = xt + (velocity + next_velocity).scale(0.5 * delta);
+
+            for col in 0..model.feature_count {
+                current[(row, col)] = x_next[col];
+            }
+        }
+    }
+
+    DMatrix::from_fn(row_count, model.feature_count, |row, col| {
+        destandardize_and_clip(
+            current[(row, col)],
+            model.means[col],
+            model.stddevs[col],
+            model.mins[col],
+            model.maxs[col],
+        )
+    })
+}
+
+fn sample_ddpm_matrix(
     model: &DiffusionModelArtifact,
     row_count: usize,
     rng: &mut StdRng,
@@ -320,7 +386,19 @@ fn sample_numeric_matrix(
     })
 }
 
+fn predict_flow_velocity(denoiser: &LinearDenoiser, xt: &DVector<f64>, time: f64) -> DVector<f64> {
+    predict_denoiser(denoiser, xt, continuous_time_features(time))
+}
+
 fn predict_epsilon(
+    denoiser: &LinearDenoiser,
+    xt: &DVector<f64>,
+    time_features: [f64; 3],
+) -> DVector<f64> {
+    predict_denoiser(denoiser, xt, time_features)
+}
+
+fn predict_denoiser(
     denoiser: &LinearDenoiser,
     xt: &DVector<f64>,
     time_features: [f64; 3],
@@ -337,6 +415,11 @@ fn predict_epsilon(
 
 fn timestep_features(timestep: usize, total_steps: usize) -> [f64; 3] {
     let normalized = timestep as f64 / total_steps.max(1) as f64;
+    continuous_time_features(normalized)
+}
+
+fn continuous_time_features(time: f64) -> [f64; 3] {
+    let normalized = time.clamp(0.0, 1.0);
     [
         normalized,
         (std::f64::consts::TAU * normalized).sin(),
@@ -369,6 +452,11 @@ fn gaussian_vector(size: usize, rng: &mut StdRng) -> DVector<f64> {
     DVector::from_fn(size, |_, _| sample_standard_normal(rng))
 }
 
+fn sample_logit_normal_time(rng: &mut StdRng) -> f64 {
+    let sample = sample_standard_normal(rng);
+    (1.0 / (1.0 + (-sample).exp())).clamp(1e-4, 1.0 - 1e-4)
+}
+
 fn sample_standard_normal(rng: &mut StdRng) -> f64 {
     let u1 = (1.0 - rng.random::<f64>()).max(f64::MIN_POSITIVE);
     let u2 = rng.random::<f64>();
@@ -397,9 +485,19 @@ fn standardize(value: f64, mean: f64, stddev: f64) -> f64 {
 fn diffusion_references() -> Vec<DiffusionReference> {
     vec![
         DiffusionReference {
+            citation: "Lipman et al. (2022), Flow Matching for Generative Modeling".to_string(),
+            url: "https://arxiv.org/abs/2210.02747".to_string(),
+            note: "Simulation-free flow-matching objective used by the default trainer.".to_string(),
+        },
+        DiffusionReference {
+            citation: "Nasution et al. (2026), Flow Matching for Tabular Data Synthesis".to_string(),
+            url: "https://arxiv.org/abs/2512.00698".to_string(),
+            note: "Recent tabular flow-matching evidence for utility and sampling efficiency.".to_string(),
+        },
+        DiffusionReference {
             citation: "Ho et al. (2020), Denoising Diffusion Probabilistic Models".to_string(),
             url: "https://arxiv.org/abs/2006.11239".to_string(),
-            note: "Core Gaussian diffusion training and sampling equations.".to_string(),
+            note: "Legacy artifact compatibility and baseline Gaussian diffusion equations.".to_string(),
         },
         DiffusionReference {
             citation: "Kotelnikov et al. (2023), TabDDPM: Modelling Tabular Data with Diffusion Models".to_string(),
@@ -416,15 +514,25 @@ fn diffusion_references() -> Vec<DiffusionReference> {
 
 fn diffusion_training_caveats() -> Vec<String> {
     vec![
-        "This first Rust implementation models numeric columns with Gaussian diffusion and treats non-numeric columns as passthrough metadata for generation time.".to_string(),
-        "The denoiser is intentionally linear so the training path stays lightweight and modular. A deeper MLP or transformer denoiser can replace it later without changing the CLI contract.".to_string(),
+        "The default trainer uses a rectified-flow / flow-matching objective with logit-normal time sampling and Heun-style ODE sampling for generated numeric columns.".to_string(),
+        "The denoiser is intentionally linear ridge regression so the Rust training path stays lightweight and modular. A deeper MLP, gated network, or transformer denoiser can replace it later without changing the CLI contract.".to_string(),
+        "Non-numeric columns are retained as passthrough metadata for generation time. Datasets with no numeric columns train a schema-preserving bootstrap artifact rather than a numeric flow model.".to_string(),
     ]
 }
 
 fn diffusion_generation_caveats() -> Vec<String> {
     vec![
-        "Generated numeric columns are synthetic samples from the trained diffusion model.".to_string(),
+        "Generated numeric columns are synthetic samples from the trained rectified-flow model for new artifacts, or from the legacy DDPM sampler for older artifacts.".to_string(),
         "Passthrough columns are bootstrapped from the reference dataset during generation. Full categorical diffusion is a later extension.".to_string(),
+    ]
+}
+
+fn diffusion_generation_evaluation_caveats() -> Vec<String> {
+    vec![
+        "DCR and NNDR are nearest-neighbor privacy proxies. They do not replace membership inference attacks.".to_string(),
+        "The final-output privacy evaluation compares generated diffusion rows against the reference dataset used during generation.".to_string(),
+        "Exact numeric and non-numeric signature replay is evaluated over every common scalar column, including passthrough columns.".to_string(),
+        "Passthrough columns are copied from sampled reference rows unless they are removed before generation.".to_string(),
     ]
 }
 
@@ -435,7 +543,7 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::JsonValue;
+    use crate::{JsonValue, PrivacyColumnPolicy, load_records};
 
     #[test]
     fn trains_and_generates_numeric_diffusion_model() {
@@ -461,9 +569,11 @@ mod tests {
                 ridge_alpha: 1e-3,
                 seed: Some(42),
                 features: Vec::new(),
+                max_rows: None,
             },
         )
         .unwrap();
+        assert_eq!(train_report.method, "tabular_rectified_flow_ridge");
         assert_eq!(
             train_report.numeric_columns,
             vec!["age".to_string(), "income".to_string()]
@@ -472,6 +582,10 @@ mod tests {
             train_report.passthrough_columns,
             vec!["segment".to_string()]
         );
+        let artifact = read_model_artifact(&model_path).unwrap();
+        assert_eq!(artifact.method, "tabular_rectified_flow_ridge");
+        assert_eq!(artifact.schedule.kind, "rectified_flow");
+        assert!(artifact.schedule.betas.is_empty());
 
         let gen_report = generate_from_diffusion_model(
             &model_path,
@@ -481,11 +595,34 @@ mod tests {
                 rows: Some(6),
                 seed: Some(7),
                 output_format: None,
+                privacy_column_policy: PrivacyColumnPolicy::default(),
+                reference_max_rows: None,
             },
         )
         .unwrap();
 
         assert_eq!(gen_report.generated_row_count, 6);
+        assert_eq!(
+            gen_report.evaluation.reference_population,
+            "reference_dataset_vs_diffusion_output"
+        );
+        assert_eq!(gen_report.evaluation.reference_row_count, 4);
+        assert_eq!(gen_report.evaluation.synthetic_row_count, 6);
+        assert_eq!(
+            gen_report
+                .evaluation
+                .privacy
+                .exact_non_numeric_signature_match_count,
+            6
+        );
+        assert!(
+            gen_report
+                .evaluation
+                .privacy
+                .rare_value_alerts
+                .columns_with_alerts
+                >= 1
+        );
         assert!(output_path.exists());
         let generated = load_records(&output_path, DatasetFormat::Json).unwrap();
         assert_eq!(generated.len(), 6);
@@ -495,6 +632,151 @@ mod tests {
                 .all(|row| row.get("age").and_then(JsonValue::as_f64).is_some())
         );
         assert!(generated.iter().all(|row| row.get("segment").is_some()));
+
+        fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
+    fn trains_and_generates_passthrough_artifact_for_non_numeric_dataset() {
+        let temp_root = unique_test_dir("diffusion-passthrough");
+        fs::create_dir_all(&temp_root).unwrap();
+        let input_path = temp_root.join("input.json");
+        let model_path = temp_root.join("model.json");
+        let output_path = temp_root.join("generated.json");
+        let payload = json!([
+            { "headline": "alpha", "section": "science" },
+            { "headline": "beta", "section": "business" },
+            { "headline": "gamma", "section": "culture" }
+        ]);
+        fs::write(&input_path, serde_json::to_string_pretty(&payload).unwrap()).unwrap();
+
+        let train_report = train_diffusion_model(
+            &input_path,
+            &model_path,
+            DiffusionTrainOptions {
+                timesteps: 8,
+                train_examples_per_row: 2,
+                ridge_alpha: 1e-3,
+                seed: Some(11),
+                features: Vec::new(),
+                max_rows: None,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(train_report.method, "tabular_rectified_flow_ridge");
+        assert!(train_report.numeric_columns.is_empty());
+        assert_eq!(
+            train_report.passthrough_columns,
+            vec!["headline".to_string(), "section".to_string()]
+        );
+
+        let gen_report = generate_from_diffusion_model(
+            &model_path,
+            &input_path,
+            &output_path,
+            DiffusionGenerateOptions {
+                rows: Some(5),
+                seed: Some(13),
+                output_format: None,
+                privacy_column_policy: PrivacyColumnPolicy::default(),
+                reference_max_rows: None,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(gen_report.model_method, "tabular_rectified_flow_ridge");
+        assert_eq!(gen_report.generated_row_count, 5);
+        assert!(gen_report.numeric_columns.is_empty());
+        assert_eq!(
+            gen_report
+                .evaluation
+                .privacy
+                .exact_non_numeric_signature_match_count,
+            5
+        );
+
+        let generated = load_records(&output_path, DatasetFormat::Json).unwrap();
+        assert_eq!(generated.len(), 5);
+        assert!(
+            generated
+                .iter()
+                .all(|row| row.get("headline").is_some() && row.get("section").is_some())
+        );
+
+        fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
+    fn applies_privacy_column_policy_to_diffusion_passthrough() {
+        let temp_root = unique_test_dir("diffusion-policy");
+        fs::create_dir_all(&temp_root).unwrap();
+        let input_path = temp_root.join("input.json");
+        let model_path = temp_root.join("model.json");
+        let output_path = temp_root.join("generated.json");
+        let payload = json!([
+            { "age": 21.0, "income": 1000.0, "email": "a@example.test", "segment": "a" },
+            { "age": 25.0, "income": 1200.0, "email": "b@example.test", "segment": "b" },
+            { "age": 31.0, "income": 1800.0, "email": "c@example.test", "segment": "a" },
+            { "age": 35.0, "income": 2200.0, "email": "d@example.test", "segment": "c" }
+        ]);
+        fs::write(&input_path, serde_json::to_string_pretty(&payload).unwrap()).unwrap();
+
+        train_diffusion_model(
+            &input_path,
+            &model_path,
+            DiffusionTrainOptions {
+                timesteps: 16,
+                train_examples_per_row: 4,
+                ridge_alpha: 1e-3,
+                seed: Some(42),
+                features: Vec::new(),
+                max_rows: None,
+            },
+        )
+        .unwrap();
+
+        let gen_report = generate_from_diffusion_model(
+            &model_path,
+            &input_path,
+            &output_path,
+            DiffusionGenerateOptions {
+                rows: Some(6),
+                seed: Some(7),
+                output_format: None,
+                privacy_column_policy: PrivacyColumnPolicy {
+                    drop_columns: vec!["email".to_string()],
+                    mask_columns: vec!["segment".to_string()],
+                    fail_columns: Vec::new(),
+                },
+                reference_max_rows: None,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(
+            gen_report.privacy_column_policy.dropped_columns,
+            vec!["email".to_string()]
+        );
+        assert_eq!(
+            gen_report.privacy_column_policy.masked_columns,
+            vec!["segment".to_string()]
+        );
+        assert_eq!(
+            gen_report
+                .evaluation
+                .privacy
+                .exact_non_numeric_signature_match_count,
+            0
+        );
+
+        let generated = load_records(&output_path, DatasetFormat::Json).unwrap();
+        assert!(generated.iter().all(|row| !row.contains_key("email")));
+        assert!(
+            generated.iter().all(|row| {
+                row.get("segment") == Some(&JsonValue::String("[MASKED]".to_string()))
+            })
+        );
 
         fs::remove_dir_all(&temp_root).unwrap();
     }

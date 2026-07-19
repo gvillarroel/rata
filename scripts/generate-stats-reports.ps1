@@ -17,13 +17,14 @@ foreach ($dataset in $datasets) {
     $reportStem = $dataset.Name -replace "\.", "_"
     $markdownPath = Join-Path $reportsDir "$reportStem.md"
     $jsonPath = Join-Path $reportsDir "$reportStem.json"
+    $datasetPath = Resolve-Path -Relative $dataset.FullName
 
     Write-Host "Generating reports for $($dataset.Name)"
 
-    $markdown = cargo run -p rata-core --bin rata -- stats $dataset.FullName
+    $markdown = cargo run -p rata-core --bin rata -- stats $datasetPath
     $markdown | Set-Content -Path $markdownPath -Encoding utf8
 
-    $json = cargo run -p rata-core --bin rata -- stats $dataset.FullName --output json
+    $json = cargo run -p rata-core --bin rata -- stats $datasetPath --output json
     $json | Set-Content -Path $jsonPath -Encoding utf8
 }
 

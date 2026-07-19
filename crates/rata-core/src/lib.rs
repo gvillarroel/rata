@@ -107,10 +107,41 @@ pub struct SmoteReport {
     pub original_row_count: usize,
     pub synthetic_row_count: usize,
     pub output_row_count: usize,
+    pub synthetic_only: bool,
     pub k: usize,
     pub seed: Option<u64>,
+    pub privacy_column_policy: PrivacyColumnPolicyReport,
     pub stats_diff: StatsDiffReport,
     pub evaluation: GenerationEvaluationReport,
+    pub final_output_evaluation: GenerationEvaluationReport,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct SmoteOptions {
+    pub output_format: Option<DatasetFormat>,
+    pub minority_label: Option<String>,
+    pub synthetic_samples: Option<usize>,
+    pub target_rows: Option<usize>,
+    pub k: Option<usize>,
+    pub seed: Option<u64>,
+    pub feature_columns: Vec<String>,
+    pub synthetic_only: bool,
+    pub privacy_column_policy: PrivacyColumnPolicy,
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct PrivacyColumnPolicy {
+    pub drop_columns: Vec<String>,
+    pub mask_columns: Vec<String>,
+    pub fail_columns: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct PrivacyColumnPolicyReport {
+    pub dropped_columns: Vec<String>,
+    pub masked_columns: Vec<String>,
+    pub fail_columns: Vec<String>,
+    pub missing_columns: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -123,6 +154,7 @@ pub struct DpNoiseReport {
     pub row_count: usize,
     pub noisy_columns: Vec<String>,
     pub seed: Option<u64>,
+    pub privacy_column_policy: PrivacyColumnPolicyReport,
     pub stats_diff: StatsDiffReport,
     pub evaluation: GenerationEvaluationReport,
 }
@@ -174,12 +206,19 @@ pub struct SyntheticDataPrivacyReport {
     pub exact_row_match_ratio: f64,
     pub exact_feature_match_count: usize,
     pub exact_feature_match_ratio: f64,
+    pub exact_numeric_signature_match_count: usize,
+    pub exact_numeric_signature_match_ratio: f64,
+    pub exact_non_numeric_signature_match_count: usize,
+    pub exact_non_numeric_signature_match_ratio: f64,
+    pub numeric_signature_columns: Vec<String>,
+    pub non_numeric_signature_columns: Vec<String>,
     pub distance_to_closest_record: DistanceSummary,
     pub nearest_neighbor_distance_ratio: DistanceSummary,
     pub real_to_real_distance_baseline: DistanceSummary,
     pub synthetic_below_real_dcr_p5_count: usize,
     pub synthetic_below_real_dcr_median_count: usize,
     pub rare_value_alerts: RareValueAlertSummary,
+    pub rare_numeric_value_alerts: RareValueAlertSummary,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -621,15 +660,10 @@ pub fn preview_dataset(path: impl AsRef<Path>, row_limit: usize) -> Result<Datas
 pub fn smote_dataset(
     input_path: impl AsRef<Path>,
     output_path: impl AsRef<Path>,
-    output_format: Option<DatasetFormat>,
     target_column: &str,
-    minority_label: Option<&str>,
-    synthetic_samples: Option<usize>,
-    target_rows: Option<usize>,
-    k: usize,
-    seed: Option<u64>,
-    feature_columns: &[String],
+    options: SmoteOptions,
 ) -> Result<SmoteReport> {
+    let k = options.k.unwrap_or(5);
     if k == 0 {
         bail!("k must be greater than zero");
     }
@@ -637,18 +671,20 @@ pub fn smote_dataset(
     let input_path = input_path.as_ref();
     let output_path = output_path.as_ref();
     let source_format = DatasetFormat::detect(input_path)?;
-    let target_format = output_format.unwrap_or(DatasetFormat::detect(output_path)?);
+    let target_format = options
+        .output_format
+        .unwrap_or(DatasetFormat::detect(output_path)?);
     let records = load_records(input_path, source_format)?;
-    if let Some(target_rows) = target_rows {
-        if target_rows == 0 {
-            bail!("target_rows must be greater than zero");
-        }
+    if let Some(target_rows) = options.target_rows
+        && target_rows == 0
+    {
+        bail!("target_rows must be greater than zero");
     }
-    let synthetic_samples = synthetic_samples.unwrap_or(records.len());
+    let synthetic_samples = options.synthetic_samples.unwrap_or(records.len());
     if synthetic_samples == 0 {
         bail!("synthetic sample count must be greater than zero");
     }
-    let minority_value = match minority_label {
+    let minority_value = match options.minority_label.as_deref() {
         Some(label) => label.to_string(),
         None => detect_minority_label(&records, target_column)
             .with_context(|| format!("failed to detect minority label for `{target_column}`"))?,
@@ -658,10 +694,10 @@ pub fn smote_dataset(
             || anyhow!("minority label `{minority_value}` not found in `{target_column}`"),
         )?;
 
-    let resolved_features = if feature_columns.is_empty() {
+    let resolved_features = if options.feature_columns.is_empty() {
         detect_smote_feature_columns(&records, target_column)?
     } else {
-        feature_columns.to_vec()
+        options.feature_columns.clone()
     };
     if resolved_features.is_empty() {
         bail!("smote requires at least one numeric feature column");
@@ -680,8 +716,8 @@ pub fn smote_dataset(
 
     let mut augmented = records.clone();
     let mut synthetic_records = Vec::with_capacity(synthetic_samples);
-    let mut rng = match seed {
-        Some(seed) => SmoteRng::Seeded(StdRng::seed_from_u64(seed)),
+    let mut rng = match options.seed {
+        Some(seed) => SmoteRng::Seeded(Box::new(StdRng::seed_from_u64(seed))),
         None => SmoteRng::Thread(rand::rng()),
     };
 
@@ -715,17 +751,29 @@ pub fn smote_dataset(
         augmented.push(synthetic);
     }
 
-    let final_records = if let Some(target_rows) = target_rows {
-        if target_rows > augmented.len() {
+    let output_pool = if options.synthetic_only {
+        &synthetic_records
+    } else {
+        &augmented
+    };
+
+    let mut final_records = if let Some(target_rows) = options.target_rows {
+        if target_rows > output_pool.len() {
             bail!(
-                "target_rows `{target_rows}` is greater than the available augmented row count `{}`",
-                augmented.len()
+                "target_rows `{target_rows}` is greater than the available output row count `{}`",
+                output_pool.len()
             );
         }
-        sample_records(&augmented, target_rows, &mut rng)
+        sample_records(output_pool, target_rows, &mut rng)
     } else {
-        augmented.clone()
+        output_pool.clone()
     };
+
+    let privacy_column_policy_report =
+        apply_privacy_column_policy(&mut final_records, &options.privacy_column_policy)?;
+    apply_privacy_column_policy(&mut synthetic_records, &options.privacy_column_policy)?;
+    let evaluation_features =
+        privacy_policy_feature_columns(&resolved_features, &options.privacy_column_policy);
 
     write_records(output_path, target_format, &final_records)?;
     let original_stats = compute_stats(input_path, source_format, &records);
@@ -738,8 +786,15 @@ pub fn smote_dataset(
         "minority_reference_vs_synthetic",
         &minority_reference_records,
         &synthetic_records,
-        &resolved_features,
+        &evaluation_features,
         smote_evaluation_caveats(),
+    )?;
+    let final_output_evaluation = evaluate_generation_records(
+        "full_dataset_vs_final_output",
+        &records,
+        &final_records,
+        &evaluation_features,
+        smote_final_output_evaluation_caveats(options.synthetic_only),
     )?;
 
     Ok(SmoteReport {
@@ -753,10 +808,13 @@ pub fn smote_dataset(
         original_row_count: records.len(),
         synthetic_row_count: synthetic_samples,
         output_row_count: final_records.len(),
+        synthetic_only: options.synthetic_only,
         k: effective_k,
-        seed,
+        seed: options.seed,
+        privacy_column_policy: privacy_column_policy_report,
         stats_diff: diff_dataset_stats(&original_stats, &generated_stats),
         evaluation,
+        final_output_evaluation,
     })
 }
 
@@ -767,6 +825,7 @@ pub fn dp_noise_dataset(
     epsilon: f64,
     seed: Option<u64>,
     feature_columns: &[String],
+    privacy_column_policy: PrivacyColumnPolicy,
 ) -> Result<DpNoiseReport> {
     if epsilon <= 0.0 {
         bail!("epsilon must be greater than zero");
@@ -792,7 +851,7 @@ pub fn dp_noise_dataset(
 
     let bounds = compute_numeric_bounds(&records, &resolved_features)?;
     let mut rng = match seed {
-        Some(seed) => SmoteRng::Seeded(StdRng::seed_from_u64(seed)),
+        Some(seed) => SmoteRng::Seeded(Box::new(StdRng::seed_from_u64(seed))),
         None => SmoteRng::Thread(rand::rng()),
     };
     let mut synthetic_records = Vec::with_capacity(records.len());
@@ -821,6 +880,11 @@ pub fn dp_noise_dataset(
         synthetic_records.push(synthetic);
     }
 
+    let privacy_column_policy_report =
+        apply_privacy_column_policy(&mut synthetic_records, &privacy_column_policy)?;
+    let evaluation_features =
+        privacy_policy_feature_columns(&resolved_features, &privacy_column_policy);
+
     write_records(output_path, target_format, &synthetic_records)?;
     let original_stats = compute_stats(input_path, source_format, &records);
     let generated_stats = compute_stats(output_path, target_format, &synthetic_records);
@@ -828,7 +892,7 @@ pub fn dp_noise_dataset(
         "full_dataset_vs_dp_noisy_dataset",
         &records,
         &synthetic_records,
-        &resolved_features,
+        &evaluation_features,
         dp_noise_evaluation_caveats(epsilon),
     )?;
 
@@ -841,6 +905,7 @@ pub fn dp_noise_dataset(
         row_count: synthetic_records.len(),
         noisy_columns: resolved_features,
         seed,
+        privacy_column_policy: privacy_column_policy_report,
         stats_diff: diff_dataset_stats(&original_stats, &generated_stats),
         evaluation,
     })
@@ -1142,12 +1207,20 @@ pub fn render_head_markdown(preview: &DatasetPreview) -> String {
 }
 
 pub fn load_records(path: &Path, format: DatasetFormat) -> Result<Vec<Record>> {
+    load_records_limited(path, format, None)
+}
+
+pub fn load_records_limited(
+    path: &Path,
+    format: DatasetFormat,
+    max_rows: Option<usize>,
+) -> Result<Vec<Record>> {
     match format {
-        DatasetFormat::Csv => load_csv(path),
-        DatasetFormat::Json => load_json(path),
-        DatasetFormat::Jsonl => load_jsonl(path),
-        DatasetFormat::Parquet => load_parquet(path),
-        DatasetFormat::Avro => load_avro(path),
+        DatasetFormat::Csv => load_csv(path, max_rows),
+        DatasetFormat::Json => load_json(path, max_rows),
+        DatasetFormat::Jsonl => load_jsonl(path, max_rows),
+        DatasetFormat::Parquet => load_parquet(path, max_rows),
+        DatasetFormat::Avro => load_avro(path, max_rows),
     }
 }
 
@@ -1282,7 +1355,7 @@ fn write_avro(path: &Path, records: &[Record]) -> Result<()> {
     Ok(())
 }
 
-fn load_csv(path: &Path) -> Result<Vec<Record>> {
+fn load_csv(path: &Path, max_rows: Option<usize>) -> Result<Vec<Record>> {
     let mut reader = csv::Reader::from_path(path)
         .with_context(|| format!("failed to open csv file {}", path.display()))?;
     let headers = reader
@@ -1292,6 +1365,9 @@ fn load_csv(path: &Path) -> Result<Vec<Record>> {
 
     let mut records = Vec::new();
     for row in reader.records() {
+        if max_rows.is_some_and(|limit| records.len() >= limit) {
+            break;
+        }
         let row = row.with_context(|| format!("failed to read csv row from {}", path.display()))?;
         let mut record = Record::new();
         for (header, value) in headers.iter().zip(row.iter()) {
@@ -1303,7 +1379,7 @@ fn load_csv(path: &Path) -> Result<Vec<Record>> {
     Ok(records)
 }
 
-fn load_json(path: &Path) -> Result<Vec<Record>> {
+fn load_json(path: &Path, max_rows: Option<usize>) -> Result<Vec<Record>> {
     let mut file =
         File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
     let mut content = String::new();
@@ -1314,21 +1390,29 @@ fn load_json(path: &Path) -> Result<Vec<Record>> {
         .with_context(|| format!("invalid json in {}", path.display()))?;
 
     match value {
-        JsonValue::Array(items) => items
-            .into_iter()
-            .map(json_value_to_record)
-            .collect::<Result<Vec<_>>>(),
-        JsonValue::Object(map) => Ok(vec![map]),
+        JsonValue::Array(items) => {
+            let limit = max_rows.unwrap_or(usize::MAX);
+            items
+                .into_iter()
+                .take(limit)
+                .map(json_value_to_record)
+                .collect::<Result<Vec<_>>>()
+        }
+        JsonValue::Object(map) if max_rows != Some(0) => Ok(vec![map]),
+        JsonValue::Object(_) => Ok(Vec::new()),
         _ => bail!("json dataset must be an object or an array of objects"),
     }
 }
 
-fn load_jsonl(path: &Path) -> Result<Vec<Record>> {
+fn load_jsonl(path: &Path, max_rows: Option<usize>) -> Result<Vec<Record>> {
     let file = File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
     let reader = BufReader::new(file);
     let mut records = Vec::new();
 
     for (line_index, line) in reader.lines().enumerate() {
+        if max_rows.is_some_and(|limit| records.len() >= limit) {
+            break;
+        }
         let line = line.with_context(|| {
             format!(
                 "failed to read line {} from {}",
@@ -1354,7 +1438,7 @@ fn load_jsonl(path: &Path) -> Result<Vec<Record>> {
     Ok(records)
 }
 
-fn load_parquet(path: &Path) -> Result<Vec<Record>> {
+fn load_parquet(path: &Path, max_rows: Option<usize>) -> Result<Vec<Record>> {
     let file = File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
     let reader = SerializedFileReader::new(file)
         .with_context(|| format!("failed to read parquet file {}", path.display()))?;
@@ -1364,6 +1448,9 @@ fn load_parquet(path: &Path) -> Result<Vec<Record>> {
 
     let mut records = Vec::new();
     for row in iter {
+        if max_rows.is_some_and(|limit| records.len() >= limit) {
+            break;
+        }
         let row =
             row.with_context(|| format!("failed to decode parquet row from {}", path.display()))?;
         records.push(parquet_row_to_record(&row)?);
@@ -1372,13 +1459,16 @@ fn load_parquet(path: &Path) -> Result<Vec<Record>> {
     Ok(records)
 }
 
-fn load_avro(path: &Path) -> Result<Vec<Record>> {
+fn load_avro(path: &Path, max_rows: Option<usize>) -> Result<Vec<Record>> {
     let file = File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
     let reader =
         AvroReader::new(file).with_context(|| format!("failed to read avro {}", path.display()))?;
     let mut records = Vec::new();
 
     for value in reader {
+        if max_rows.is_some_and(|limit| records.len() >= limit) {
+            break;
+        }
         let value = value
             .with_context(|| format!("failed to decode avro value from {}", path.display()))?;
         records.push(avro_value_to_record(value)?);
@@ -1439,7 +1529,7 @@ struct MinorityRow {
 }
 
 enum SmoteRng {
-    Seeded(StdRng),
+    Seeded(Box<StdRng>),
     Thread(rand::rngs::ThreadRng),
 }
 
@@ -2069,6 +2159,20 @@ fn evaluate_generation_records(
         .iter()
         .filter(|row| real_feature_signatures.contains(&canonical_feature_signature(row)))
         .count();
+    let numeric_signature_columns =
+        detect_common_numeric_scalar_columns(reference_records, synthetic_records);
+    let exact_numeric_signature_match_count = exact_scalar_signature_match_count(
+        reference_records,
+        synthetic_records,
+        &numeric_signature_columns,
+    );
+    let non_numeric_signature_columns =
+        detect_common_non_numeric_scalar_columns(reference_records, synthetic_records);
+    let exact_non_numeric_signature_match_count = exact_scalar_signature_match_count(
+        reference_records,
+        synthetic_records,
+        &non_numeric_signature_columns,
+    );
 
     let dcr_values = nearest_neighbor_distances(
         &standardized.synthetic_vectors,
@@ -2087,6 +2191,11 @@ fn evaluate_generation_records(
     let real_dcr_p5 = percentile(&real_baseline, 0.05);
     let real_dcr_median = percentile(&real_baseline, 0.5);
     let rare_value_alerts = summarize_rare_value_alerts(
+        reference_records,
+        synthetic_records,
+        DEFAULT_RARE_VALUE_ALERT_THRESHOLD,
+    );
+    let rare_numeric_value_alerts = summarize_rare_numeric_value_alerts(
         reference_records,
         synthetic_records,
         DEFAULT_RARE_VALUE_ALERT_THRESHOLD,
@@ -2111,6 +2220,18 @@ fn evaluate_generation_records(
             exact_row_match_ratio: ratio(exact_row_match_count, synthetic_records.len()),
             exact_feature_match_count,
             exact_feature_match_ratio: ratio(exact_feature_match_count, synthetic_records.len()),
+            exact_numeric_signature_match_count,
+            exact_numeric_signature_match_ratio: ratio(
+                exact_numeric_signature_match_count,
+                synthetic_records.len(),
+            ),
+            exact_non_numeric_signature_match_count,
+            exact_non_numeric_signature_match_ratio: ratio(
+                exact_non_numeric_signature_match_count,
+                synthetic_records.len(),
+            ),
+            numeric_signature_columns,
+            non_numeric_signature_columns,
             distance_to_closest_record: dcr_summary,
             nearest_neighbor_distance_ratio: nndr_summary,
             real_to_real_distance_baseline: real_baseline_summary,
@@ -2123,6 +2244,7 @@ fn evaluate_generation_records(
                 .filter(|value| **value <= real_dcr_median)
                 .count(),
             rare_value_alerts,
+            rare_numeric_value_alerts,
         },
         references: evaluation_references(),
         caveats,
@@ -2148,6 +2270,100 @@ fn collect_feature_vectors_from_records(
                 })
                 .collect::<Result<Vec<_>>>()
         })
+        .collect()
+}
+
+pub(crate) fn apply_privacy_column_policy(
+    records: &mut [Record],
+    policy: &PrivacyColumnPolicy,
+) -> Result<PrivacyColumnPolicyReport> {
+    let drop_columns = normalized_column_list(&policy.drop_columns);
+    let mask_columns = normalized_column_list(&policy.mask_columns);
+    let fail_columns = normalized_column_list(&policy.fail_columns);
+    let existing_columns = collect_column_names(records)
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+
+    let blocked_columns = fail_columns
+        .iter()
+        .filter(|column| existing_columns.contains(*column))
+        .cloned()
+        .collect::<Vec<_>>();
+    if !blocked_columns.is_empty() {
+        bail!(
+            "privacy column policy blocked output because these columns are present: {}",
+            blocked_columns.join(", ")
+        );
+    }
+
+    let drop_set = drop_columns.iter().cloned().collect::<BTreeSet<_>>();
+    let dropped_columns = drop_columns
+        .iter()
+        .filter(|column| existing_columns.contains(*column))
+        .cloned()
+        .collect::<Vec<_>>();
+    let masked_columns = mask_columns
+        .iter()
+        .filter(|column| existing_columns.contains(*column) && !drop_set.contains(*column))
+        .cloned()
+        .collect::<Vec<_>>();
+
+    for record in records {
+        for column in &dropped_columns {
+            record.remove(column);
+        }
+        for column in &masked_columns {
+            if record.contains_key(column) {
+                record.insert(column.clone(), JsonValue::String("[MASKED]".to_string()));
+            }
+        }
+    }
+
+    let configured_columns = drop_columns
+        .iter()
+        .chain(&mask_columns)
+        .chain(&fail_columns)
+        .cloned()
+        .collect::<BTreeSet<_>>();
+    let missing_columns = configured_columns
+        .into_iter()
+        .filter(|column| !existing_columns.contains(column))
+        .collect::<Vec<_>>();
+
+    Ok(PrivacyColumnPolicyReport {
+        dropped_columns,
+        masked_columns,
+        fail_columns,
+        missing_columns,
+    })
+}
+
+pub(crate) fn privacy_policy_feature_columns(
+    feature_columns: &[String],
+    policy: &PrivacyColumnPolicy,
+) -> Vec<String> {
+    let suppressed_columns = policy
+        .drop_columns
+        .iter()
+        .chain(&policy.mask_columns)
+        .map(|column| column.trim().to_string())
+        .filter(|column| !column.is_empty())
+        .collect::<BTreeSet<_>>();
+
+    feature_columns
+        .iter()
+        .filter(|column| !suppressed_columns.contains(*column))
+        .cloned()
+        .collect()
+}
+
+fn normalized_column_list(columns: &[String]) -> Vec<String> {
+    columns
+        .iter()
+        .map(|column| column.trim().to_string())
+        .filter(|column| !column.is_empty())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
         .collect()
 }
 
@@ -2191,6 +2407,53 @@ fn summarize_rare_value_alerts(
     }
 }
 
+fn summarize_rare_numeric_value_alerts(
+    reference_records: &[Record],
+    synthetic_records: &[Record],
+    threshold: usize,
+) -> RareValueAlertSummary {
+    let reviewed_columns =
+        detect_common_numeric_scalar_columns(reference_records, synthetic_records);
+    let mut alerts = reviewed_columns
+        .iter()
+        .filter_map(|column| {
+            rare_scalar_value_alert_for_column(
+                reference_records,
+                synthetic_records,
+                column,
+                threshold,
+            )
+        })
+        .collect::<Vec<_>>();
+    alerts.sort_by(compare_rare_value_alerts);
+    let columns_with_alerts = alerts.len();
+    alerts.truncate(MAX_RARE_VALUE_ALERTS);
+
+    RareValueAlertSummary {
+        threshold,
+        reviewed_columns: reviewed_columns.len(),
+        columns_with_alerts,
+        alerts,
+    }
+}
+
+fn compare_rare_value_alerts(left: &RareValueAlert, right: &RareValueAlert) -> std::cmp::Ordering {
+    right
+        .overlapping_unique_value_count
+        .cmp(&left.overlapping_unique_value_count)
+        .then_with(|| {
+            right
+                .overlapping_rare_value_count
+                .cmp(&left.overlapping_rare_value_count)
+        })
+        .then_with(|| {
+            right
+                .synthetic_unique_value_count
+                .cmp(&left.synthetic_unique_value_count)
+        })
+        .then_with(|| left.column.cmp(&right.column))
+}
+
 fn detect_common_non_numeric_scalar_columns(
     reference_records: &[Record],
     synthetic_records: &[Record],
@@ -2205,6 +2468,24 @@ fn detect_common_non_numeric_scalar_columns(
     reference_columns
         .intersection(&synthetic_columns)
         .filter(|column| is_non_numeric_scalar_column(reference_records, synthetic_records, column))
+        .cloned()
+        .collect()
+}
+
+fn detect_common_numeric_scalar_columns(
+    reference_records: &[Record],
+    synthetic_records: &[Record],
+) -> Vec<String> {
+    let reference_columns = collect_column_names(reference_records)
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    let synthetic_columns = collect_column_names(synthetic_records)
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+
+    reference_columns
+        .intersection(&synthetic_columns)
+        .filter(|column| is_numeric_scalar_column(reference_records, synthetic_records, column))
         .cloned()
         .collect()
 }
@@ -2233,7 +2514,78 @@ fn is_non_numeric_scalar_column(
     saw_value
 }
 
+fn is_numeric_scalar_column(
+    reference_records: &[Record],
+    synthetic_records: &[Record],
+    column: &str,
+) -> bool {
+    let mut saw_value = false;
+    for record in reference_records.iter().chain(synthetic_records) {
+        let Some(value) = record.get(column) else {
+            continue;
+        };
+        match value {
+            JsonValue::Null => {}
+            JsonValue::Number(_) => {
+                saw_value = true;
+            }
+            JsonValue::Bool(_)
+            | JsonValue::String(_)
+            | JsonValue::Array(_)
+            | JsonValue::Object(_) => {
+                return false;
+            }
+        }
+    }
+
+    saw_value
+}
+
+fn exact_scalar_signature_match_count(
+    reference_records: &[Record],
+    synthetic_records: &[Record],
+    columns: &[String],
+) -> usize {
+    if columns.is_empty() {
+        return 0;
+    }
+
+    let reference_signatures = reference_records
+        .iter()
+        .map(|record| canonical_scalar_signature_for_columns(record, columns))
+        .collect::<HashSet<_>>();
+
+    synthetic_records
+        .iter()
+        .filter(|record| {
+            reference_signatures.contains(&canonical_scalar_signature_for_columns(record, columns))
+        })
+        .count()
+}
+
+fn canonical_scalar_signature_for_columns(record: &Record, columns: &[String]) -> String {
+    columns
+        .iter()
+        .map(|column| {
+            let value = record.get(column).cloned().unwrap_or(JsonValue::Null);
+            format!("{column}={}", canonical_json_value(&value))
+        })
+        .collect::<Vec<_>>()
+        .join("|")
+}
+
 fn rare_value_alert_for_column(
+    reference_records: &[Record],
+    synthetic_records: &[Record],
+    column: &str,
+    threshold: usize,
+) -> Option<RareValueAlert> {
+    let reference_counts = non_numeric_scalar_value_frequencies(reference_records, column);
+    let synthetic_counts = non_numeric_scalar_value_frequencies(synthetic_records, column);
+    rare_value_alert_from_counts(column, threshold, reference_counts, synthetic_counts)
+}
+
+fn rare_scalar_value_alert_for_column(
     reference_records: &[Record],
     synthetic_records: &[Record],
     column: &str,
@@ -2241,6 +2593,15 @@ fn rare_value_alert_for_column(
 ) -> Option<RareValueAlert> {
     let reference_counts = scalar_value_frequencies(reference_records, column);
     let synthetic_counts = scalar_value_frequencies(synthetic_records, column);
+    rare_value_alert_from_counts(column, threshold, reference_counts, synthetic_counts)
+}
+
+fn rare_value_alert_from_counts(
+    column: &str,
+    threshold: usize,
+    reference_counts: BTreeMap<String, usize>,
+    synthetic_counts: BTreeMap<String, usize>,
+) -> Option<RareValueAlert> {
     if synthetic_counts.is_empty() {
         return None;
     }
@@ -2293,13 +2654,30 @@ fn rare_value_alert_for_column(
     })
 }
 
-fn scalar_value_frequencies(records: &[Record], column: &str) -> BTreeMap<String, usize> {
+fn non_numeric_scalar_value_frequencies(
+    records: &[Record],
+    column: &str,
+) -> BTreeMap<String, usize> {
     let mut counts = BTreeMap::new();
     for record in records {
         let Some(value) = record.get(column) else {
             continue;
         };
         let Some(signature) = canonical_non_numeric_scalar_value(value) else {
+            continue;
+        };
+        *counts.entry(signature).or_insert(0) += 1;
+    }
+    counts
+}
+
+fn scalar_value_frequencies(records: &[Record], column: &str) -> BTreeMap<String, usize> {
+    let mut counts = BTreeMap::new();
+    for record in records {
+        let Some(value) = record.get(column) else {
+            continue;
+        };
+        let Some(signature) = scalar_value_label(value) else {
             continue;
         };
         *counts.entry(signature).or_insert(0) += 1;
@@ -2374,7 +2752,25 @@ fn smote_evaluation_caveats() -> Vec<String> {
         "DCR and NNDR are nearest-neighbor privacy proxies. They do not replace membership inference attacks.".to_string(),
         "The utility and privacy evaluation compares synthetic rows against the minority-class reference rows used by SMOTE, not against the full original dataset.".to_string(),
         format!(
-            "Rare-value alerts review only shared non-numeric scalar columns and use a default frequency threshold of {}. Treat them as release-review diagnostics, not as an automatic anonymity guarantee.",
+            "Rare-value alerts review shared scalar columns and use a default frequency threshold of {}. Treat them as release-review diagnostics, not as an automatic anonymity guarantee.",
+            DEFAULT_RARE_VALUE_ALERT_THRESHOLD
+        ),
+    ]
+}
+
+fn smote_final_output_evaluation_caveats(synthetic_only: bool) -> Vec<String> {
+    let output_mode = if synthetic_only {
+        "The final-output privacy evaluation compares the generated-only SMOTE output against the full original dataset."
+    } else {
+        "The final-output privacy evaluation compares the augmented SMOTE output against the full original dataset. Default augmented output can contain original records."
+    };
+
+    vec![
+        "DCR and NNDR are nearest-neighbor privacy proxies. They do not replace membership inference attacks.".to_string(),
+        output_mode.to_string(),
+        "Exact numeric and non-numeric signature replay is evaluated over every common scalar column, not only the SMOTE feature columns.".to_string(),
+        format!(
+            "Rare-value alerts review shared scalar columns and use a default frequency threshold of {}. Treat them as release-review diagnostics, not as an automatic anonymity guarantee.",
             DEFAULT_RARE_VALUE_ALERT_THRESHOLD
         ),
     ]
@@ -2385,8 +2781,9 @@ fn dp_noise_evaluation_caveats(epsilon: f64) -> Vec<String> {
         "DCR and NNDR are nearest-neighbor privacy proxies. They do not replace membership inference attacks.".to_string(),
         format!("This generator applies Laplace noise with epsilon={epsilon} to numeric columns. Treat it as a lightweight DP-style perturbation method, not as an audited end-to-end private synthetic-data release."),
         "Noise is clipped to the observed numeric range of each column, which is pragmatic for data quality but weakens any strict formal privacy interpretation.".to_string(),
+        "Exact numeric and non-numeric signature replay is evaluated over every common scalar column, not only the noised numeric columns.".to_string(),
         format!(
-            "Rare-value alerts review only shared non-numeric scalar columns and use a default frequency threshold of {}. Treat them as release-review diagnostics, not as an automatic anonymity guarantee.",
+            "Rare-value alerts review shared scalar columns and use a default frequency threshold of {}. Treat them as release-review diagnostics, not as an automatic anonymity guarantee.",
             DEFAULT_RARE_VALUE_ALERT_THRESHOLD
         ),
     ]
@@ -3435,9 +3832,7 @@ fn merge_schema_state(state: &mut SchemaState, value: &JsonValue) {
             }
         }
         JsonValue::Array(items) => {
-            let item_state = state
-                .array
-                .get_or_insert_with(|| Box::<SchemaState>::default());
+            let item_state = state.array.get_or_insert_with(Box::<SchemaState>::default);
             for item in items {
                 merge_schema_state(item_state, item);
             }
@@ -3728,7 +4123,7 @@ fn looks_like_hex(value: &str) -> bool {
 
 fn looks_like_base64(value: &str) -> bool {
     let trimmed = value.trim();
-    if trimmed.len() < 8 || trimmed.len() % 4 != 0 {
+    if trimmed.len() < 8 || !trimmed.len().is_multiple_of(4) {
         return false;
     }
     let pad_count = trimmed.chars().rev().take_while(|ch| *ch == '=').count();
@@ -3956,10 +4351,10 @@ fn parse_scalar_text(input: &str) -> JsonValue {
         return JsonValue::Number(value.into());
     }
 
-    if let Ok(value) = trimmed.parse::<f64>() {
-        if let Some(number) = JsonNumber::from_f64(value) {
-            return JsonValue::Number(number);
-        }
+    if let Ok(value) = trimmed.parse::<f64>()
+        && let Some(number) = JsonNumber::from_f64(value)
+    {
+        return JsonValue::Number(number);
     }
 
     JsonValue::String(trimmed.to_string())
@@ -4896,6 +5291,37 @@ mod tests {
     }
 
     #[test]
+    fn loads_bounded_records_without_full_dataset_scan() {
+        let temp_root = unique_test_dir("bounded-load");
+        std::fs::create_dir_all(&temp_root).unwrap();
+
+        let csv_path = temp_root.join("sample.csv");
+        std::fs::write(&csv_path, "id,name\n1,alice\n2,bob\n3,carol\n").unwrap();
+        let csv_records = load_records_limited(&csv_path, DatasetFormat::Csv, Some(2)).unwrap();
+        assert_eq!(csv_records.len(), 2);
+        assert_eq!(
+            csv_records[1].get("name"),
+            Some(&JsonValue::String("bob".to_string()))
+        );
+
+        let jsonl_path = temp_root.join("sample.jsonl");
+        std::fs::write(
+            &jsonl_path,
+            "{\"id\":1,\"name\":\"alice\"}\n{\"id\":2,\"name\":\"bob\"}\n{\"id\":3,\"name\":\"carol\"}\n",
+        )
+        .unwrap();
+        let jsonl_records =
+            load_records_limited(&jsonl_path, DatasetFormat::Jsonl, Some(1)).unwrap();
+        assert_eq!(jsonl_records.len(), 1);
+        assert_eq!(
+            jsonl_records[0].get("id"),
+            Some(&JsonValue::Number(1.into()))
+        );
+
+        std::fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
     fn transforms_json_to_avro_and_reads_back() {
         let temp_root = unique_test_dir("json-avro");
         std::fs::create_dir_all(&temp_root).unwrap();
@@ -4973,19 +5399,19 @@ mod tests {
         let report = smote_dataset(
             &input_path,
             &output_path,
-            None,
             "class",
-            Some("minority"),
-            None,
-            None,
-            5,
-            Some(42),
-            &[],
+            SmoteOptions {
+                minority_label: Some("minority".to_string()),
+                k: Some(5),
+                seed: Some(42),
+                ..SmoteOptions::default()
+            },
         )
         .unwrap();
 
         assert_eq!(report.synthetic_row_count, 5);
         assert_eq!(report.output_row_count, 10);
+        assert!(!report.synthetic_only);
         assert_eq!(report.seed, Some(42));
         assert_eq!(
             report.feature_columns,
@@ -5028,6 +5454,23 @@ mod tests {
         );
         assert_eq!(report.evaluation.references.len(), 3);
         assert_eq!(report.evaluation.caveats.len(), 3);
+        assert_eq!(
+            report.final_output_evaluation.reference_population,
+            "full_dataset_vs_final_output"
+        );
+        assert_eq!(report.final_output_evaluation.reference_row_count, 5);
+        assert_eq!(report.final_output_evaluation.synthetic_row_count, 10);
+        assert_eq!(
+            report.final_output_evaluation.privacy.exact_row_match_count,
+            5
+        );
+        assert!(
+            report
+                .final_output_evaluation
+                .privacy
+                .exact_non_numeric_signature_match_ratio
+                > 0.0
+        );
         assert!(
             report
                 .stats_diff
@@ -5074,14 +5517,14 @@ mod tests {
         let report = smote_dataset(
             &input_path,
             &output_path,
-            None,
             "class",
-            Some("minority"),
-            None,
-            Some(5),
-            5,
-            Some(42),
-            &[],
+            SmoteOptions {
+                minority_label: Some("minority".to_string()),
+                target_rows: Some(5),
+                k: Some(5),
+                seed: Some(42),
+                ..SmoteOptions::default()
+            },
         )
         .unwrap();
 
@@ -5089,6 +5532,54 @@ mod tests {
         assert_eq!(report.output_row_count, 5);
         let transformed = load_records(&output_path, DatasetFormat::Json).unwrap();
         assert_eq!(transformed.len(), 5);
+
+        std::fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
+    fn generates_smote_synthetic_only_output_without_original_rows() {
+        let temp_root = unique_test_dir("smote-synthetic-only");
+        std::fs::create_dir_all(&temp_root).unwrap();
+
+        let input_path = temp_root.join("imbalanced.json");
+        let output_path = temp_root.join("smote-synthetic-only.json");
+        let payload = serde_json::json!([
+            { "x": 1.0, "y": 1.0, "class": "minority", "note": "a" },
+            { "x": 1.2, "y": 1.1, "class": "minority", "note": "b" },
+            { "x": 5.0, "y": 5.0, "class": "majority", "note": "c" },
+            { "x": 5.2, "y": 5.1, "class": "majority", "note": "d" },
+            { "x": 5.3, "y": 5.4, "class": "majority", "note": "e" }
+        ]);
+        std::fs::write(&input_path, serde_json::to_string_pretty(&payload).unwrap()).unwrap();
+
+        let report = smote_dataset(
+            &input_path,
+            &output_path,
+            "class",
+            SmoteOptions {
+                minority_label: Some("minority".to_string()),
+                synthetic_samples: Some(5),
+                k: Some(5),
+                seed: Some(42),
+                synthetic_only: true,
+                ..SmoteOptions::default()
+            },
+        )
+        .unwrap();
+
+        assert!(report.synthetic_only);
+        assert_eq!(report.output_row_count, 5);
+        assert_eq!(
+            report.final_output_evaluation.privacy.exact_row_match_count,
+            0
+        );
+        assert!(
+            report
+                .final_output_evaluation
+                .privacy
+                .exact_non_numeric_signature_match_count
+                > 0
+        );
 
         std::fs::remove_dir_all(&temp_root).unwrap();
     }
@@ -5107,7 +5598,16 @@ mod tests {
         ]);
         std::fs::write(&input_path, serde_json::to_string_pretty(&payload).unwrap()).unwrap();
 
-        let report = dp_noise_dataset(&input_path, &output_path, None, 1.0, Some(42), &[]).unwrap();
+        let report = dp_noise_dataset(
+            &input_path,
+            &output_path,
+            None,
+            1.0,
+            Some(42),
+            &[],
+            PrivacyColumnPolicy::default(),
+        )
+        .unwrap();
 
         assert_eq!(report.row_count, 3);
         assert_eq!(report.seed, Some(42));
@@ -5133,7 +5633,7 @@ mod tests {
                 .columns_with_alerts,
             1
         );
-        assert_eq!(report.evaluation.caveats.len(), 4);
+        assert_eq!(report.evaluation.caveats.len(), 5);
         assert!(output_path.exists());
 
         let transformed = load_records(&output_path, DatasetFormat::Json).unwrap();
@@ -5150,6 +5650,169 @@ mod tests {
         );
 
         std::fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
+    fn applies_privacy_column_policy_to_dp_noise_output() {
+        let temp_root = unique_test_dir("dp-noise-policy");
+        std::fs::create_dir_all(&temp_root).unwrap();
+
+        let input_path = temp_root.join("input.json");
+        let output_path = temp_root.join("output.json");
+        let payload = serde_json::json!([
+            { "id": 1, "x": 10.0, "email": "a@example.test", "segment": "a" },
+            { "id": 2, "x": 11.0, "email": "b@example.test", "segment": "b" },
+            { "id": 3, "x": 12.0, "email": "c@example.test", "segment": "c" }
+        ]);
+        std::fs::write(&input_path, serde_json::to_string_pretty(&payload).unwrap()).unwrap();
+
+        let report = dp_noise_dataset(
+            &input_path,
+            &output_path,
+            None,
+            1.0,
+            Some(42),
+            &[],
+            PrivacyColumnPolicy {
+                drop_columns: vec!["email".to_string()],
+                mask_columns: vec!["segment".to_string()],
+                fail_columns: Vec::new(),
+            },
+        )
+        .unwrap();
+
+        assert_eq!(
+            report.privacy_column_policy.dropped_columns,
+            vec!["email".to_string()]
+        );
+        assert_eq!(
+            report.privacy_column_policy.masked_columns,
+            vec!["segment".to_string()]
+        );
+        assert_eq!(
+            report
+                .evaluation
+                .privacy
+                .exact_non_numeric_signature_match_count,
+            0
+        );
+
+        let transformed = load_records(&output_path, DatasetFormat::Json).unwrap();
+        assert!(transformed.iter().all(|row| !row.contains_key("email")));
+        assert!(
+            transformed.iter().all(|row| {
+                row.get("segment") == Some(&JsonValue::String("[MASKED]".to_string()))
+            })
+        );
+
+        std::fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
+    fn fails_privacy_column_policy_when_blocked_column_is_present() {
+        let temp_root = unique_test_dir("dp-noise-policy-fail");
+        std::fs::create_dir_all(&temp_root).unwrap();
+
+        let input_path = temp_root.join("input.json");
+        let output_path = temp_root.join("output.json");
+        let payload = serde_json::json!([
+            { "id": 1, "x": 10.0, "email": "a@example.test" },
+            { "id": 2, "x": 11.0, "email": "b@example.test" }
+        ]);
+        std::fs::write(&input_path, serde_json::to_string_pretty(&payload).unwrap()).unwrap();
+
+        let error = dp_noise_dataset(
+            &input_path,
+            &output_path,
+            None,
+            1.0,
+            Some(42),
+            &[],
+            PrivacyColumnPolicy {
+                drop_columns: Vec::new(),
+                mask_columns: Vec::new(),
+                fail_columns: vec!["email".to_string()],
+            },
+        )
+        .unwrap_err();
+
+        assert!(
+            error
+                .to_string()
+                .contains("privacy column policy blocked output")
+        );
+        assert!(!output_path.exists());
+
+        std::fs::remove_dir_all(&temp_root).unwrap();
+    }
+
+    #[test]
+    fn flags_copied_numeric_identifiers_in_privacy_evaluation() {
+        let reference = vec![
+            JsonMap::from_iter([
+                ("id".to_string(), JsonValue::Number(1.into())),
+                ("x".to_string(), JsonValue::Number(10.into())),
+                (
+                    "email".to_string(),
+                    JsonValue::String("a@example.test".to_string()),
+                ),
+            ]),
+            JsonMap::from_iter([
+                ("id".to_string(), JsonValue::Number(2.into())),
+                ("x".to_string(), JsonValue::Number(20.into())),
+                (
+                    "email".to_string(),
+                    JsonValue::String("b@example.test".to_string()),
+                ),
+            ]),
+        ];
+        let synthetic = vec![
+            JsonMap::from_iter([
+                ("id".to_string(), JsonValue::Number(1.into())),
+                (
+                    "x".to_string(),
+                    JsonValue::Number(JsonNumber::from_f64(10.5).unwrap()),
+                ),
+                (
+                    "email".to_string(),
+                    JsonValue::String("a@example.test".to_string()),
+                ),
+            ]),
+            JsonMap::from_iter([
+                ("id".to_string(), JsonValue::Number(2.into())),
+                (
+                    "x".to_string(),
+                    JsonValue::Number(JsonNumber::from_f64(20.5).unwrap()),
+                ),
+                (
+                    "email".to_string(),
+                    JsonValue::String("b@example.test".to_string()),
+                ),
+            ]),
+        ];
+
+        let report = evaluate_generation_records(
+            "reference_vs_synthetic",
+            &reference,
+            &synthetic,
+            &["x".to_string()],
+            Vec::new(),
+        )
+        .unwrap();
+
+        assert_eq!(report.privacy.exact_non_numeric_signature_match_count, 2);
+        assert_eq!(
+            report.privacy.non_numeric_signature_columns,
+            vec!["email".to_string()]
+        );
+        assert!(
+            report
+                .privacy
+                .rare_numeric_value_alerts
+                .alerts
+                .iter()
+                .any(|alert| alert.column == "id" && alert.overlapping_unique_value_count == 2)
+        );
     }
 
     #[test]
