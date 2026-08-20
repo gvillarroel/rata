@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run Synthetic Data Workflow"
+  short_description: "Plan, generate, and audit synthetic data"
+  default_prompt: "Use $run-synthetic-data-workflow to plan, generate, and validate synthetic data end to end."

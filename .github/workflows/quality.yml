@@ -1,0 +1,32 @@
+name: quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --python 3.12 --locked
+      - run: uv lock --check --script skills/plan-synthetic-data/scripts/plan.py
+      - run: uv lock --check --script skills/generate-synthetic-data/scripts/generate.py
+      - run: uv lock --check --script skills/generate-synthetic-data/scripts/materialize_spec.py
+      - run: uv lock --check --script skills/generate-synthetic-data/scripts/evaluate_spec.py
+      - run: uv lock --check --script skills/evaluate-synthetic-data/scripts/evaluate.py
+      - run: uv run ruff check skills tests tools
+      - run: uv run ruff format --check skills tests tools
+      - run: uv run pytest
+      - run: uv run python tools/audit_licenses.py
+      - run: python tools/install_skills.py --destination .local-skill-test --dry-run

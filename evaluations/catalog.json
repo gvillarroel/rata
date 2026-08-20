@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "description": "Ordered end-to-end evaluation requests for the Rata synthetic-data workflow.",
+  "scenarios": [
+    {
+      "order": 1,
+      "id": "tabular",
+      "modality": "tabular",
+      "request": "Plan, generate, and independently evaluate a synthetic table containing identifiers, public categories, protected categories, and protected numeric values.",
+      "rows": 120,
+      "seed": 4101,
+      "public": ["region"],
+      "protected": ["age_band", "monthly_spend", "account_tier"],
+      "identifier": ["customer_id"],
+      "encodings": {},
+      "quality_acceptance": {
+        "max_mean_numeric_ks": 0.35,
+        "max_column_numeric_ks": 0.45,
+        "max_mean_categorical_tv": 0.35,
+        "max_column_categorical_tv": 0.45,
+        "max_propensity_auc": 0.9
+      }
+    },
+    {
+      "order": 2,
+      "id": "tabular-text",
+      "modality": "tabular+text",
+      "request": "Plan, generate, and independently evaluate a mixed table containing identifiers, public and protected tabular fields, and protected free text encoded as TABULAR_CHARACTER.",
+      "rows": 120,
+      "seed": 4202,
+      "public": ["channel"],
+      "protected": ["resolution_hours", "topic", "message"],
+      "identifier": ["ticket_id"],
+      "encodings": {
+        "message": "TABULAR_CHARACTER"
+      },
+      "quality_acceptance": {
+        "max_mean_numeric_ks": 0.35,
+        "max_column_numeric_ks": 0.45,
+        "max_mean_categorical_tv": 0.35,
+        "max_column_categorical_tv": 0.45,
+        "max_mean_text_length_ks": 0.35,
+        "max_column_text_length_ks": 0.45,
+        "max_mean_text_tfidf_distance": 0.45,
+        "max_column_text_tfidf_distance": 0.55,
+        "max_propensity_auc": 0.9
+      }
+    }
+  ]
+}

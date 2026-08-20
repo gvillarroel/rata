@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate Synthetic Data"
+  short_description: "Generate private, high-quality tabular data"
+  default_prompt: "Use $generate-synthetic-data to generate and validate a synthetic table from my rows, synthetic reference, or schema and statistics."

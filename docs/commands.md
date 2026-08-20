@@ -1,291 +1,92 @@
 # Command Reference
 
-This page is the practical reference for every `rata` command.
+Run commands from the repository root with Python 3.12 and `uv`.
 
-## General Rule
-
-Use this format:
+## Install skills
 
 ```powershell
-rata <command> [options]
+python tools/install_skills.py [--destination PATH] [--skill NAME] [--dry-run] [--overwrite]
 ```
 
-Supported input formats:
+Without `--skill`, install all packages. The default destination is `$CODEX_HOME\skills` or `~\.codex\skills`. Existing packages are never replaced without `--overwrite`.
 
-- `csv`
-- `json`
-- `jsonl`
-- `parquet`
-- `avro`
-
-## `rata stats`
-
-Create a full statistics report for a dataset.
+## Plan
 
 ```powershell
-# Print a readable report in the terminal
-rata stats datasets\iris.csv
-
-# Print the same report as JSON
-rata stats datasets\iris.csv --output json
+uv run skills/plan-synthetic-data/scripts/plan.py INPUT POLICY `
+  [--public COLS] [--protected COLS] [--private COLS] `
+  [--identifier COLS] [--drop COLS] `
+  [--default-role protected|private] `
+  [--quality-profile fast|balanced|high] `
+  [--max-epochs N] [--max-training-minutes MINUTES] `
+  [--sampling-temperature VALUE] `
+  [--max-epsilon VALUE] [--delta VALUE] `
+  [--noise-multiplier VALUE] [--max-grad-norm VALUE] `
+  [--value-protection-epsilon VALUE] [--rare-value-threshold N] `
+  [--encoding COLUMN=TYPE] `
+  [--acceptance NAME=VALUE] `
+  [--column-requirement COLUMN.METRIC=VALUE] `
+  [--output PATH] [--report PATH] [--workspace PATH] `
+  [--rows N] [--seed N] `
+  [--input-kind source|synthetic-reference|aggregate-proxy] `
+  [--input-report PATH] [--overwrite]
 ```
 
-Options:
+Column lists are comma-separated. Repeat `--encoding` to override semantic inference, for example `--encoding birthdate=TABULAR_DATETIME`. Repeat `--acceptance` for global requirements and `--column-requirement` for stricter field-level requirements, such as `--column-requirement salary.max_numeric_ks=0.15`. Destination options are written into the policy so the generator can run without path overrides. The planner refuses to replace an existing policy unless `--overwrite` is present.
 
-- `--output markdown|json`
+Use `synthetic-reference` only for a table already generated elsewhere; attach its report when present. Original-source
+privacy and release fitness remain unresolved without the original bound evidence.
 
-Default:
-
-- `markdown`
-
-## `rata schema`
-
-Infer a schema from a dataset.
+## Materialize schema and aggregate statistics
 
 ```powershell
-# Show a readable schema
-rata schema datasets\cars.json
-
-# Export JSON Schema
-rata schema datasets\cars.json --format json-schema
-
-# Export Avro schema with a custom name
-rata schema datasets\userdata1.avro --format avro --name UserRecord
-
-# Export OpenAPI schema
-rata schema datasets\news_headlines.jsonl --format openapi --name NewsHeadline
+uv run skills/generate-synthetic-data/scripts/materialize_spec.py `
+  SPEC PROXY POLICY `
+  --materialization-report REPORT `
+  --output SYNTHETIC --report GENERATION_REPORT --workspace WORKSPACE `
+  [--rows N] [--seed N] [--overwrite]
 ```
 
-Options:
+The JSON specification supports numeric normal/uniform/constant distributions, weighted categories, booleans, strings,
+datetime bounds, identifiers, missing rates, and an optional positive-definite numeric correlation matrix. It writes
+proxy rows, a complete `aggregate-proxy` policy, and a SHA-256-bound materialization report.
 
-- `--format markdown|json|json-schema|openapi|avro|typescript|python`
-- `--name <schema-name>`
-
-Default:
-
-- `markdown`
-
-## `rata head`
-
-Show the first rows of a dataset.
+## Generate
 
 ```powershell
-# Show the first 5 rows
-rata head datasets\iris.csv
-
-# Show the first 10 rows
-rata head datasets\cars.json --rows 10
-
-# Return the preview as JSON
-rata head datasets\news_headlines.jsonl --output json
+uv run skills/generate-synthetic-data/scripts/generate.py POLICY `
+  [--input PATH] [--output PATH] [--report PATH] [--workspace PATH] `
+  [--rows N] [--seed N] [--dry-run] [--overwrite] [--verbose]
 ```
 
-Options:
+Every non-dry run uses a new timestamped workspace. `--overwrite` applies only to the selected table and report; it never reuses model state. Input, output, report, and workspace paths must be distinct. The generation report contains hashes binding the policy, source, and output.
 
-- `--rows <n>`
-- `-n <n>`
-- `--output markdown|json`
-
-Default:
-
-- `rows = 5`
-- `output = markdown`
-
-## `rata transform`
-
-Convert one dataset format into another.
+## Evaluate
 
 ```powershell
-# Convert CSV to Parquet
-rata transform datasets\iris.csv datasets\converted\iris.parquet
-
-# Convert JSON to JSONL
-rata transform datasets\cars.json datasets\converted\cars.jsonl
-
-# Force the output format even if the extension is unusual
-rata transform datasets\iris.csv datasets\converted\iris.data --format parquet
+uv run skills/evaluate-synthetic-data/scripts/evaluate.py `
+  ORIGINAL SYNTHETIC POLICY OUTPUT `
+  [--generation-report PATH] [--overwrite]
 ```
 
-Options:
+Exit code `0` means every required gate passed. Exit code `2` means the evaluation report was written and one or more gates failed, including missing released columns. The evaluator refuses to overwrite prior evidence without `--overwrite` and verifies that generation evidence belongs to the exact candidate.
 
-- `--format csv|json|jsonl|parquet|avro`
-
-Notes:
-
-- If `--format` is omitted, Rata uses the output file extension.
-- Nested objects and arrays are preserved in `json` and `jsonl`.
-- For `csv`, `parquet`, and `avro`, nested values are written as JSON strings.
-
-## `rata train df`
-
-Train a reusable tabular synthetic-data model.
+## Evaluate aggregate constraints
 
 ```powershell
-# Train a model with the default output path
-# Output: models\iris.df.json
-rata train df datasets\iris.csv
-
-# Train a model with an explicit output path
-rata train df datasets\cars.json datasets\converted\cars-diffusion-model.json --seed 42
+uv run skills/generate-synthetic-data/scripts/evaluate_spec.py `
+  SPEC SYNTHETIC OUTPUT [--overwrite]
 ```
 
-Options:
+The report gates schema, missingness, numeric moments and bounds, category total variation, datetime validity, identifier
+uniqueness, and declared numeric correlations. Exit code `2` preserves a failed constraint report.
 
-- `--timesteps <n>`
-- `--examples-per-row <n>`
-- `--ridge-alpha <value>`
-- `--seed <n>`
-- `--features a,b,c`
-- `--max-rows <n>`
-
-Behavior:
-
-- If `MODEL_OUTPUT` is omitted, Rata writes the model to `models\<dataset-stem>.df.json`.
-- If `--features` is omitted, Rata trains on the fully numeric columns it can detect.
-- If `--max-rows` is provided, Rata trains on the first `n` loaded rows. This is useful for validating large downloaded datasets without materializing every row into the training matrix.
-- New model artifacts use a rectified-flow / flow-matching objective for numeric columns.
-- Training uses logit-normal time sampling, and generation uses Heun-style ODE sampling.
-- Older `tabular_gaussian_ddpm_linear` model artifacts remain readable by `rata gen df`.
-- Non-numeric columns are still passthrough columns. If a dataset has no numeric columns, Rata trains a schema-preserving bootstrap artifact so train/generate validation can still run, but the output is copied passthrough data flagged by privacy diagnostics.
-- The denoiser is still lightweight linear ridge regression, not a neural MLP, gated network, or transformer denoiser.
-
-## `rata gen df`
-
-Generate a synthetic dataset from a trained diffusion model.
+## Develop
 
 ```powershell
-# Generate a dataset with the default output path
-# Output: datasets\generated\iris.df-iris.json
-rata gen df models\iris.df.json datasets\iris.csv
-
-# Generate with an explicit output path and row count
-rata gen df datasets\converted\cars-diffusion-model.json datasets\cars.json datasets\converted\cars-diffusion-generated.json --rows 406 --seed 7
-
-# Drop or mask copied passthrough columns before writing
-rata gen df datasets\converted\cars-diffusion-model.json datasets\cars.json datasets\converted\cars-diffusion-generated.json --drop-columns Name --mask-columns Origin
-```
-
-Options:
-
-- `--rows <n>`
-- `--reference-max-rows <n>`
-- `--seed <n>`
-- `--format csv|json|jsonl|parquet|avro`
-- `--drop-columns a,b,c`
-- `--mask-columns a,b,c`
-- `--fail-on-columns a,b,c`
-
-Behavior:
-
-- If `OUTPUT_PATH` is omitted, Rata writes to `datasets\generated\`.
-- The reference dataset is used to recover schema and bootstrap passthrough non-numeric columns.
-- If `--reference-max-rows` is provided, only the first `n` reference rows are loaded for schema recovery, passthrough sampling, and final-output evaluation.
-- Numeric columns are generated by the trained rectified-flow sampler for new artifacts, or by the legacy reverse DDPM sampler for older artifacts.
-- The JSON report includes `evaluation` privacy diagnostics for final output against the reference dataset, including copied passthrough values.
-- Privacy column controls are applied before writing the output and before evaluating final-output privacy.
-
-## `rata synth smote`
-
-Generate minority-class synthetic rows with SMOTE.
-
-```powershell
-# Basic SMOTE run
-rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.json --target class
-
-# Deterministic run with a fixed seed
-rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.json --target class --seed 42
-
-# Explicit feature selection
-rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.parquet --target class --features x,y --format parquet
-
-# Write only generated SMOTE rows instead of augmented originals plus generated rows
-rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote-release.json --target class --synthetic-only --seed 42
-
-# Drop or mask copied non-feature columns in the output
-rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote-release.json --target class --synthetic-only --drop-columns email,ip_address --mask-columns segment
-```
-
-Options:
-
-- `--target <column>` required
-- `--minority-label <label>`
-- `--samples <n>`
-- `--target-rows <n>`
-- `--k <n>`
-- `--seed <n>`
-- `--features a,b,c`
-- `--synthetic-only`
-- `--drop-columns a,b,c`
-- `--mask-columns a,b,c`
-- `--fail-on-columns a,b,c`
-- `--format csv|json|jsonl|parquet|avro`
-
-Behavior:
-
-- If `--samples` is omitted, Rata adds as many synthetic rows as the input row count.
-- If `--target-rows` is provided, Rata downsamples the augmented dataset to the exact final row count you requested.
-- If `--synthetic-only` is provided, Rata writes from the generated SMOTE rows only instead of the augmented original-plus-generated pool.
-- Privacy column controls are applied before writing the output and before evaluating final-output privacy.
-- If `--minority-label` is omitted, Rata auto-detects the least frequent target value.
-- If `--features` is omitted, Rata auto-detects numeric feature columns.
-
-Output:
-
-- JSON report with generation settings, `stats_diff`, minority-reference `evaluation`, and `final_output_evaluation` against the full source dataset.
-
-## `rata synth dp-noise`
-
-Generate a DP-style perturbed dataset by adding Laplace noise to numeric columns.
-
-```powershell
-# Perturb all numeric columns
-rata synth dp-noise datasets\iris.csv datasets\converted\iris-dp-noise.parquet
-
-# Use a fixed epsilon and seed
-rata synth dp-noise datasets\iris.csv datasets\converted\iris-dp-noise.parquet --epsilon 1.0 --seed 42
-
-# Perturb only selected columns
-rata synth dp-noise datasets\cars.json datasets\converted\cars-dp-noise.json --epsilon 1.0 --seed 42 --features Acceleration,Cylinders,Displacement,Weight_in_lbs
-
-# Drop or mask columns that should not be copied unchanged
-rata synth dp-noise datasets\cars.json datasets\converted\cars-dp-noise.json --epsilon 1.0 --drop-columns Name --mask-columns Origin
-```
-
-Options:
-
-- `--epsilon <value>`
-- `--seed <n>`
-- `--features a,b,c`
-- `--drop-columns a,b,c`
-- `--mask-columns a,b,c`
-- `--fail-on-columns a,b,c`
-- `--format csv|json|jsonl|parquet|avro`
-
-Behavior:
-
-- If `--features` is omitted, Rata perturbs every fully numeric column.
-- Non-numeric columns are preserved.
-- Privacy column controls can remove, mask, or block preserved columns before output.
-- Row count stays the same.
-
-Output:
-
-- JSON report with generation settings, `stats_diff`, and `evaluation` that includes numeric and non-numeric replay diagnostics.
-
-## Output Summary
-
-```powershell
-# Human-readable output
-rata stats datasets\iris.csv
-rata schema datasets\iris.csv
-rata head datasets\iris.csv
-
-# Machine-readable output
-rata stats datasets\iris.csv --output json
-rata head datasets\iris.csv --output json
-rata transform datasets\iris.csv datasets\converted\iris.parquet
-rata train df datasets\iris.csv
-rata gen df models\iris.df.json datasets\iris.csv
-rata synth smote datasets\converted\imbalanced.json datasets\converted\imbalanced-smote.json --target class
-rata synth dp-noise datasets\iris.csv datasets\converted\iris-dp-noise.parquet
+uv sync --python 3.12 --locked
+uv run ruff check skills tests tools
+uv run ruff format --check skills tests tools
+uv run pytest
+uv run python tools/audit_licenses.py
 ```

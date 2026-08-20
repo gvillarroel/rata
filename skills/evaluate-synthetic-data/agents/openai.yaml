@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evaluate Synthetic Data"
+  short_description: "Audit synthetic data quality and privacy"
+  default_prompt: "Use $evaluate-synthetic-data to compare my synthetic table with the original data."

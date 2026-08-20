@@ -1,0 +1,22 @@
+{
+  "holdoutReleased": false,
+  "ledger": {
+    "eventCount": 27,
+    "headSha256": "aaf48ca3807680b84eba3eefe9629b4b3c17e9a211b85dde05f301fd83a977eb"
+  },
+  "progress": {
+    "completedCount": 2,
+    "completionPercent": 25.0,
+    "stageCount": 8
+  },
+  "publicationPolicy": "indexes-and-result-tables-only-v1",
+  "resultIndex": [],
+  "resultTables": [],
+  "schemaVersion": 1,
+  "study": {
+    "comparisonProfile": "gemini-2.5-flash-gepa-v1",
+    "createdAt": "2026-08-20T21:19:05Z",
+    "studyId": "generate-synthetic-data-v1",
+    "title": "Generate Synthetic Data Skill Evolution"
+  }
+}

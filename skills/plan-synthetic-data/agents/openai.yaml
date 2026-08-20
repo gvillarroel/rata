@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Synthetic Data"
+  short_description: "Design column-level privacy policies"
+  default_prompt: "Use $plan-synthetic-data to inspect my table and create a column-level privacy policy."

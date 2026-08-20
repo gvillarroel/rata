@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "captured_utc": "2026-07-26T23:04:18Z",
+  "catalog": "../catalog.json",
+  "environment": {
+    "python": "3.12.13",
+    "uv": "0.10.12",
+    "mostlyai_engine": "2.6.2",
+    "pandas": "3.0.3",
+    "scikit_learn": "1.9.0",
+    "scipy": "1.18.0"
+  },
+  "configuration": {
+    "rows_per_scenario": 120,
+    "quality_profile": "fast",
+    "max_epochs": 2,
+    "max_training_minutes": 1,
+    "privacy_thresholds_changed": false
+  },
+  "scenarios": [
+    {
+      "order": 1,
+      "id": "tabular",
+      "candidate_passed": true,
+      "failed_gates": [],
+      "negative_control_rejected": true,
+      "negative_control_failed_gates": [
+        "generation_report_binding",
+        "exact_modeled_row_replay",
+        "identifier_overlap",
+        "protected_rare_value_replay"
+      ],
+      "training_seconds": 74.28422569995746,
+      "sampling_seconds": 0.1514673000201583,
+      "metrics": {
+        "mean_numeric_ks": 0.06666666666666676,
+        "mean_categorical_tv": 0.0638888888888889,
+        "propensity_auc": 0.5238888888888888,
+        "exact_modeled_row_replay": 0.0,
+        "protected_rare_value_replay": 0.019444444444444445,
+        "identifier_overlap": 0.0
+      },
+      "sha256": {
+        "source": "19c20118db0efb71609892a6d67202cbb3e707d2b87ec7da88885224b8a22f36",
+        "policy": "3bc3fde6c63c84595c7ce7b64967586801c219ecd7f7066fd5efaacc3389fdea",
+        "candidate": "2f3bf1edbd1af99fd6b96658ed2e8aacdf3f34883e419128892bd58da338e501",
+        "generation_report": "d870c74bfa863ba8633a357a3fa725c2db005068a0630950512333ee6a9f3cc6",
+        "evaluation_report": "e975762228a2df62aa49b19c117310e41e9377f33a5fe132d9b33745ceaf8685",
+        "negative_control_report": "89473f811ba7269b9727a0303792b891458aeb92141b55b1a88dfd7d25c753f3"
+      }
+    },
+    {
+      "order": 2,
+      "id": "tabular-text",
+      "candidate_passed": false,
+      "failed_gates": [
+        "protected_rare_value_replay",
+        "mean_text_length_ks",
+        "max_column_text_length_ks",
+        "mean_text_tfidf_distance",
+        "max_column_text_tfidf_distance"
+      ],
+      "negative_control_rejected": true,
+      "negative_control_failed_gates": [
+        "generation_report_binding",
+        "exact_modeled_row_replay",
+        "identifier_overlap",
+        "protected_rare_value_replay"
+      ],
+      "training_seconds": 91.06856620009057,
+      "sampling_seconds": 0.2796122001018375,
+      "metrics": {
+        "mean_numeric_ks": 0.07500000000000001,
+        "mean_categorical_tv": 0.08333333333333333,
+        "mean_text_length_ks": 1.0,
+        "mean_text_tfidf_centroid_distance": 0.8615684058364615,
+        "median_nearest_text_tfidf_similarity": 0.02076701964328679,
+        "max_nearest_text_tfidf_similarity": 0.07013454848170332,
+        "propensity_auc": 0.5304861111111111,
+        "exact_modeled_row_replay": 0.0,
+        "protected_rare_value_replay": 0.08055555555555556,
+        "identifier_overlap": 0.0
+      },
+      "sha256": {
+        "source": "564596ae48faf054f6775f07f9c53780576b76e065b232eb2afb4a9e0393cb77",
+        "policy": "bb0f304ef62a5285d8bf9cf42718c39bfb87b66db4dc671aa6f626d563d936a0",
+        "candidate": "f158820efe0895abbb5801af6c5d22bfbdc9c552285af24e4f010d46a13990f2",
+        "generation_report": "d2d51c4a4ab70132ba1ce0753b5ebbd9af7af142ba063c7e68822577868d12c8",
+        "evaluation_report": "e3513e136b763b250936fddf23a7efe3b21e829bf725e1dc01c821234b223d2f",
+        "negative_control_report": "979ec391f90571b26508f043f4eef98a5b2df8c1460980dd1d0d304346227d5c"
+      }
+    }
+  ],
+  "overall_passed": false,
+  "interpretation": "The ordered matrix is operational. The tabular release candidate passed. The fast-profile mixed text candidate was correctly rejected; the failed evidence is retained rather than weakening privacy or quality gates."
+}

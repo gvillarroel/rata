@@ -1,116 +1,47 @@
 # Architecture
 
-This document describes the repository structure, ownership order, and intended workflow for Rata.
+Rata is a repository of self-contained Codex skills, not an application library. Each specialized skill owns one auditable phase and includes its instructions, script, references, and agent metadata.
 
-## Repository Structure
-
-```mermaid
-flowchart TD
-    repo["Repository root"]
-
-    repo --> specs[".specs/"]
-    specs --> req["requirements/ product and engineering requirements"]
-    specs --> adr["adr/ accepted architecture decisions"]
-    specs --> issues["issues/ tracked engineering follow-ups"]
-    specs --> spikes["spikes/ research and experiments"]
-
-    repo --> crates["crates/"]
-    crates --> core["rata-core/ Rust source of truth"]
-    core --> cli["src/bin/rata.rs CLI entrypoint"]
-    core --> lib["src/lib.rs dataset APIs, stats, schemas, transforms, synthetic helpers"]
-    core --> diffusion["src/diffusion/ diffusion model modules"]
-
-    repo --> bindings["bindings/"]
-    bindings --> python["python/ future Python binding package"]
-    bindings --> typescript["typescript/ future TypeScript binding package"]
-
-    repo --> tests["tests/"]
-    tests --> fixtures["fixtures/ small tracked fixtures"]
-    tests --> integration["integration/ cross-format and CLI tests"]
-
-    repo --> datasets["datasets/ ignored local datasets"]
-    repo --> models["models/ local or tracked model artifacts"]
-    repo --> scripts["scripts/ development automation"]
-    repo --> docs["docs/ official user documentation"]
-    docs --> reports["reports/ generated sample reports"]
+```text
+source table
+    |
+    v
+plan-synthetic-data ----> policy.json
+    |
+    v
+generate-synthetic-data ----> synthetic table + generation report
+    |
+    v
+evaluate-synthetic-data ----> evaluation report + release decision
 ```
 
-## Project Order
+`run-synthetic-data-workflow` orchestrates those phases and preserves their artifacts.
 
-The project should move from intent to implementation to validation in this order:
+Generation accepts three provenance modes before entering this pipeline:
 
-```mermaid
-flowchart LR
-    requirements["1. Requirements"]
-    decisions["2. ADRs"]
-    spikes["3. Spikes when uncertainty is high"]
-    implementation["4. Rust core implementation"]
-    cli["5. CLI surface"]
-    tests["6. Unit and integration tests"]
-    scripts["7. Automation scripts"]
-    docs["8. User documentation"]
-    reports["9. Generated reports and evaluation outputs"]
-    bindings["10. Language bindings"]
+1. `source`: observed rows planned and evaluated under the ordinary policy.
+2. `synthetic-reference`: an already synthetic table whose original-source claims depend on its bound provenance.
+3. `aggregate-proxy`: deterministic proxy rows materialized from schema and statistics, followed by both ordinary
+   generation evaluation and aggregate-constraint evaluation.
 
-    requirements --> decisions
-    decisions --> spikes
-    spikes --> implementation
-    decisions --> implementation
-    implementation --> cli
-    implementation --> tests
-    cli --> tests
-    cli --> scripts
-    tests --> docs
-    scripts --> reports
-    implementation --> bindings
-    docs --> bindings
-```
+The last two modes never masquerade as observed source rows in policies or reports.
 
-## Runtime Flow
+## Staged generation
 
-```mermaid
-flowchart TD
-    user["User or automation"]
-    command["rata CLI command"]
-    detect["Detect dataset format"]
-    load["Load records"]
-    operation{"Selected operation"}
-    stats["Compute statistics"]
-    schema["Infer schema"]
-    transform["Transform output format"]
-    synthetic["Generate synthetic data"]
-    render["Render Markdown or JSON report"]
-    write["Write output dataset, model, or report"]
+The generator produces columns in privacy order:
 
-    user --> command
-    command --> detect
-    detect --> load
-    load --> operation
-    operation --> stats
-    operation --> schema
-    operation --> transform
-    operation --> synthetic
-    stats --> render
-    schema --> render
-    transform --> write
-    synthetic --> write
-    render --> user
-    write --> user
-```
+1. Jointly resample explicitly public columns from source rows.
+2. Train a value-protected, non-DP TabularARGN on public and protected columns; sample protected columns conditioned on the public output.
+3. Train a separate DP TabularARGN on public, protected, and private columns; sample private columns conditioned on the already generated values.
+4. Create unrelated deterministic UUID or sequential surrogates for identifiers.
+5. Omit dropped columns.
 
-## Ownership Rules
+This separation prevents private columns from being emitted by a non-DP stage. Generation fails if a private stage lacks a recorded DP checkpoint or exceeds the policy epsilon ceiling. The report cryptographically binds the generation policy, source, and output; evaluation verifies that binding before accepting DP evidence.
 
-- `.specs/requirements/` defines what the project must do.
-- `.specs/adr/` defines durable architectural decisions.
-- `.specs/issues/` tracks review findings and planned improvements.
-- `crates/rata-core/` is the canonical implementation boundary.
-- `docs/` is the official user-facing documentation surface.
-- `datasets/` is for ignored local data; small deterministic test assets belong in `tests/fixtures/`.
-- `bindings/` should stay thin and reuse the Rust core rather than duplicating behavior.
+## Dependency boundary
 
-## Current Architectural Notes
+The skills call `mostlyai-engine` directly. They do not install the full MOSTLY AI local/connectors extra, which would broaden the runtime and its licensing surface. Exact direct versions are declared in each PEP 723 script, adjacent `.py.lock` files pin standalone transitive environments, and the root `uv.lock` pins repository development.
 
-- The Rust core is currently the only implemented runtime surface.
-- Python and TypeScript bindings are planned by ADR but not implemented yet.
-- The current stats path is eager and full-dataset oriented; future large-dataset work should introduce bounded preview readers and streaming or sampled statistics.
-- The diffusion module already uses a clearer module split than the rest of the core and is a useful direction for future refactors.
+## File formats
+
+CSV, JSON, JSONL/NDJSON, Parquet, and Avro use one internal pandas table representation. Outputs retain the selected container format; the policy records semantic encodings such as `TABULAR_DATETIME` when physical source types are ambiguous. Nested objects, arrays, tuples, and sets are outside the tabular contract and must be flattened or assigned `drop` before generation.
