@@ -43,6 +43,7 @@ def test_ci_workflow_is_valid_yaml() -> None:
 def test_github_pages_site_has_a_us_aligned_entrypoint() -> None:
     config = yaml.safe_load((ROOT / "docs" / "_config.yml").read_text(encoding="utf-8"))
     index = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
+    stylesheet = (ROOT / "docs" / "assets" / "main.scss").read_text(encoding="utf-8")
 
     assert config["url"] == "https://gvillarroel.github.io"
     assert config["baseurl"] == "/rata"
@@ -51,6 +52,8 @@ def test_github_pages_site_has_a_us_aligned_entrypoint() -> None:
     assert "default U.S.-aligned sources" in index
     assert "100%" in index
     assert "country fields are filtered to `US`" in index
+    assert '@import "minima";' in stylesheet
+    assert ".hero" in stylesheet
 
 
 def test_direct_github_install_is_documented_for_every_skill() -> None:
