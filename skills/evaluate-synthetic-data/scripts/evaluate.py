@@ -16,6 +16,7 @@ import argparse
 import hashlib
 import json
 import math
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +35,13 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 ROLES = {"public", "protected", "private", "identifier", "drop"}
+STRING_PRESERVING_ENCODINGS = {"TABULAR_CATEGORICAL", "TABULAR_CHARACTER", "TABULAR_LAT_LONG"}
+NUMERIC_ENCODINGS = {
+    "TABULAR_NUMERIC_AUTO",
+    "TABULAR_NUMERIC_DISCRETE",
+    "TABULAR_NUMERIC_BINNED",
+    "TABULAR_NUMERIC_DIGIT",
+}
 ACCEPTANCE_KEYS = {
     "max_exact_row_replay_ratio",
     "max_identifier_overlap_ratio",
@@ -63,10 +71,12 @@ COLUMN_ACCEPTANCE_KEYS = {
 }
 
 
-def load_table(path: Path) -> pd.DataFrame:
+def load_table(path: Path, string_columns: set[str] | None = None) -> pd.DataFrame:
     suffix = path.suffix.lower()
     if suffix == ".csv":
-        return pd.read_csv(path)
+        header = pd.read_csv(path, nrows=0)
+        dtype = {column: "string" for column in string_columns or set() if column in header.columns}
+        return pd.read_csv(path, dtype=dtype)
     if suffix in {".jsonl", ".ndjson"}:
         return pd.read_json(path, lines=True)
     if suffix == ".json":
@@ -77,6 +87,14 @@ def load_table(path: Path) -> pd.DataFrame:
         with path.open("rb") as handle:
             return pd.DataFrame.from_records(avro_reader(handle))
     raise ValueError(f"unsupported table format: {suffix or '<none>'}")
+
+
+def string_columns_from_policy(policy: dict[str, Any]) -> set[str]:
+    return {
+        name
+        for name, config in policy["privacy"]["columns"].items()
+        if config.get("role") == "identifier" or str(config.get("encoding", "")).upper() in STRING_PRESERVING_ENCODINGS
+    }
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -107,12 +125,7 @@ def sha256_file(path: Path) -> str:
 
 
 def generation_policy_fingerprint(policy: dict[str, Any]) -> str:
-    payload = {
-        "version": policy.get("version"),
-        "quality": policy.get("quality"),
-        "privacy": policy.get("privacy"),
-    }
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    canonical = json.dumps(policy, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
@@ -297,6 +310,134 @@ def distribution_metrics(
     }
 
 
+def semantic_type_metrics(
+    original: pd.DataFrame,
+    synthetic: pd.DataFrame,
+    columns: list[str],
+    policy: dict[str, Any],
+) -> dict[str, Any]:
+    per_column: dict[str, dict[str, Any]] = {}
+    numeric_columns: list[str] = []
+    datetime_columns: list[str] = []
+    configurations = policy["privacy"]["columns"]
+    for column in columns:
+        encoding = str(configurations.get(column, {}).get("encoding", "")).upper()
+        nonmissing = synthetic[column].dropna()
+        expected = "categorical"
+        invalid = 0
+        if encoding == "TABULAR_LAT_LONG":
+            expected = "latitude-longitude"
+            parsed = nonmissing.map(parse_lat_long)
+            invalid = int(parsed.isna().sum())
+        elif "DATETIME" in encoding:
+            expected = "datetime"
+            datetime_columns.append(column)
+            invalid = int(pd.to_datetime(nonmissing, format="mixed", errors="coerce", utc=True).isna().sum())
+        elif encoding in NUMERIC_ENCODINGS or (
+            encoding not in STRING_PRESERVING_ENCODINGS
+            and pd.api.types.is_numeric_dtype(original[column])
+            and not pd.api.types.is_bool_dtype(original[column])
+        ):
+            expected = "numeric"
+            numeric_columns.append(column)
+            invalid = int(pd.to_numeric(nonmissing, errors="coerce").isna().sum())
+        elif pd.api.types.is_bool_dtype(original[column]):
+            expected = "boolean"
+            allowed = {"true", "false", "1", "0"}
+            invalid = int((~nonmissing.map(lambda value: scalar_key(value).lower()).isin(allowed)).sum())
+        considered = int(len(nonmissing))
+        per_column[column] = {
+            "expected": expected,
+            "invalid_values": invalid,
+            "considered_values": considered,
+            "invalid_value_ratio": float(invalid / max(considered, 1)),
+        }
+    return {
+        "per_column": per_column,
+        "numeric_columns": numeric_columns,
+        "datetime_columns": datetime_columns,
+        "max_invalid_value_ratio": max(
+            (item["invalid_value_ratio"] for item in per_column.values()),
+            default=None,
+        ),
+    }
+
+
+def parse_lat_long(value: Any) -> tuple[float, float] | None:
+    parts = str(value).split(",")
+    if len(parts) != 2:
+        return None
+    try:
+        latitude, longitude = (float(part.strip()) for part in parts)
+    except ValueError:
+        return None
+    if not math.isfinite(latitude) or not math.isfinite(longitude):
+        return None
+    if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+        return None
+    return latitude, longitude
+
+
+def lat_long_metrics(original: pd.DataFrame, synthetic: pd.DataFrame, columns: list[str]) -> dict[str, Any]:
+    per_column: dict[str, dict[str, float | None]] = {}
+    for column in columns:
+        real = [parsed for value in original[column].dropna() if (parsed := parse_lat_long(value)) is not None]
+        synth = [parsed for value in synthetic[column].dropna() if (parsed := parse_lat_long(value)) is not None]
+        latitude_ks = (
+            float(ks_2samp([value[0] for value in real], [value[0] for value in synth], method="asymp").statistic)
+            if real and synth
+            else None
+        )
+        longitude_ks = (
+            float(ks_2samp([value[1] for value in real], [value[1] for value in synth], method="asymp").statistic)
+            if real and synth
+            else None
+        )
+        component_values = [value for value in (latitude_ks, longitude_ks) if value is not None]
+        per_column[column] = {
+            "latitude_ks": latitude_ks,
+            "longitude_ks": longitude_ks,
+            "max_component_ks": max(component_values, default=None),
+        }
+    component_metrics = [
+        value
+        for metrics in per_column.values()
+        for value in (metrics["latitude_ks"], metrics["longitude_ks"])
+        if value is not None
+    ]
+    return {
+        "per_column": per_column,
+        "mean_component_ks": float(np.mean(component_metrics)) if component_metrics else None,
+        "max_component_ks": max(component_metrics, default=None),
+    }
+
+
+def normalize_numeric_columns(frame: pd.DataFrame, columns: set[str]) -> pd.DataFrame:
+    normalized = frame.copy()
+    for column in columns & set(normalized.columns):
+        normalized[column] = pd.to_numeric(normalized[column], errors="coerce")
+    return normalized
+
+
+def identifier_validity(synthetic: pd.DataFrame, columns: list[str]) -> dict[str, Any]:
+    per_column: dict[str, dict[str, Any]] = {}
+    for column in columns:
+        values = synthetic[column]
+        missing_count = int(values.isna().sum())
+        duplicate_count = int(values.dropna().duplicated(keep=False).sum())
+        per_column[column] = {
+            "missing_count": missing_count,
+            "missing_ratio": float(missing_count / len(values)),
+            "duplicate_count": duplicate_count,
+            "unique_ratio": float(values.dropna().nunique() / max(len(values), 1)),
+            "valid": missing_count == 0 and duplicate_count == 0,
+        }
+    return {
+        "per_column": per_column,
+        "valid": all(item["valid"] for item in per_column.values()),
+    }
+
+
 def text_metrics(original: pd.DataFrame, synthetic: pd.DataFrame, columns: list[str]) -> dict[str, Any]:
     per_column: dict[str, dict[str, Any]] = {}
     for column in columns:
@@ -441,12 +582,22 @@ def dp_evidence(policy: dict[str, Any], generation_report: dict[str, Any] | None
     stage = next((item for item in generation_report.get("stages", []) if item.get("stage") == "private"), None)
     checkpoint = stage.get("dp_checkpoint") if stage else None
     configured = policy["privacy"].get("dp", {})
+    try:
+        epsilon = float(checkpoint.get("epsilon", math.inf)) if checkpoint else math.inf
+        delta = float(checkpoint.get("delta", math.inf)) if checkpoint else math.inf
+        max_epsilon = float(configured.get("max_epsilon", 8.0))
+        max_delta = float(configured.get("delta", 0.00001))
+    except (TypeError, ValueError):
+        epsilon = delta = max_epsilon = max_delta = math.inf
     valid = bool(
         checkpoint
-        and math.isfinite(float(checkpoint.get("epsilon", math.inf)))
-        and math.isfinite(float(checkpoint.get("delta", math.inf)))
-        and float(checkpoint["epsilon"]) <= float(configured.get("max_epsilon", math.inf))
-        and float(checkpoint["delta"]) <= float(configured.get("delta", math.inf))
+        and math.isfinite(epsilon)
+        and math.isfinite(delta)
+        and math.isfinite(max_epsilon)
+        and math.isfinite(max_delta)
+        and 0 <= epsilon <= max_epsilon
+        and 0 <= delta <= max_delta < 1
+        and max_epsilon > 0
     )
     return {"required": True, "valid": valid, "checkpoint": checkpoint, "configured": configured}
 
@@ -497,18 +648,18 @@ def validate_evaluation_paths(args: argparse.Namespace) -> None:
         raise ValueError(f"evaluation output must not overwrite: {', '.join(collisions)}")
 
 
-def main() -> int:
-    args = parse_args()
+def run(args: argparse.Namespace) -> int:
     validate_evaluation_paths(args)
     if args.output.exists() and not args.overwrite:
         raise FileExistsError(f"refusing to overwrite: {args.output}")
-    original = load_table(args.original)
-    synthetic = load_table(args.synthetic)
+    policy = load_policy(args.policy)
+    string_columns = string_columns_from_policy(policy)
+    original = load_table(args.original, string_columns)
+    synthetic = load_table(args.synthetic, string_columns)
     if original.empty or synthetic.empty:
         raise ValueError("original and synthetic tables must contain rows")
     if original.columns.duplicated().any() or synthetic.columns.duplicated().any():
         raise ValueError("original and synthetic tables must have unique column names")
-    policy = load_policy(args.policy)
     roles = resolve_roles(original, policy)
     acceptance = validate_acceptance(policy, list(original.columns))
     released = roles["public"] + roles["protected"] + roles["private"] + roles["identifier"]
@@ -518,6 +669,11 @@ def main() -> int:
         for column, config in policy["privacy"]["columns"].items()
         if str(config.get("encoding", "")).upper() == "TABULAR_CHARACTER"
     }
+    configured_lat_long = {
+        column
+        for column, config in policy["privacy"]["columns"].items()
+        if str(config.get("encoding", "")).upper() == "TABULAR_LAT_LONG"
+    }
     for column, requirements in acceptance.get("columns", {}).items():
         if column not in modeled:
             raise ValueError(f"column acceptance requirements apply only to modeled columns: {column}")
@@ -525,6 +681,10 @@ def main() -> int:
             raise ValueError(f"rare-value replay requirements apply only to protected/private columns: {column}")
         if "max_categorical_tv" in requirements and column in configured_text:
             raise ValueError(f"text columns require max_text_tfidf_distance instead of max_categorical_tv: {column}")
+        if "max_categorical_tv" in requirements and column in configured_lat_long:
+            raise ValueError(
+                f"latitude/longitude columns require max_numeric_ks instead of max_categorical_tv: {column}"
+            )
         text_requirements = {"max_text_length_ks", "max_text_tfidf_distance"} & set(requirements)
         if text_requirements and column not in configured_text:
             raise ValueError(f"text acceptance requirements require TABULAR_CHARACTER encoding: {column}")
@@ -534,18 +694,21 @@ def main() -> int:
     available_modeled = [column for column in modeled if column in synthetic.columns]
     available_identifiers = [column for column in roles["identifier"] if column in synthetic.columns]
     available_text = [column for column in available_modeled if column in configured_text]
-    available_tabular = [column for column in available_modeled if column not in configured_text]
+    available_lat_long = [column for column in available_modeled if column in configured_lat_long]
+    available_tabular = [column for column in available_modeled if column not in configured_text | configured_lat_long]
 
     original_eval = original[available_modeled].copy()
     synthetic_eval = synthetic[available_modeled].copy()
-    datetime_columns = {
-        column
-        for column, config in policy["privacy"]["columns"].items()
-        if "DATETIME" in str(config.get("encoding", ""))
-    }
+    semantic_types = semantic_type_metrics(original_eval, synthetic_eval, available_modeled, policy)
+    datetime_columns = set(semantic_types["datetime_columns"])
+    numeric_columns = set(semantic_types["numeric_columns"])
     original_metrics = normalize_datetime_columns(original_eval, datetime_columns)
     synthetic_metrics = normalize_datetime_columns(synthetic_eval, datetime_columns)
-    threshold = int(policy["privacy"].get("rare_value_threshold", 5))
+    original_metrics = normalize_numeric_columns(original_metrics, numeric_columns)
+    synthetic_metrics = normalize_numeric_columns(synthetic_metrics, numeric_columns)
+    threshold = policy["privacy"].get("rare_value_threshold", 5)
+    if isinstance(threshold, bool) or not isinstance(threshold, int) or threshold < 0:
+        raise ValueError("privacy.rare_value_threshold must be a non-negative integer")
     available_protected = [column for column in roles["protected"] if column in available_modeled]
     available_private = [column for column in roles["private"] if column in available_modeled]
     available_public = [column for column in roles["public"] if column in available_modeled]
@@ -555,13 +718,15 @@ def main() -> int:
         column: value_overlap(original[column], synthetic[column]) for column in available_identifiers
     }
     identifier_overlap_ratio = max(identifier_overlap.values(), default=0.0)
+    identifiers = identifier_validity(synthetic, available_identifiers)
     distributions = distribution_metrics(
         original_metrics,
         synthetic_metrics,
         available_modeled,
-        excluded_categorical=set(available_text),
+        excluded_categorical=set(available_text + available_lat_long),
     )
     text = text_metrics(original_metrics, synthetic_metrics, available_text)
+    spatial = lat_long_metrics(original_eval, synthetic_eval, available_lat_long)
     correlations = correlation_metrics(original_metrics, synthetic_metrics, available_tabular)
     seed = int(policy.get("dataset", {}).get("seed", 42))
     auc = propensity_auc(original_metrics, synthetic_metrics, available_tabular, seed)
@@ -582,17 +747,19 @@ def main() -> int:
         args.synthetic,
         len(synthetic),
         roles,
-        required=bool(roles["private"]) or args.generation_report is not None,
+        required=True,
     )
     dp = dp_evidence(policy, generation_report, bool(roles["private"]))
     if roles["private"] and not binding["valid"]:
         dp["valid"] = False
         dp["reason"] = "generation report is not bound to this policy/input/output"
-    exact_replay = exact_row_replay(original_metrics, synthetic_metrics, available_modeled)
+    replay_sensitive = available_protected + available_private
+    exact_replay = exact_row_replay(original_metrics, synthetic_metrics, replay_sensitive)
     quality_available = (
         distributions["mean_numeric_ks"] is not None
         or distributions["mean_categorical_tv"] is not None
         or text["mean_length_ks"] is not None
+        or spatial["mean_component_ks"] is not None
     )
 
     max_numeric_ks = max(distributions["numeric_ks"].values(), default=None)
@@ -603,6 +770,13 @@ def main() -> int:
         gate("released_columns_present", not missing, True, "eq"),
         gate("unexpected_columns_absent", not unexpected, True, "eq"),
         gate("dropped_columns_absent", not unexpected_drop, True, "eq"),
+        gate(
+            "semantic_types_valid",
+            semantic_types["max_invalid_value_ratio"],
+            0.0,
+            "lte",
+            required=bool(modeled),
+        ),
         gate(
             "generation_report_binding",
             binding["valid"],
@@ -615,11 +789,12 @@ def main() -> int:
             exact_replay,
             acceptance.get("max_exact_row_replay_ratio", 0.0),
             "lte",
-            required=bool(available_modeled),
+            required=bool(replay_sensitive),
         ),
         gate(
             "identifier_overlap", identifier_overlap_ratio, acceptance.get("max_identifier_overlap_ratio", 0.0), "lte"
         ),
+        gate("identifier_values_valid", identifiers["valid"], True, "eq", required=bool(roles["identifier"])),
         gate(
             "protected_rare_value_replay",
             protected_replay["ratio"],
@@ -649,6 +824,20 @@ def main() -> int:
             acceptance.get("max_column_numeric_ks", 0.3),
             "lte",
             required=max_numeric_ks is not None,
+        ),
+        gate(
+            "mean_lat_long_component_ks",
+            spatial["mean_component_ks"],
+            acceptance.get("max_mean_numeric_ks", 0.2),
+            "lte",
+            required=bool(available_lat_long),
+        ),
+        gate(
+            "max_lat_long_component_ks",
+            spatial["max_component_ks"],
+            acceptance.get("max_column_numeric_ks", 0.3),
+            "lte",
+            required=bool(available_lat_long),
         ),
         gate(
             "mean_categorical_tv",
@@ -725,7 +914,7 @@ def main() -> int:
             auc,
             acceptance.get("max_propensity_auc", 0.8),
             "lte",
-            required=len(original) >= 20 and bool(modeled),
+            required=len(original) >= 20 and bool(available_tabular),
         ),
     ]
     for column, requirements in acceptance.get("columns", {}).items():
@@ -741,6 +930,9 @@ def main() -> int:
                 else private_replay["per_column"].get(column)
             ),
         }
+        metric_value = spatial["per_column"].get(column, {}).get("max_component_ks")
+        if metric_value is not None:
+            values["max_numeric_ks"] = metric_value
         for metric, threshold_value in requirements.items():
             gates.append(
                 gate(
@@ -776,11 +968,13 @@ def main() -> int:
             "missing_released_columns": missing,
             "unexpected_columns": unexpected,
             "unexpected_dropped_columns": unexpected_drop,
+            "semantic_types": semantic_types,
         },
         "generation_report_binding": binding,
         "quality": {
             "distributions": distributions,
             "text": text,
+            "latitude_longitude": spatial,
             "correlations": correlations,
             "propensity_auc": auc,
         },
@@ -793,6 +987,7 @@ def main() -> int:
             "protected_rare_value_replay": protected_replay,
             "private_rare_value_replay": private_replay,
             "identifier_overlap": identifier_overlap,
+            "identifier_validity": identifiers,
             "nearest_neighbors": neighbors,
             "differential_privacy": dp,
         },
@@ -809,6 +1004,59 @@ def main() -> int:
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"passed": passed, "report": str(args.output), "failed_gates": report["failed_gates"]}, indent=2))
     return 0 if passed else 2
+
+
+def write_failed_evaluation_report(args: argparse.Namespace, error: Exception) -> Path | None:
+    if args.output.exists():
+        return None
+    input_paths = [args.original, args.synthetic, args.policy]
+    if args.generation_report is not None:
+        input_paths.append(args.generation_report)
+    if args.output.resolve() in {path.resolve() for path in input_paths}:
+        return None
+    evidence: dict[str, str] = {}
+    for name, path in (
+        ("original", args.original),
+        ("synthetic", args.synthetic),
+        ("policy", args.policy),
+        ("generation_report", args.generation_report),
+    ):
+        if path is not None and path.is_file():
+            evidence[f"{name}_sha256"] = sha256_file(path)
+    error_message = str(error)
+    report = {
+        "schema_version": 1,
+        "passed": False,
+        "status": "evaluation-failed",
+        "captured_at_utc": datetime.now(UTC).isoformat(),
+        "original": str(args.original),
+        "synthetic": str(args.synthetic),
+        "policy": str(args.policy),
+        "generation_report": str(args.generation_report) if args.generation_report is not None else None,
+        "error": {
+            "type": type(error).__name__,
+            "message_sha256": hashlib.sha256(error_message.encode("utf-8")).hexdigest(),
+            "message_length": len(error_message),
+        },
+        "evidence": evidence,
+    }
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    return args.output
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        return run(args)
+    except Exception as error:
+        try:
+            failure_report = write_failed_evaluation_report(args, error)
+            if failure_report is not None:
+                error.add_note(f"Evaluation failure report: {failure_report}")
+        except Exception as report_error:
+            error.add_note(f"Unable to write evaluation failure report: {report_error}")
+        raise
 
 
 if __name__ == "__main__":

@@ -2,6 +2,25 @@
 
 Rata is a set of four Codex skills for generating tabular synthetic data under an explicit column-level privacy policy. It uses the Apache-2.0 `mostlyai-engine` SDK directly and keeps planning, generation, and release evaluation separate so a candidate cannot silently bypass its privacy gates.
 
+## Download center
+
+| What you need | Start here | What is available |
+| --- | --- | --- |
+| All four Codex skills | [Install directly from GitHub](#install-directly-from-github) or [download the repository ZIP](https://github.com/gvillarroel/rata/archive/refs/heads/main.zip) | Planning, generation, evaluation, and end-to-end workflow packages with pinned script environments. |
+| Public calibration datasets | [Official-source download catalog](docs/public-data-sources.md) | 31 reproducible default sources plus one documented opt-in source, grouped by business data, reference data, registries, and privacy-safe realism calibration. |
+| Small verified examples | [Public-data example catalog](docs/public-data-examples.md) | Five-row examples and coverage notes for every requested category and every locally retained artifact. |
+| Validation evidence | [Validation record](docs/validation.md), [evaluation evidence](evaluations/results/2026-07-26.json), and [Harbor publication index](evaluations/harbor-studies/generate-synthetic-data-v1/publication/index.md) | Test, quality, privacy, readiness, and benchmark evidence, including preserved failures and limitations. |
+| Guides and reference | [Documentation index](docs/README.md) and [command reference](docs/commands.md) | Architecture, privacy model, licensing, commands, requirements, and ADRs. |
+
+The large source bundle is intentionally not committed to Git. Dataset links in the catalog point to official
+publishers, and the downloader validates and privacy-minimizes them locally. After cloning and installing the locked
+environment, list every source key or download the default bundle with:
+
+```powershell
+uv run python tools/download_public_data.py --list
+uv run python tools/download_public_data.py --workers 4
+```
+
 ## Skill catalog
 
 | Skill | Responsibility |
@@ -11,22 +30,43 @@ Rata is a set of four Codex skills for generating tabular synthetic data under a
 | [`evaluate-synthetic-data`](skills/evaluate-synthetic-data/SKILL.md) | Apply policy-aware quality, replay, overlap, schema, and DP-evidence gates. |
 | [`run-synthetic-data-workflow`](skills/run-synthetic-data-workflow/SKILL.md) | Coordinate the other skills and remediate failed release candidates without weakening privacy. |
 
-## Quick start
+## Install directly from GitHub
 
-Install the locked Python 3.12 environment with [uv](https://docs.astral.sh/uv/):
+Rata can be installed into Codex straight from the public repository; cloning the repository and synchronizing its
+development environment are not required. Send this request to Codex:
 
-```powershell
-uv sync --python 3.12 --locked
+```text
+Use $skill-installer to install all of these paths from gvillarroel/rata at ref main:
+- skills/plan-synthetic-data
+- skills/generate-synthetic-data
+- skills/evaluate-synthetic-data
+- skills/run-synthetic-data-workflow
 ```
 
-Preview and install the four packages into the current Codex skill directory:
+The built-in installer downloads each skill into `$CODEX_HOME/skills` or, when `CODEX_HOME` is unset,
+`~/.codex/skills`. It refuses to replace an existing skill directory. Restart or reload Codex after installation so
+the skills are discovered. The installed scripts use [uv](https://docs.astral.sh/uv/) to create their pinned runtime
+environments when invoked.
+
+## Install from a local clone
+
+From the repository root, preview and install all four skills into the current Codex skill directory:
 
 ```powershell
 python tools/install_skills.py --dry-run
 python tools/install_skills.py
 ```
 
-The installer uses `$CODEX_HOME\skills` when `CODEX_HOME` is set and otherwise uses `~\.codex\skills`. It refuses to replace an installed skill unless `--overwrite` is explicit. Restart or reload Codex after installation so the skills are discovered.
+The local installer uses the same destinations and refuses to replace an installed skill unless `--overwrite` is
+explicit. Use `--skill NAME` to install only one package.
+
+## Quick start
+
+For repository development, install the locked Python 3.12 environment:
+
+```powershell
+uv sync --python 3.12 --locked
+```
 
 Create and review a policy. `public` is never inferred because it permits exact source values:
 
@@ -61,7 +101,9 @@ uv run skills/evaluate-synthetic-data/scripts/evaluate.py `
   --generation-report out/data.synthetic.report.json
 ```
 
-An evaluation exit code of `2` means the report was written but the candidate is not releasable. Remediate the policy or model settings, generate into a new workspace, and evaluate again.
+An evaluation exit code of `2` means the report was written but the candidate is not releasable. Every release
+decision requires the exact bound generation report, even for public-only data. Remediate the policy or model settings,
+generate into a new workspace, and evaluate again.
 
 ## Schema and statistics only
 
@@ -80,15 +122,22 @@ uv run skills/generate-synthetic-data/scripts/evaluate_spec.py spec.json synthet
 Proxy rows are not observed records. Metrics against them do not establish similarity to an unknown population, and DP
 applied to proxy training does not create an original-source privacy guarantee.
 
+Aggregate specs may also generate high-frequency token sequences and unique weighted-template identifier surrogates
+for realistic names, business names, and address-shaped fields. These preserve declared component distributions while
+keeping identifiers out of training; they do not guarantee semantic text quality or that a recombined value cannot
+coincidentally exist in the real world.
+
 ## Privacy levels
 
 - `public`: no privacy claim; joint source resampling and exact values are allowed.
 - `protected`: non-DP synthesis with value protection and rare-value replay limits.
 - `private`: a separate DP training stage with a required epsilon/delta checkpoint.
-- `identifier`: excluded from training and replaced with unrelated unique surrogates.
+- `identifier`: excluded from training and replaced with unrelated, nonmissing, unique surrogates.
 - `drop`: excluded from both training and output.
 
-Read [the privacy model](docs/privacy-model.md) before making a release claim. A passing report is evidence against the configured gates, not proof of anonymization.
+Read [the privacy model](docs/privacy-model.md) before making a release claim. A passing report is evidence against the
+configured gates, not proof of anonymization. Full-policy provenance, semantic numeric/datetime/boolean validity, and
+identifier uniqueness are hard release gates.
 
 ## Validation
 
@@ -113,11 +162,14 @@ The ordered [`evaluations/catalog.json`](evaluations/catalog.json) requires a ta
 tabular-plus-text scenario. Run both real workflows and their deliberately leaky negative controls with:
 
 ```powershell
-uv run tools/run_evaluation_matrix.py C:\absolute\path\to\evidence
+uv run python tools/audit_public_data_quality.py
+uv run python tools/run_evaluation_matrix.py datasets/public-data/evaluation-readiness/matrix --overwrite
+uv run python tools/audit_evaluation_readiness.py
 ```
 
 See the [evaluation state-of-the-art report](docs/evaluation-state-of-art.md) and its
-[machine-readable evidence](evaluations/results/2026-07-26.json).
+[machine-readable evidence](evaluations/results/2026-07-26.json). Data quality, compute readiness, and candidate
+quality are separate decisions; a machine can be ready while a candidate correctly fails its gates.
 
 The Harbor skill benchmark has three development tasks, two validation tasks, and two sealed holdouts. Its native
 configuration and task digests pass dry-run validation; the live GEPA evolution stage is preserved as blocked because

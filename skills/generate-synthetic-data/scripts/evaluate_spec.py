@@ -7,14 +7,29 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
+import re
+import string
 from collections import Counter
+from datetime import UTC, datetime
 from pathlib import Path
 from statistics import fmean, pstdev
 from typing import Any
 
-from materialize_spec import correlation_contract, normalize_columns, numeric_distribution, parse_datetime, sha256_file
+from materialize_spec import (
+    correlation_contract,
+    derived_contract,
+    derived_value,
+    identifier_surrogate_contract,
+    joint_distribution_contract,
+    normalize_columns,
+    numeric_distribution,
+    parse_datetime,
+    sha256_file,
+    text_generator_contract,
+)
 
 DEFAULT_ACCEPTANCE = {
     "max_missing_rate_delta": 0.05,
@@ -23,7 +38,18 @@ DEFAULT_ACCEPTANCE = {
     "max_numeric_bounds_violation_ratio": 0.0,
     "max_categorical_tv": 0.15,
     "max_correlation_delta": 0.2,
+    "max_derived_constraint_violation_ratio": 0.0,
+    "max_integer_violation_ratio": 0.0,
+    "max_invalid_joint_combination_ratio": 0.0,
+    "max_joint_distribution_tv": 0.15,
+    "max_numeric_type_violation_ratio": 0.0,
+    "max_pattern_violation_ratio": 0.0,
+    "max_undeclared_categorical_value_ratio": 0.0,
     "min_identifier_uniqueness_ratio": 1.0,
+    "max_identifier_component_tv": 0.15,
+    "max_identifier_template_violation_ratio": 0.0,
+    "max_text_length_tv": 0.15,
+    "max_text_token_tv": 0.15,
 }
 
 
@@ -61,7 +87,7 @@ def safe_float(value: Any) -> float | None:
 
 
 def target_numeric_moments(distribution: dict[str, Any]) -> tuple[float, float]:
-    if distribution["kind"] == "normal":
+    if distribution["kind"] in {"normal", "lognormal"}:
         return distribution["mean"], distribution["std"]
     if distribution["kind"] == "uniform":
         width = distribution["max"] - distribution["min"]
@@ -73,21 +99,38 @@ def relative_error(observed: float, expected: float, scale: float) -> float:
     return abs(observed - expected) / max(abs(expected), abs(scale), 1e-9)
 
 
+def categorical_key(value: Any, boolean: bool) -> str:
+    rendered = str(value)
+    if not boolean:
+        return rendered
+    normalized = rendered.strip().lower()
+    if normalized in {"true", "1", "yes"}:
+        return "true"
+    if normalized in {"false", "0", "no"}:
+        return "false"
+    return normalized
+
+
 def categorical_target(column: dict[str, Any]) -> dict[str, float]:
+    boolean = column["type"] == "boolean"
     if column["type"] == "boolean" and "values" not in column:
         probability_true = float(column.get("probability_true", 0.5))
         return {"false": 1 - probability_true, "true": probability_true}
     raw = column["values"]
     if isinstance(raw, list):
-        return {str(value): 1 / len(raw) for value in raw}
-    total = sum(float(weight) for weight in raw.values())
-    return {str(value): float(weight) / total for value, weight in raw.items()}
+        weighted = [(value, 1.0) for value in raw]
+    else:
+        weighted = [(value, float(weight)) for value, weight in raw.items()]
+    normalized: dict[str, float] = {}
+    for value, weight in weighted:
+        key = categorical_key(value, boolean)
+        normalized[key] = normalized.get(key, 0.0) + weight
+    total = sum(normalized.values())
+    return {key: weight / total for key, weight in normalized.items()}
 
 
-def categorical_tv(values: list[Any], expected: dict[str, float]) -> float | None:
-    observed_values = [
-        str(value).lower() if isinstance(value, bool) else str(value) for value in values if not missing(value)
-    ]
+def categorical_tv(values: list[Any], expected: dict[str, float], boolean: bool = False) -> float | None:
+    observed_values = [categorical_key(value, boolean) for value in values if not missing(value)]
     if not observed_values:
         return None
     counts = Counter(observed_values)
@@ -95,6 +138,99 @@ def categorical_tv(values: list[Any], expected: dict[str, float]) -> float | Non
     return 0.5 * sum(
         abs(counts[category] / len(observed_values) - expected.get(category, 0.0)) for category in categories
     )
+
+
+def distribution_tv(observed: Counter[Any], expected_weights: dict[Any, float]) -> float | None:
+    observed_total = sum(observed.values())
+    expected_total = sum(expected_weights.values())
+    if observed_total <= 0 or expected_total <= 0:
+        return None
+    categories = set(observed) | set(expected_weights)
+    return 0.5 * sum(
+        abs(observed[category] / observed_total - expected_weights.get(category, 0.0) / expected_total)
+        for category in categories
+    )
+
+
+def text_distribution_metrics(values: list[Any], column: dict[str, Any]) -> dict[str, float | None]:
+    contract = text_generator_contract(column)
+    token_counts: Counter[str] = Counter()
+    length_counts: Counter[int] = Counter()
+    terminal = contract["terminal"]
+    for raw in values:
+        if missing(raw):
+            continue
+        rendered = str(raw)
+        if terminal and rendered.endswith(terminal):
+            rendered = rendered[: -len(terminal)]
+        tokens = rendered.split(contract["separator"])
+        tokens = [token.casefold() for token in tokens if token]
+        if tokens:
+            token_counts.update(tokens)
+            length_counts[len(tokens)] += 1
+    expected_tokens: dict[str, float] = {}
+    for token, weight in zip(contract["tokens"], contract["token_weights"], strict=True):
+        key = token.casefold()
+        expected_tokens[key] = expected_tokens.get(key, 0.0) + weight
+    expected_lengths = dict(zip(contract["lengths"], contract["length_weights"], strict=True))
+    return {
+        "token_tv": distribution_tv(token_counts, expected_tokens),
+        "length_tv": distribution_tv(length_counts, expected_lengths),
+    }
+
+
+def identifier_template_metrics(
+    rows: list[dict[str, Any]], column: dict[str, Any], columns: dict[str, dict[str, Any]]
+) -> dict[str, Any]:
+    contract = identifier_surrogate_contract(column, columns)
+    component_counts: dict[str, Counter[str]] = {
+        name: Counter() for name, component in contract["components"].items() if component["kind"] == "choice"
+    }
+    allowed_values = {
+        name: set(component["values"])
+        for name, component in contract["components"].items()
+        if component["kind"] == "choice"
+    }
+    parts: list[str] = []
+    for literal, field, _format_spec, _conversion in string.Formatter().parse(contract["template"]):
+        parts.append(re.escape(literal))
+        if field is None:
+            continue
+        component = contract["components"].get(field)
+        if component is not None and component["kind"] == "integer":
+            parts.append(f"(?P<{field}>-?\\d+)")
+        elif component is not None:
+            alternatives = "|".join(re.escape(value) for value in sorted(component["values"], key=len, reverse=True))
+            parts.append(f"(?P<{field}>{alternatives})")
+        else:
+            parts.append(f"(?P<{field}>.*?)")
+    template_pattern = re.compile("".join(parts))
+    violations = 0
+    for row in rows:
+        match = template_pattern.fullmatch(str(row.get(column["name"], "")))
+        if match is None:
+            violations += 1
+            continue
+        component_invalid = False
+        for reference in contract["references"]:
+            if match.group(reference) != str(row.get(reference, "")):
+                component_invalid = True
+        for name, component in contract["components"].items():
+            observed = match.group(name)
+            if component["kind"] == "choice":
+                if observed not in allowed_values[name]:
+                    component_invalid = True
+                else:
+                    component_counts[name][observed] += 1
+            elif not component["min"] <= int(observed) <= component["max"]:
+                component_invalid = True
+        violations += int(component_invalid)
+    component_tv = {}
+    for name, counts in component_counts.items():
+        component = contract["components"][name]
+        expected = dict(zip(component["values"], component["weights"], strict=True))
+        component_tv[name] = distribution_tv(counts, expected)
+    return {"template_violation_ratio": violations / len(rows), "component_tv": component_tv}
 
 
 def pearson(left: list[float], right: list[float]) -> float | None:
@@ -108,6 +244,17 @@ def pearson(left: list[float], right: list[float]) -> float | None:
     if not left_scale or not right_scale:
         return None
     return numerator / (left_scale * right_scale)
+
+
+def joint_distribution_metrics(rows: list[dict[str, Any]], group: dict[str, Any]) -> dict[str, float | None]:
+    expected_weights = {row["key"]: float(row["weight"]) for row in group["rows"]}
+    expected_total = sum(expected_weights.values())
+    expected = {key: weight / expected_total for key, weight in expected_weights.items()}
+    observed = Counter(tuple(str(row.get(name, "")) for name in group["columns"]) for row in rows)
+    invalid = sum(count for key, count in observed.items() if key not in expected)
+    categories = set(observed) | set(expected)
+    tv = 0.5 * sum(abs(observed[key] / len(rows) - expected.get(key, 0.0)) for key in categories)
+    return {"tv": tv, "invalid_combination_ratio": invalid / len(rows)}
 
 
 def gate(name: str, value: Any, threshold: Any, operator: str, required: bool = True) -> dict[str, Any]:
@@ -147,8 +294,16 @@ def evaluate(spec: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str, Any]
         "missing_rate_delta": {},
         "numeric": {},
         "categorical_tv": {},
+        "derived_constraints": {},
         "datetime": {},
         "identifier_uniqueness": {},
+        "integer_violation_ratio": {},
+        "identifier_templates": {},
+        "joint_distributions": {},
+        "numeric_type_violation_ratio": {},
+        "pattern_violation_ratio": {},
+        "text_distributions": {},
+        "undeclared_categorical_value_ratio": {},
         "correlations": {},
     }
     gates = [
@@ -171,60 +326,159 @@ def evaluate(spec: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str, Any]
             )
         )
         if column["type"] in {"number", "integer"}:
-            distribution = numeric_distribution(column)
+            present_values = [raw for raw in values if not missing(raw)]
             numeric_values = [value for raw in values if (value := safe_float(raw)) is not None]
-            expected_mean, expected_std = target_numeric_moments(distribution)
-            observed_mean = fmean(numeric_values) if numeric_values else None
-            observed_std = pstdev(numeric_values) if numeric_values else None
-            mean_error = (
-                relative_error(observed_mean, expected_mean, expected_std) if observed_mean is not None else None
+            type_violation = (
+                (len(present_values) - len(numeric_values)) / len(present_values) if present_values else None
             )
-            std_error = relative_error(observed_std, expected_std, expected_mean) if observed_std is not None else None
-            minimum = distribution.get("min")
-            maximum = distribution.get("max")
-            violations = [
-                value
-                for value in numeric_values
-                if (minimum is not None and value < minimum) or (maximum is not None and value > maximum)
-            ]
-            violation_ratio = len(violations) / len(numeric_values) if numeric_values else None
-            metrics["numeric"][name] = {
-                "observed_mean": observed_mean,
-                "expected_mean": expected_mean,
-                "observed_std": observed_std,
-                "expected_std": expected_std,
-                "mean_relative_error": mean_error,
-                "std_relative_error": std_error,
-                "bounds_violation_ratio": violation_ratio,
-            }
+            metrics["numeric_type_violation_ratio"][name] = type_violation
+            gates.append(
+                gate(
+                    f"column.{name}.numeric_type_violation_ratio",
+                    type_violation,
+                    acceptance["max_numeric_type_violation_ratio"],
+                    "lte",
+                )
+            )
+            if column["type"] == "integer":
+                integer_violation = (
+                    sum(abs(value - round(value)) > 1e-9 for value in numeric_values) / len(numeric_values)
+                    if numeric_values
+                    else None
+                )
+                metrics["integer_violation_ratio"][name] = integer_violation
+                gates.append(
+                    gate(
+                        f"column.{name}.integer_violation_ratio",
+                        integer_violation,
+                        acceptance["max_integer_violation_ratio"],
+                        "lte",
+                    )
+                )
+            if column.get("derived") is None:
+                distribution = numeric_distribution(column)
+                expected_mean, expected_std = target_numeric_moments(distribution)
+                observed_mean = fmean(numeric_values) if numeric_values else None
+                observed_std = pstdev(numeric_values) if numeric_values else None
+                mean_error = (
+                    relative_error(observed_mean, expected_mean, expected_std) if observed_mean is not None else None
+                )
+                std_error = (
+                    relative_error(observed_std, expected_std, expected_mean) if observed_std is not None else None
+                )
+                minimum = distribution.get("min")
+                maximum = distribution.get("max")
+                violations = [
+                    value
+                    for value in numeric_values
+                    if (minimum is not None and value < minimum) or (maximum is not None and value > maximum)
+                ]
+                violation_ratio = len(violations) / len(numeric_values) if numeric_values else None
+                metrics["numeric"][name] = {
+                    "observed_mean": observed_mean,
+                    "expected_mean": expected_mean,
+                    "observed_std": observed_std,
+                    "expected_std": expected_std,
+                    "mean_relative_error": mean_error,
+                    "std_relative_error": std_error,
+                    "bounds_violation_ratio": violation_ratio,
+                }
+                gates.extend(
+                    [
+                        gate(
+                            f"column.{name}.numeric_mean_relative_error",
+                            mean_error,
+                            acceptance["max_numeric_mean_relative_error"],
+                            "lte",
+                        ),
+                        gate(
+                            f"column.{name}.numeric_std_relative_error",
+                            std_error,
+                            acceptance["max_numeric_std_relative_error"],
+                            "lte",
+                            required=distribution["kind"] != "constant",
+                        ),
+                        gate(
+                            f"column.{name}.numeric_bounds_violation_ratio",
+                            violation_ratio,
+                            acceptance["max_numeric_bounds_violation_ratio"],
+                            "lte",
+                            required=minimum is not None or maximum is not None,
+                        ),
+                    ]
+                )
+        elif column["type"] == "string" and "generator" in column:
+            text_metrics = text_distribution_metrics(values, column)
+            metrics["text_distributions"][name] = text_metrics
             gates.extend(
                 [
                     gate(
-                        f"column.{name}.numeric_mean_relative_error",
-                        mean_error,
-                        acceptance["max_numeric_mean_relative_error"],
+                        f"column.{name}.text_token_tv",
+                        text_metrics["token_tv"],
+                        acceptance["max_text_token_tv"],
                         "lte",
                     ),
                     gate(
-                        f"column.{name}.numeric_std_relative_error",
-                        std_error,
-                        acceptance["max_numeric_std_relative_error"],
+                        f"column.{name}.text_length_tv",
+                        text_metrics["length_tv"],
+                        acceptance["max_text_length_tv"],
                         "lte",
-                        required=distribution["kind"] != "constant",
-                    ),
-                    gate(
-                        f"column.{name}.numeric_bounds_violation_ratio",
-                        violation_ratio,
-                        acceptance["max_numeric_bounds_violation_ratio"],
-                        "lte",
-                        required=minimum is not None or maximum is not None,
                     ),
                 ]
             )
+            if column.get("pattern") is not None:
+                present = [str(value) for value in values if not missing(value)]
+                pattern_violation = (
+                    sum(re.fullmatch(column["pattern"], value) is None for value in present) / len(present)
+                    if present
+                    else None
+                )
+                metrics["pattern_violation_ratio"][name] = pattern_violation
+                gates.append(
+                    gate(
+                        f"column.{name}.pattern_violation_ratio",
+                        pattern_violation,
+                        acceptance["max_pattern_violation_ratio"],
+                        "lte",
+                    )
+                )
         elif column["type"] in {"categorical", "boolean", "string"}:
-            tv = categorical_tv(values, categorical_target(column))
+            boolean = column["type"] == "boolean"
+            expected_categories = categorical_target(column)
+            present_categories = [categorical_key(value, boolean) for value in values if not missing(value)]
+            undeclared_ratio = (
+                sum(value not in expected_categories for value in present_categories) / len(present_categories)
+                if present_categories
+                else None
+            )
+            metrics["undeclared_categorical_value_ratio"][name] = undeclared_ratio
+            gates.append(
+                gate(
+                    f"column.{name}.undeclared_categorical_value_ratio",
+                    undeclared_ratio,
+                    acceptance["max_undeclared_categorical_value_ratio"],
+                    "lte",
+                )
+            )
+            tv = categorical_tv(values, expected_categories, boolean)
             metrics["categorical_tv"][name] = tv
             gates.append(gate(f"column.{name}.categorical_tv", tv, acceptance["max_categorical_tv"], "lte"))
+            if column.get("pattern") is not None:
+                present = [str(value) for value in values if not missing(value)]
+                pattern_violation = (
+                    sum(re.fullmatch(column["pattern"], value) is None for value in present) / len(present)
+                    if present
+                    else None
+                )
+                metrics["pattern_violation_ratio"][name] = pattern_violation
+                gates.append(
+                    gate(
+                        f"column.{name}.pattern_violation_ratio",
+                        pattern_violation,
+                        acceptance["max_pattern_violation_ratio"],
+                        "lte",
+                    )
+                )
         elif column["type"] == "datetime":
             start = parse_datetime(column["min"], f"{name}.min")
             end = parse_datetime(column["max"], f"{name}.max")
@@ -253,6 +507,74 @@ def evaluate(spec: dict[str, Any], rows: list[dict[str, Any]]) -> dict[str, Any]
                     "gte",
                 )
             )
+            if column.get("surrogate", {}).get("strategy", "").lower() == "weighted_template":
+                template_metrics = identifier_template_metrics(rows, column, configured)
+                metrics["identifier_templates"][name] = template_metrics
+                gates.append(
+                    gate(
+                        f"column.{name}.identifier_template_violation_ratio",
+                        template_metrics["template_violation_ratio"],
+                        acceptance["max_identifier_template_violation_ratio"],
+                        "lte",
+                    )
+                )
+                for component, tv in template_metrics["component_tv"].items():
+                    gates.append(
+                        gate(
+                            f"column.{name}.component.{component}.tv",
+                            tv,
+                            acceptance["max_identifier_component_tv"],
+                            "lte",
+                        )
+                    )
+    for column in derived_contract(columns):
+        name = column["name"]
+        if name not in released or name not in observed_columns:
+            continue
+        violations = 0
+        for row in rows:
+            observed = safe_float(row.get(name))
+            try:
+                expected = float(derived_value(column, row))
+            except (KeyError, TypeError, ValueError):
+                expected = None
+            tolerance = column["derived"]["tolerance"]
+            if observed is None or expected is None or abs(observed - expected) > tolerance:
+                violations += 1
+        violation_ratio = violations / len(rows)
+        metrics["derived_constraints"][name] = {
+            "kind": column["derived"]["kind"],
+            "columns": column["derived"]["columns"],
+            "tolerance": column["derived"]["tolerance"],
+            "violation_ratio": violation_ratio,
+        }
+        gates.append(
+            gate(
+                f"derived.{name}.violation_ratio",
+                violation_ratio,
+                acceptance["max_derived_constraint_violation_ratio"],
+                "lte",
+            )
+        )
+    for group in joint_distribution_contract(spec, columns):
+        joint_metrics = joint_distribution_metrics(rows, group)
+        metrics["joint_distributions"][group["name"]] = joint_metrics
+        gates.extend(
+            [
+                gate(
+                    f"joint.{group['name']}.invalid_combination_ratio",
+                    joint_metrics["invalid_combination_ratio"],
+                    acceptance["max_invalid_joint_combination_ratio"],
+                    "lte",
+                ),
+                gate(
+                    f"joint.{group['name']}.tv",
+                    joint_metrics["tv"],
+                    acceptance["max_joint_distribution_tv"],
+                    "lte",
+                ),
+            ]
+        )
     correlation_names, _ = correlation_contract(spec, columns)
     if correlation_names:
         expected = spec["correlations"]["matrix"]
@@ -301,8 +623,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> int:
-    args = parse_args()
+def run(args: argparse.Namespace) -> int:
     if not args.spec.is_file():
         raise FileNotFoundError(args.spec)
     if not args.synthetic.is_file():
@@ -327,6 +648,47 @@ def main() -> int:
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"passed": report["passed"], "report": str(args.output)}, indent=2))
     return 0 if report["passed"] else 2
+
+
+def write_failed_constraint_report(args: argparse.Namespace, error: Exception) -> Path | None:
+    if args.output.exists() or args.output.resolve() in {args.spec.resolve(), args.synthetic.resolve()}:
+        return None
+    evidence: dict[str, str] = {}
+    for name, path in (("spec", args.spec), ("synthetic", args.synthetic)):
+        if path.is_file():
+            evidence[f"{name}_sha256"] = sha256_file(path)
+    error_message = str(error)
+    report = {
+        "schema_version": 1,
+        "passed": False,
+        "status": "constraint-evaluation-failed",
+        "captured_at_utc": datetime.now(UTC).isoformat(),
+        "spec": str(args.spec),
+        "synthetic": str(args.synthetic),
+        "error": {
+            "type": type(error).__name__,
+            "message_sha256": hashlib.sha256(error_message.encode("utf-8")).hexdigest(),
+            "message_length": len(error_message),
+        },
+        "evidence": evidence,
+    }
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    return args.output
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        return run(args)
+    except Exception as error:
+        try:
+            failure_report = write_failed_constraint_report(args, error)
+            if failure_report is not None:
+                error.add_note(f"Constraint evaluation failure report: {failure_report}")
+        except Exception as report_error:
+            error.add_note(f"Unable to write constraint evaluation failure report: {report_error}")
+        raise
 
 
 if __name__ == "__main__":

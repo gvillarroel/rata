@@ -21,6 +21,7 @@ from fastavro import reader as avro_reader
 
 ROLES = {"public", "protected", "private", "identifier", "drop"}
 INPUT_KINDS = {"source", "synthetic-reference", "aggregate-proxy"}
+STRING_PRESERVING_ENCODINGS = {"TABULAR_CATEGORICAL", "TABULAR_CHARACTER", "TABULAR_LAT_LONG"}
 ENCODINGS = {
     "AUTO",
     "TABULAR_CATEGORICAL",
@@ -66,19 +67,25 @@ COLUMN_ACCEPTANCE_KEYS = {
     "max_rare_value_replay_ratio",
 }
 IDENTIFIER_PATTERN = re.compile(
-    r"(^|_)(id|uuid|guid|email|e_mail|phone|mobile|ssn|sin|passport|ip|ip_address|address|token|account_number|card_number)(_|$)",
+    r"(^|_)(id|uuid|guid|email|e_mail|phone|mobile|ssn|sin|passport|ip|ip_address|address|token|"
+    r"account_number|card_number|cik|npi|uei|duns|ein|tin|tax_id|loan_number|award_id|case_number|"
+    r"dot_number|mc_number|legal_name|borrower_name|recipient_name|provider_name|registered_agent)(_|$)",
     re.IGNORECASE,
 )
 SENSITIVE_PATTERN = re.compile(
-    r"(^|_)(diagnosis|disease|health|medical|salary|income|credit|debt|religion|ethnicity|race|biometric|genetic|secret|birthdate|birth_date|date_of_birth|dob)(_|$)",
+    r"(^|_)(diagnosis|disease|health|medical|salary|income|credit|debt|religion|ethnicity|race|biometric|"
+    r"genetic|secret|birthdate|birth_date|date_of_birth|dob|payroll|wage|wages|revenue|receipt|receipts|"
+    r"sales|loan|approval_amount|award_amount|balance|delinquency|credit_limit)(_|$)",
     re.IGNORECASE,
 )
 
 
-def load_table(path: Path) -> pd.DataFrame:
+def load_table(path: Path, string_columns: set[str] | None = None) -> pd.DataFrame:
     suffix = path.suffix.lower()
     if suffix == ".csv":
-        return pd.read_csv(path)
+        header = pd.read_csv(path, nrows=0)
+        dtype = {column: "string" for column in string_columns or set() if column in header.columns}
+        return pd.read_csv(path, dtype=dtype)
     if suffix in {".jsonl", ".ndjson"}:
         return pd.read_json(path, lines=True)
     if suffix == ".json":
@@ -413,19 +420,23 @@ def main() -> int:
         raise FileNotFoundError(args.input)
     if args.policy.exists() and not args.overwrite:
         raise FileExistsError(f"refusing to overwrite: {args.policy}")
-    frame = load_table(args.input)
+    assignments = {role: parse_columns(getattr(args, role)) for role in ROLES}
+    encoding_overrides = parse_encodings(args.encoding)
+    string_columns = assignments["identifier"] | {
+        name for name, encoding in encoding_overrides.items() if encoding in STRING_PRESERVING_ENCODINGS
+    }
+    frame = load_table(args.input, string_columns)
     if frame.empty:
         raise ValueError("input table has no rows")
     if frame.columns.duplicated().any():
         duplicates = sorted(set(frame.columns[frame.columns.duplicated()]))
         raise ValueError(f"duplicate column names: {', '.join(duplicates)}")
-    assignments = {role: parse_columns(getattr(args, role)) for role in ROLES}
     policy = build_policy(
         frame,
         args.input,
         assignments,
         args.default_role,
-        parse_encodings(args.encoding),
+        encoding_overrides,
         args.input_kind,
         args.input_report,
     )

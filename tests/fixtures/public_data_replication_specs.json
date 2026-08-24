@@ -1,0 +1,318 @@
+[
+  {
+    "category": "business_population",
+    "sources": ["Census CBP", "Census ABS", "Census NES", "Census BDS"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 101,
+      "columns": [
+        {"name": "state_fips", "type": "categorical", "role": "public", "values": ["01", "06", "36", "48"], "pattern": "^\\d{2}$"},
+        {"name": "state_abbr", "type": "categorical", "role": "public", "values": ["AL", "CA", "NY", "TX"], "pattern": "^[A-Z]{2}$"},
+        {"name": "naics_code", "type": "categorical", "role": "public", "values": ["238220", "541511", "621111", "722511"], "pattern": "^\\d{6}$"},
+        {"name": "naics_description", "type": "string", "role": "public", "values": ["Plumbing contractors", "Custom programming", "Physician offices", "Full-service restaurants"]},
+        {"name": "establishments_under_5", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 70, "std": 55, "min": 0}},
+        {"name": "establishments_5_to_19", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 30, "std": 24, "min": 0}},
+        {"name": "establishments_20_plus", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 8, "std": 7, "min": 0}},
+        {"name": "establishments", "type": "integer", "role": "public", "derived": {"kind": "sum", "columns": ["establishments_under_5", "establishments_5_to_19", "establishments_20_plus"]}},
+        {"name": "employees", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 650, "std": 500, "min": 0}},
+        {"name": "annual_payroll", "type": "number", "role": "public", "distribution": {"kind": "lognormal", "mean": 42000000, "std": 30000000, "min": 0}}
+      ],
+      "joint_distributions": [
+        {
+          "name": "state_industry",
+          "columns": ["state_fips", "state_abbr", "naics_code", "naics_description"],
+          "rows": [
+            {"values": {"state_fips": "01", "state_abbr": "AL", "naics_code": "238220", "naics_description": "Plumbing contractors"}},
+            {"values": {"state_fips": "06", "state_abbr": "CA", "naics_code": "541511", "naics_description": "Custom programming"}},
+            {"values": {"state_fips": "36", "state_abbr": "NY", "naics_code": "621111", "naics_description": "Physician offices"}},
+            {"values": {"state_fips": "48", "state_abbr": "TX", "naics_code": "722511", "naics_description": "Full-service restaurants"}}
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "category": "employment_wages",
+    "sources": ["BLS QCEW"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 102,
+      "columns": [
+        {"name": "area_fips", "type": "categorical", "role": "public", "values": ["01000", "06000", "36000"], "pattern": "^\\d{5}$"},
+        {"name": "industry_code", "type": "categorical", "role": "public", "values": ["111110", "541511", "622110"], "pattern": "^\\d{6}$"},
+        {"name": "industry_description", "type": "string", "role": "public", "values": ["Soybean farming", "Custom programming", "General hospitals"]},
+        {"name": "ownership_code", "type": "categorical", "role": "public", "values": ["5"]},
+        {"name": "annual_avg_establishments", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 80, "std": 60, "min": 0}},
+        {"name": "annual_avg_employment", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 900, "std": 650, "min": 0}},
+        {"name": "avg_annual_pay", "type": "integer", "role": "public", "distribution": {"kind": "normal", "mean": 72000, "std": 15000, "min": 20000, "max": 180000}},
+        {"name": "total_annual_wages", "type": "integer", "role": "public", "derived": {"kind": "product", "columns": ["annual_avg_employment", "avg_annual_pay"]}},
+        {"name": "suppression_code", "type": "categorical", "role": "public", "values": ["N"], "missing_rate": 0.95}
+      ],
+      "joint_distributions": [
+        {
+          "name": "area_industry",
+          "columns": ["area_fips", "industry_code", "industry_description"],
+          "rows": [
+            {"values": {"area_fips": "01000", "industry_code": "111110", "industry_description": "Soybean farming"}},
+            {"values": {"area_fips": "06000", "industry_code": "541511", "industry_description": "Custom programming"}},
+            {"values": {"area_fips": "36000", "industry_code": "622110", "industry_description": "General hospitals"}}
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "category": "industry_validity",
+    "sources": ["Census NAICS", "Census SIC"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 103,
+      "columns": [
+        {"name": "classification_system", "type": "categorical", "role": "public", "values": {"NAICS": 0.5, "SIC": 0.5}},
+        {"name": "industry_code", "type": "categorical", "role": "public", "values": ["541511", "621111", "0711", "7371"], "pattern": "^\\d{4,6}$"},
+        {"name": "industry_description", "type": "string", "role": "public", "values": ["Custom computer programming", "Offices of physicians", "Soil preparation services", "Computer programming services"]}
+      ],
+      "joint_distributions": [
+        {
+          "name": "classification_code_label",
+          "columns": ["classification_system", "industry_code", "industry_description"],
+          "rows": [
+            {"values": {"classification_system": "NAICS", "industry_code": "541511", "industry_description": "Custom computer programming"}},
+            {"values": {"classification_system": "NAICS", "industry_code": "621111", "industry_description": "Offices of physicians"}},
+            {"values": {"classification_system": "SIC", "industry_code": "0711", "industry_description": "Soil preparation services"}},
+            {"values": {"classification_system": "SIC", "industry_code": "7371", "industry_description": "Computer programming services"}}
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "category": "addresses_geography",
+    "sources": ["Census Gazetteer"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 104,
+      "columns": [
+        {"name": "state_fips", "type": "categorical", "role": "public", "values": ["01", "06", "36"], "pattern": "^\\d{2}$"},
+        {"name": "state_abbr", "type": "categorical", "role": "public", "values": ["AL", "CA", "NY"], "pattern": "^[A-Z]{2}$"},
+        {"name": "county_fips", "type": "categorical", "role": "public", "values": ["01001", "06037", "36061"], "pattern": "^\\d{5}$"},
+        {"name": "county_name", "type": "string", "role": "public", "values": ["Autauga County", "Los Angeles County", "New York County"]},
+        {"name": "zcta", "type": "categorical", "role": "public", "values": ["36003", "90001", "10001"], "pattern": "^\\d{5}$"},
+        {"name": "latitude", "type": "number", "role": "public", "distribution": {"kind": "uniform", "min": 24.4, "max": 49.4}},
+        {"name": "longitude", "type": "number", "role": "public", "distribution": {"kind": "uniform", "min": -124.8, "max": -66.9}}
+      ],
+      "joint_distributions": [
+        {
+          "name": "geography_codes",
+          "columns": ["state_fips", "state_abbr", "county_fips", "county_name", "zcta"],
+          "rows": [
+            {"values": {"state_fips": "01", "state_abbr": "AL", "county_fips": "01001", "county_name": "Autauga County", "zcta": "36003"}},
+            {"values": {"state_fips": "06", "state_abbr": "CA", "county_fips": "06037", "county_name": "Los Angeles County", "zcta": "90001"}},
+            {"values": {"state_fips": "36", "state_abbr": "NY", "county_fips": "36061", "county_name": "New York County", "zcta": "10001"}}
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "category": "business_names_formation",
+    "sources": ["Iowa Business Entities", "Corporations Canada"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 105,
+      "columns": [
+        {"name": "synthetic_business_name", "type": "identifier", "role": "identifier", "prefix": "business"},
+        {"name": "registry", "type": "categorical", "role": "public", "values": ["IOWA", "CANADA_ACTIVE", "CANADA_DISSOLVED", "IOWA_HISTORICAL"]},
+        {"name": "entity_type", "type": "categorical", "role": "public", "values": ["LLC", "CORPORATION", "COOPERATIVE", "NONPROFIT"]},
+        {"name": "legal_suffix", "type": "categorical", "role": "public", "values": ["LLC", "INCORPORATED", "COOPERATIVE", "ASSOCIATION"]},
+        {"name": "status", "type": "categorical", "role": "public", "values": {"ACTIVE": 0.5, "DISSOLVED": 0.5}},
+        {"name": "province_or_state", "type": "categorical", "role": "public", "values": ["IA", "ON", "QC", "BC"], "pattern": "^[A-Z]{2}$"},
+        {"name": "effective_year", "type": "integer", "role": "public", "distribution": {"kind": "uniform", "min": 1950, "max": 2026}},
+        {"name": "records", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 120, "std": 100, "min": 0}}
+      ],
+      "joint_distributions": [
+        {
+          "name": "registry_status_type",
+          "columns": ["registry", "entity_type", "legal_suffix", "status", "province_or_state"],
+          "rows": [
+            {"values": {"registry": "IOWA", "entity_type": "LLC", "legal_suffix": "LLC", "status": "ACTIVE", "province_or_state": "IA"}},
+            {"values": {"registry": "CANADA_ACTIVE", "entity_type": "CORPORATION", "legal_suffix": "INCORPORATED", "status": "ACTIVE", "province_or_state": "ON"}},
+            {"values": {"registry": "CANADA_DISSOLVED", "entity_type": "COOPERATIVE", "legal_suffix": "COOPERATIVE", "status": "DISSOLVED", "province_or_state": "QC"}},
+            {"values": {"registry": "IOWA_HISTORICAL", "entity_type": "NONPROFIT", "legal_suffix": "ASSOCIATION", "status": "DISSOLVED", "province_or_state": "BC"}}
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "category": "federal_contractors",
+    "sources": ["USAspending", "SAM.gov Public Entity Extract"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 106,
+      "columns": [
+        {"name": "recipient_name", "type": "identifier", "role": "identifier", "prefix": "contractor"},
+        {"name": "award_id", "type": "identifier", "role": "identifier", "prefix": "award"},
+        {"name": "recipient_state", "type": "categorical", "role": "public", "values": ["CO", "NM", "TN"], "pattern": "^[A-Z]{2}$"},
+        {"name": "recipient_city", "type": "string", "role": "public", "values": ["Littleton", "Albuquerque", "Oak Ridge"]},
+        {"name": "naics_code", "type": "categorical", "role": "public", "values": ["541330", "541715", "561210"], "pattern": "^\\d{6}$"},
+        {"name": "naics_description", "type": "string", "role": "public", "values": ["Engineering services", "Physical science research", "Facilities support"]},
+        {"name": "awarding_agency", "type": "categorical", "role": "public", "values": ["Defense", "Energy", "NASA"]},
+        {"name": "action_date", "type": "datetime", "role": "public", "min": "2020-01-01", "max": "2026-08-22"},
+        {"name": "award_amount", "type": "number", "role": "public", "distribution": {"kind": "lognormal", "mean": 5000000, "std": 4500000, "min": 0}}
+      ],
+      "joint_distributions": [
+        {
+          "name": "contractor_location_industry",
+          "columns": ["recipient_state", "recipient_city", "naics_code", "naics_description", "awarding_agency"],
+          "rows": [
+            {"values": {"recipient_state": "CO", "recipient_city": "Littleton", "naics_code": "541330", "naics_description": "Engineering services", "awarding_agency": "Defense"}},
+            {"values": {"recipient_state": "NM", "recipient_city": "Albuquerque", "naics_code": "541715", "naics_description": "Physical science research", "awarding_agency": "Energy"}},
+            {"values": {"recipient_state": "TN", "recipient_city": "Oak Ridge", "naics_code": "561210", "naics_description": "Facilities support", "awarding_agency": "NASA"}}
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "category": "public_companies",
+    "sources": ["SEC EDGAR"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 107,
+      "columns": [
+        {"name": "cik", "type": "identifier", "role": "identifier", "prefix": "cik"},
+        {"name": "company_name", "type": "identifier", "role": "identifier", "prefix": "issuer"},
+        {"name": "ticker", "type": "identifier", "role": "identifier", "prefix": "ticker"},
+        {"name": "exchange", "type": "categorical", "role": "public", "values": {"Nasdaq": 0.55, "NYSE": 0.4, "OTC": 0.05}},
+        {"name": "security_class", "type": "categorical", "role": "public", "values": {"Common Stock": 0.9, "ADR": 0.1}}
+      ]
+    }
+  },
+  {
+    "category": "historical_small_business",
+    "sources": ["SBA PPP FOIA"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 108,
+      "columns": [
+        {"name": "loan_number", "type": "identifier", "role": "identifier", "prefix": "loan"},
+        {"name": "borrower_state", "type": "categorical", "role": "public", "values": ["CA", "NY", "TX"], "pattern": "^[A-Z]{2}$"},
+        {"name": "naics_code", "type": "categorical", "role": "public", "values": ["236115", "541511", "722511"], "pattern": "^\\d{6}$"},
+        {"name": "business_type", "type": "categorical", "role": "public", "values": ["Corporation", "LLC", "Sole Proprietorship"]},
+        {"name": "business_age", "type": "categorical", "role": "public", "values": ["New Business", "Existing", "Startup"]},
+        {"name": "rural_urban", "type": "categorical", "role": "public", "values": ["R", "U", "UNKNOWN"], "pattern": "^(R|U|UNKNOWN)$"},
+        {"name": "jobs_reported", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 35, "std": 30, "min": 0}},
+        {"name": "approval_amount", "type": "number", "role": "public", "distribution": {"kind": "lognormal", "mean": 500000, "std": 180000, "min": 150000}}
+      ],
+      "joint_distributions": [
+        {
+          "name": "small_business_profile",
+          "columns": ["borrower_state", "naics_code", "business_type", "business_age", "rural_urban"],
+          "rows": [
+            {"values": {"borrower_state": "CA", "naics_code": "236115", "business_type": "Corporation", "business_age": "New Business", "rural_urban": "R"}},
+            {"values": {"borrower_state": "NY", "naics_code": "541511", "business_type": "LLC", "business_age": "Existing", "rural_urban": "U"}},
+            {"values": {"borrower_state": "TX", "naics_code": "722511", "business_type": "Sole Proprietorship", "business_age": "Startup", "rural_urban": "UNKNOWN"}}
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "category": "transportation",
+    "sources": ["FMCSA Company Census"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 109,
+      "columns": [
+        {"name": "dot_number", "type": "identifier", "role": "identifier", "prefix": "dot"},
+        {"name": "physical_state", "type": "categorical", "role": "public", "values": ["CA", "FL", "NY", "TX"], "pattern": "^[A-Z]{2}$"},
+        {"name": "status_code", "type": "categorical", "role": "public", "values": ["A", "I", "A_PENDING", "I_REVOKED"]},
+        {"name": "carrier_operation", "type": "categorical", "role": "public", "values": ["C", "A", "B", "D"]},
+        {"name": "organization_type", "type": "categorical", "role": "public", "values": ["CORPORATION", "LLC", "PARTNERSHIP", "SOLE PROPRIETOR"]},
+        {"name": "fleet_size_band", "type": "categorical", "role": "public", "values": ["1", "2-5", "6-20", "21+"]},
+        {"name": "records", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 500, "std": 450, "min": 0}}
+      ],
+      "joint_distributions": [
+        {
+          "name": "carrier_profile",
+          "columns": ["physical_state", "status_code", "carrier_operation", "organization_type", "fleet_size_band"],
+          "rows": [
+            {"values": {"physical_state": "CA", "status_code": "A", "carrier_operation": "C", "organization_type": "CORPORATION", "fleet_size_band": "1"}},
+            {"values": {"physical_state": "FL", "status_code": "I", "carrier_operation": "A", "organization_type": "LLC", "fleet_size_band": "2-5"}},
+            {"values": {"physical_state": "NY", "status_code": "A_PENDING", "carrier_operation": "B", "organization_type": "PARTNERSHIP", "fleet_size_band": "6-20"}},
+            {"values": {"physical_state": "TX", "status_code": "I_REVOKED", "carrier_operation": "D", "organization_type": "SOLE PROPRIETOR", "fleet_size_band": "21+"}}
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "category": "healthcare",
+    "sources": ["CMS NPPES"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 110,
+      "columns": [
+        {"name": "npi", "type": "identifier", "role": "identifier", "prefix": "npi"},
+        {"name": "practice_state", "type": "categorical", "role": "public", "values": ["CA", "NY", "TX"], "pattern": "^[A-Z]{2}$"},
+        {"name": "taxonomy_code", "type": "categorical", "role": "public", "values": ["207Q00000X", "208000000X", "261Q00000X"], "pattern": "^\\d{3}[A-Z0-9]{7}$"},
+        {"name": "taxonomy_description", "type": "string", "role": "public", "values": ["Family Medicine", "Pediatrics", "Clinic Center"]},
+        {"name": "enumeration_year", "type": "integer", "role": "public", "distribution": {"kind": "uniform", "min": 2005, "max": 2026}},
+        {"name": "is_deactivated", "type": "boolean", "role": "public", "probability_true": 0.08},
+        {"name": "records", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 45, "std": 35, "min": 0}}
+      ],
+      "joint_distributions": [
+        {
+          "name": "provider_taxonomy_location",
+          "columns": ["practice_state", "taxonomy_code", "taxonomy_description"],
+          "rows": [
+            {"values": {"practice_state": "CA", "taxonomy_code": "207Q00000X", "taxonomy_description": "Family Medicine"}},
+            {"values": {"practice_state": "NY", "taxonomy_code": "208000000X", "taxonomy_description": "Pediatrics"}},
+            {"values": {"practice_state": "TX", "taxonomy_code": "261Q00000X", "taxonomy_description": "Clinic Center"}}
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "category": "public_records",
+    "sources": ["U.S. Courts Bankruptcy Table F-2"],
+    "spec": {
+      "version": 1,
+      "rows": 2000,
+      "seed": 111,
+      "columns": [
+        {"name": "circuit", "type": "categorical", "role": "public", "values": ["DC", "1", "2"], "pattern": "^(DC|\\d{1,2})$"},
+        {"name": "district", "type": "categorical", "role": "public", "values": ["DC", "ME", "NY-S"], "pattern": "^[A-Z]{2}(-[A-Z])?$"},
+        {"name": "business_chapter_7", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 120, "std": 90, "min": 0}},
+        {"name": "business_chapter_11", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 40, "std": 32, "min": 0}},
+        {"name": "business_chapter_13", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 20, "std": 16, "min": 0}},
+        {"name": "business_all_chapters", "type": "integer", "role": "public", "derived": {"kind": "sum", "columns": ["business_chapter_7", "business_chapter_11", "business_chapter_13"]}},
+        {"name": "nonbusiness_all_chapters", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 800, "std": 600, "min": 0}},
+        {"name": "total_all_chapters", "type": "integer", "role": "public", "derived": {"kind": "sum", "columns": ["business_all_chapters", "nonbusiness_all_chapters"]}}
+      ],
+      "joint_distributions": [
+        {
+          "name": "court_hierarchy",
+          "columns": ["circuit", "district"],
+          "rows": [
+            {"values": {"circuit": "DC", "district": "DC"}},
+            {"values": {"circuit": "1", "district": "ME"}},
+            {"values": {"circuit": "2", "district": "NY-S"}}
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -24,9 +24,27 @@ The DP claim applies to the private training stage under its recorded configurat
 
 ## Release gates
 
-The evaluator checks schema completeness, unexpected fields, dropped fields, modeled-row replay, rare protected/private value replay, identifier overlap, DP evidence, marginal numeric and categorical fidelity, dedicated length and lexical fidelity for `TABULAR_CHARACTER` text, missingness drift, correlation drift, and a real-versus-synthetic propensity classifier. It gates both aggregate and worst-column quality and applies user-defined per-column thresholds. DCR, NNDR, and text nearest-neighbor similarity are included as diagnostics but are not treated as formal privacy guarantees.
+The evaluator checks schema completeness, unexpected fields, dropped fields, protected/private modeled-row replay,
+rare protected/private value replay, identifier overlap, DP evidence, marginal numeric and categorical fidelity,
+dedicated length and lexical fidelity for `TABULAR_CHARACTER` text, missingness drift, correlation drift, and a
+real-versus-synthetic propensity classifier. Public replay is reported separately and is not a privacy failure because
+the `public` role explicitly allows exact values. The evaluator gates both aggregate and worst-column quality and
+applies user-defined per-column thresholds. DCR, NNDR, and text nearest-neighbor similarity are included as diagnostics
+but are not treated as formal privacy guarantees.
 
-The generation report is evidence only when its SHA-256 policy fingerprint, source hash, output hash, roles, and row count match the evaluated artifacts. This prevents a checkpoint from another run being used to justify a candidate.
+The generation report is evidence only when its SHA-256 full-policy fingerprint, source hash, output hash, roles, and
+row count match the evaluated artifacts. It is required for every release decision, including public-only candidates.
+This prevents a checkpoint or quality result from another run—or a result created under a modified dataset policy—from
+being used to justify a candidate.
+
+Identifier release gates require zero source overlap, zero missing values, and uniqueness within the synthetic table.
+Schema gates also reject values that violate declared numeric, datetime, or boolean semantics. Failed materialization,
+generation, ordinary evaluation, and constraint evaluation paths write non-overwriting, hash-bound failure reports
+when their configured report path is safe and unused.
+Durable failure reports record the exception type and a digest/length of its message, not raw third-party exception
+text that could contain source values. The original exception remains visible to the invoking process for diagnosis.
+`TABULAR_LAT_LONG` values receive separate syntax/range checks and latitude/longitude distribution gates rather than
+being misclassified as categories or scalar numbers.
 
 A failed candidate should be remediated by correcting semantic encodings, increasing a quality profile, strengthening a role, or omitting a field whose privacy/utility tradeoff is unacceptable. Privacy gates must not be weakened automatically.
 

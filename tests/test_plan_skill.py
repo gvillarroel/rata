@@ -124,3 +124,51 @@ def test_synthetic_reference_policy_preserves_provenance_and_warning(tmp_path) -
     assert policy["dataset"]["input_kind"] == "synthetic-reference"
     assert policy["dataset"]["input_report"] == str(provenance)
     assert any("already synthetic" in warning for warning in policy["planning"]["warnings"])
+
+
+@pytest.mark.parametrize(
+    "column_name",
+    [
+        "cik",
+        "npi",
+        "uei",
+        "duns",
+        "loan_number",
+        "award_id",
+        "case_number",
+        "dot_number",
+        "mc_number",
+        "legal_name",
+        "recipient_name",
+        "registered_agent",
+    ],
+)
+def test_public_data_entity_keys_default_to_identifier(column_name: str, tmp_path) -> None:
+    frame = pd.DataFrame({column_name: [f"value-{index}" for index in range(20)]})
+
+    policy = plan.build_policy(frame, tmp_path / "data.csv", empty_assignments(), "protected")
+
+    assert policy["privacy"]["columns"][column_name]["role"] == "identifier"
+
+
+@pytest.mark.parametrize(
+    "column_name",
+    ["payroll", "annual_wages", "revenue", "receipts", "loan_amount", "award_amount", "balance", "credit_limit"],
+)
+def test_row_level_public_data_financial_fields_default_to_private(column_name: str, tmp_path) -> None:
+    frame = pd.DataFrame({column_name: [1000 + index for index in range(20)]})
+
+    policy = plan.build_policy(frame, tmp_path / "data.csv", empty_assignments(), "protected")
+
+    assert policy["privacy"]["columns"][column_name]["role"] == "private"
+
+
+def test_explicit_public_role_can_authorize_published_aggregate_financial_fields(tmp_path) -> None:
+    frame = pd.DataFrame({"annual_wages": [1000, 2000], "establishments": [10, 20]})
+    assignments = empty_assignments()
+    assignments["public"] = {"annual_wages", "establishments"}
+
+    policy = plan.build_policy(frame, tmp_path / "qcew.csv", assignments, "protected")
+
+    assert policy["privacy"]["columns"]["annual_wages"]["role"] == "public"
+    assert policy["privacy"]["columns"]["establishments"]["role"] == "public"

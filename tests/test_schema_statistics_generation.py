@@ -113,6 +113,51 @@ def test_invalid_correlation_matrix_is_rejected() -> None:
         materialize.correlation_contract(spec, columns)
 
 
+def test_failed_materialization_writes_bound_non_overwriting_report(tmp_path, monkeypatch) -> None:
+    spec = aggregate_spec(50)
+    spec["correlations"]["matrix"] = [[1.0, 1.4], [1.4, 1.0]]
+    paths = {
+        "spec": tmp_path / "spec.json",
+        "proxy": tmp_path / "proxy.csv",
+        "policy": tmp_path / "policy.json",
+        "materialization": tmp_path / "materialization.json",
+        "output": tmp_path / "synthetic.csv",
+        "generation": tmp_path / "generation.json",
+        "workspace": tmp_path / "workspace",
+    }
+    paths["spec"].write_text(json.dumps(spec), encoding="utf-8")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "materialize_spec.py",
+            str(paths["spec"]),
+            str(paths["proxy"]),
+            str(paths["policy"]),
+            "--materialization-report",
+            str(paths["materialization"]),
+            "--output",
+            str(paths["output"]),
+            "--report",
+            str(paths["generation"]),
+            "--workspace",
+            str(paths["workspace"]),
+        ],
+    )
+
+    with pytest.raises(ValueError, match="between -1 and 1"):
+        materialize.main()
+    failure = json.loads(paths["materialization"].read_text(encoding="utf-8"))
+    assert failure["passed"] is False
+    assert failure["status"] == "materialization-failed"
+    assert failure["evidence"]["spec_sha256"] == materialize.sha256_file(paths["spec"])
+
+    preserved = paths["materialization"].read_bytes()
+    with pytest.raises(FileExistsError, match="refusing to overwrite"):
+        materialize.main()
+    assert paths["materialization"].read_bytes() == preserved
+
+
 def test_constraint_evaluator_accepts_materialized_statistics(tmp_path, monkeypatch) -> None:
     paths = run_materializer(tmp_path, monkeypatch)
     evaluation = tmp_path / "constraint-evaluation.json"

@@ -34,3 +34,22 @@ def test_installer_dry_run_does_not_write(tmp_path) -> None:
 
     assert len(targets) == 4
     assert not destination.exists()
+
+
+def test_installer_copies_every_complete_skill_payload(tmp_path) -> None:
+    destination = tmp_path / "codex-skills"
+    names = installer.available_skills()
+
+    installed = installer.install(destination, names, overwrite=False, dry_run=False)
+
+    assert installed == [(name, destination / name) for name in names]
+    for name in names:
+        source = installer.SOURCE_ROOT / name
+        target = destination / name
+        source_files = {
+            path.relative_to(source): path.read_bytes()
+            for path in source.rglob("*")
+            if path.is_file() and path.suffix not in {".pyc", ".pyo"} and path.parent.name != "__pycache__"
+        }
+        target_files = {path.relative_to(target): path.read_bytes() for path in target.rglob("*") if path.is_file()}
+        assert target_files == source_files

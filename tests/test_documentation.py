@@ -7,6 +7,12 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+DIRECT_INSTALL_SKILLS = {
+    "skills/plan-synthetic-data",
+    "skills/generate-synthetic-data",
+    "skills/evaluate-synthetic-data",
+    "skills/run-synthetic-data-workflow",
+}
 
 
 def test_local_markdown_links_resolve() -> None:
@@ -32,3 +38,23 @@ def test_documented_policy_example_is_valid_json() -> None:
 def test_ci_workflow_is_valid_yaml() -> None:
     workflow = yaml.safe_load((ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8"))
     assert workflow["jobs"]["validate"]["steps"]
+
+
+def test_direct_github_install_is_documented_for_every_skill() -> None:
+    for document in (ROOT / "README.md", ROOT / "docs" / "commands.md"):
+        text = document.read_text(encoding="utf-8")
+        assert "$skill-installer" in text
+        assert "gvillarroel/rata" in text
+        assert "ref main" in text
+        for skill_path in DIRECT_INSTALL_SKILLS:
+            assert skill_path in text
+
+
+def test_readme_exposes_the_download_center() -> None:
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "## Download center" in text
+    assert "https://github.com/gvillarroel/rata/archive/refs/heads/main.zip" in text
+    assert "docs/public-data-sources.md" in text
+    assert "docs/public-data-examples.md" in text
+    assert "tools/download_public_data.py --list" in text
+    assert "tools/download_public_data.py --workers 4" in text

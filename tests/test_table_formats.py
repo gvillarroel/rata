@@ -37,3 +37,32 @@ def test_generation_policy_fingerprint_matches_between_skills() -> None:
     }
 
     assert generate.generation_policy_fingerprint(policy) == evaluate.generation_policy_fingerprint(policy)
+    modified = {**policy, "dataset": {"seed": 99}}
+    assert generate.generation_policy_fingerprint(policy) != generate.generation_policy_fingerprint(modified)
+
+
+def test_csv_loaders_preserve_leading_zero_categorical_and_identifier_values(tmp_path) -> None:
+    path = tmp_path / "codes.csv"
+    path.write_text("county_fips,entity_id,value\n01001,0007,12\n06037,0042,18\n", encoding="utf-8")
+
+    for loader in (generate.load_table, plan.load_table, evaluate.load_table):
+        loaded = loader(path, {"county_fips", "entity_id"})
+        assert loaded["county_fips"].tolist() == ["01001", "06037"]
+        assert loaded["entity_id"].tolist() == ["0007", "0042"]
+        assert loaded["value"].tolist() == [12, 18]
+
+
+def test_policy_marks_code_and_identifier_columns_for_string_preservation() -> None:
+    policy = {
+        "privacy": {
+            "columns": {
+                "county_fips": {"role": "public", "encoding": "TABULAR_CATEGORICAL"},
+                "entity_id": {"role": "identifier"},
+                "location": {"role": "protected", "encoding": "TABULAR_LAT_LONG"},
+                "value": {"role": "public", "encoding": "TABULAR_NUMERIC_AUTO"},
+            }
+        }
+    }
+
+    assert generate.string_columns_from_policy(policy) == {"county_fips", "entity_id", "location"}
+    assert evaluate.string_columns_from_policy(policy) == {"county_fips", "entity_id", "location"}

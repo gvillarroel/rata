@@ -55,10 +55,58 @@ The specification is JSON:
 ```
 
 Supported types are `number`, `integer`, `categorical`, `boolean`, `string`, `datetime`, and `identifier`.
-Numeric distributions support `normal`, `uniform`, and `constant`. Categorical/string columns use `values` as a list
-or weighted object. Datetimes require ISO-8601 `min` and `max`. Correlations are optional, numeric-only, symmetric,
-and positive definite. A missing role defaults to `protected`; `public` must be explicit. Optional `quality` and
-`privacy.dp` objects override the balanced training and DP defaults without changing role semantics.
+Numeric distributions support `normal`, `lognormal`, `uniform`, and `constant`. Categorical/string columns use
+`values` as a list or weighted object and may declare a regex `pattern`. Datetimes require ISO-8601 `min` and `max`.
+Correlations are optional, numeric-only, symmetric, and positive definite. Weighted `joint_distributions` preserve
+declared categorical combinations. Numeric `derived` columns support acyclic `sum`, `difference`, and `product`
+identities. A missing role defaults to `protected`; `public` must be explicit. Optional `quality` and `privacy.dp`
+objects override the balanced training and DP defaults without changing role semantics.
+
+For privacy-safe vocabulary and length calibration, a `string` may replace `values` with a `token_sequence`
+generator:
+
+```json
+{
+  "name": "summary",
+  "type": "string",
+  "role": "public",
+  "generator": {
+    "kind": "token_sequence",
+    "tokens": {"account": 20, "payment": 12, "report": 7},
+    "lengths": {"8": 4, "12": 5, "20": 1},
+    "capitalize": true,
+    "terminal": "."
+  }
+}
+```
+
+Only use token distributions derived after rare-token removal. This models unigram and length distributions, not
+grammar or meaning. The final constraint evaluator gates token and length total variation.
+
+Identifiers may declare a `weighted_template` surrogate whose stochastic components are aggregate distributions and
+whose other fields reference released row context:
+
+```json
+{
+  "name": "synthetic_address",
+  "type": "identifier",
+  "role": "identifier",
+  "surrogate": {
+    "strategy": "weighted_template",
+    "template": "{number} {street} {suffix}, {city}, {state} {zip_code}",
+    "components": {
+      "number": {"kind": "integer", "min": 100, "max": 19999},
+      "street": {"kind": "choice", "values": {"Main": 20, "Oak": 8}},
+      "suffix": {"kind": "choice", "values": {"St": 6, "Ave": 4}}
+    }
+  }
+}
+```
+
+Template components are sampled independently, identifiers remain unique and excluded from training, and references
+to another identifier or dropped field are rejected. Gate template violations and component total variation. A
+synthetic-looking value can still coincide with a real person, business, or deliverable address; label the dataset as
+synthetic and never use it for contact, identity resolution, or eligibility decisions.
 
 Resolve `scripts/materialize_spec.py` relative to this skill and invoke it by absolute path:
 
@@ -73,7 +121,8 @@ Review the materialization report and policy, dry-run `generate.py`, then genera
 1. Run `$evaluate-synthetic-data` against the proxy to verify bound generation, roles, DP evidence, replay, and model
    quality. Treat proxy comparison as mechanical evidence only.
 2. Resolve `scripts/evaluate_spec.py` relative to this skill and run it against the final output to gate schema,
-   marginals, missingness, identifier uniqueness, bounds, and declared correlations.
+   marginals, missingness, identifier uniqueness, numeric types, bounds, integer integrity, declared category domains,
+   patterns, joint distributions, derived constraints, and declared correlations.
 
 Do not claim that DP applied to proxy rows protects an unknown source population. The aggregate specification itself
 must already be safe to use, and omitted relationships cannot be recovered by the model.

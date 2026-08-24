@@ -46,6 +46,11 @@ release fitness against unavailable original rows.
 
 Identifier surrogates are intentionally unlinkable strings. `uuid` preserves uniqueness but not source formatting; `sequential` produces stable prefixed sequence strings. Names, emails, IP addresses, card-like values, and numeric IDs therefore lose their original type or shape unless a future domain-specific surrogate strategy is explicitly added and audited.
 
+Treat public-data entity keys such as NPI, UEI, DUNS, CIK, loan/award/case numbers, DOT/MC numbers, legal names, and
+registered-agent fields as identifier candidates unless the task explicitly authorizes a public role. Treat row-level
+payroll, wages, revenue, receipts, loans, awards, balances, delinquencies, and credit limits as sensitive candidates;
+published aggregates may be explicitly public after review.
+
 Do not downgrade a role to improve quality. If requirements conflict, keep the stronger role and report the utility tradeoff.
 
 ## Validation

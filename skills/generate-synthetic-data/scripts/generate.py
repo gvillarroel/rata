@@ -13,8 +13,10 @@ import hashlib
 import json
 import math
 import random
+import string
 import time
 import uuid
+from datetime import UTC, datetime
 from importlib.metadata import version
 from pathlib import Path
 from typing import Any
@@ -46,12 +48,15 @@ PROFILE_DEFAULTS = {
 }
 SUPPORTED_TABLE_SUFFIXES = {".csv", ".json", ".jsonl", ".ndjson", ".parquet", ".pq", ".avro"}
 INPUT_KINDS = {"source", "synthetic-reference", "aggregate-proxy"}
+STRING_PRESERVING_ENCODINGS = {"TABULAR_CATEGORICAL", "TABULAR_CHARACTER", "TABULAR_LAT_LONG"}
 
 
-def load_table(path: Path) -> pd.DataFrame:
+def load_table(path: Path, string_columns: set[str] | None = None) -> pd.DataFrame:
     suffix = path.suffix.lower()
     if suffix == ".csv":
-        return pd.read_csv(path)
+        header = pd.read_csv(path, nrows=0)
+        dtype = {column: "string" for column in string_columns or set() if column in header.columns}
+        return pd.read_csv(path, dtype=dtype)
     if suffix in {".jsonl", ".ndjson"}:
         return pd.read_json(path, lines=True)
     if suffix == ".json":
@@ -62,6 +67,14 @@ def load_table(path: Path) -> pd.DataFrame:
         with path.open("rb") as handle:
             return pd.DataFrame.from_records(avro_reader(handle))
     raise ValueError(f"unsupported table format: {suffix or '<none>'}")
+
+
+def string_columns_from_policy(policy: dict[str, Any]) -> set[str]:
+    return {
+        name
+        for name, config in policy["privacy"]["columns"].items()
+        if config.get("role") == "identifier" or str(config.get("encoding", "")).upper() in STRING_PRESERVING_ENCODINGS
+    }
 
 
 def json_safe(value: Any) -> Any:
@@ -152,12 +165,7 @@ def sha256_file(path: Path) -> str:
 
 
 def generation_policy_fingerprint(policy: dict[str, Any]) -> str:
-    payload = {
-        "version": policy.get("version"),
-        "quality": policy.get("quality"),
-        "privacy": policy.get("privacy"),
-    }
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    canonical = json.dumps(policy, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
@@ -206,9 +214,11 @@ def validate_policy_parameters(
         raise ValueError("privacy.dp.delta must be finite and between zero and one")
     for column in roles["identifier"]:
         config = privacy["columns"].get(column, {})
-        strategy = str(config.get("strategy", "uuid"))
-        if strategy not in {"uuid", "sequential"}:
+        strategy = str(config.get("strategy", "uuid")).lower()
+        if strategy not in {"uuid", "sequential", "weighted_template"}:
             raise ValueError(f"unsupported identifier strategy for {column}: {strategy}")
+        if strategy == "weighted_template":
+            validate_weighted_template(column, config, roles, source)
     if source is not None:
         for column in roles["public"] + roles["protected"] + roles["private"] + roles["identifier"]:
             has_nested = source[column].dropna().map(lambda value: isinstance(value, (dict, list, tuple, set))).any()
@@ -325,6 +335,23 @@ def read_dp_checkpoint(workspace: Path) -> dict[str, float] | None:
     return {"epsilon": float(row["dp_eps"]), "delta": float(row["dp_delta"])}
 
 
+def validate_dp_checkpoint(checkpoint: dict[str, Any] | None, configured: dict[str, Any]) -> dict[str, float]:
+    if not checkpoint:
+        raise RuntimeError("private stage produced no DP checkpoint evidence")
+    try:
+        epsilon = float(checkpoint["epsilon"])
+        delta = float(checkpoint["delta"])
+        max_epsilon = float(configured.get("max_epsilon", 8.0))
+        max_delta = float(configured.get("delta", 0.00001))
+    except (KeyError, TypeError, ValueError) as error:
+        raise RuntimeError("private stage produced malformed DP checkpoint evidence") from error
+    if not math.isfinite(epsilon) or not 0 <= epsilon <= max_epsilon:
+        raise RuntimeError("private stage checkpoint epsilon is invalid or exceeds the configured ceiling")
+    if not math.isfinite(delta) or not 0 <= delta <= max_delta < 1:
+        raise RuntimeError("private stage checkpoint delta is invalid or exceeds the configured ceiling")
+    return {"epsilon": epsilon, "delta": delta}
+
+
 def stage_model(
     name: str,
     training_data: pd.DataFrame,
@@ -383,6 +410,116 @@ def surrogate_values(rows: int, seed: int, prefix: str, strategy: str) -> list[s
     return [f"{prefix}-{uuid.UUID(int=rng.getrandbits(128), version=4)}" for _ in range(rows)]
 
 
+def _nested_choices(raw: Any, label: str) -> tuple[list[str], list[float]]:
+    if isinstance(raw, list) and raw:
+        values = [str(value) for value in raw]
+        weights = [1.0] * len(values)
+    elif isinstance(raw, dict) and raw:
+        values = [str(value) for value in raw]
+        weights = [float(value) for value in raw.values()]
+    else:
+        raise ValueError(f"{label} must be a non-empty array or weighted object")
+    if len(values) != len(set(values)):
+        raise ValueError(f"{label} must not contain duplicates")
+    if any(not math.isfinite(weight) or weight < 0 for weight in weights) or sum(weights) <= 0:
+        raise ValueError(f"{label} weights must be finite, non-negative, and have a positive total")
+    if any(not value or "\n" in value or "\r" in value for value in values):
+        raise ValueError(f"{label} values must be non-empty single-line strings")
+    return values, weights
+
+
+def validate_weighted_template(
+    column: str,
+    config: dict[str, Any],
+    roles: dict[str, list[str]],
+    source: pd.DataFrame | None,
+) -> dict[str, Any]:
+    template = config.get("template")
+    components = config.get("components")
+    if not isinstance(template, str) or not template or "\n" in template or "\r" in template:
+        raise ValueError(f"weighted template for {column} must be a non-empty single-line string")
+    if not isinstance(components, dict) or not components:
+        raise ValueError(f"weighted template for {column} requires components")
+    fields: list[str] = []
+    for _literal, field, format_spec, conversion in string.Formatter().parse(template):
+        if field is None:
+            continue
+        if not field or format_spec or conversion or field in fields:
+            raise ValueError(f"weighted template fields for {column} must be unique simple names")
+        fields.append(field)
+    if not fields or set(components) - set(fields):
+        raise ValueError(f"weighted template for {column} has no fields or unused components")
+    normalized: dict[str, dict[str, Any]] = {}
+    for name, component in components.items():
+        if not isinstance(component, dict):
+            raise ValueError(f"weighted template component {column}.{name} must be an object")
+        kind = str(component.get("kind", "choice" if "values" in component else "")).lower()
+        if kind == "choice":
+            values, weights = _nested_choices(component.get("values"), f"{column}.{name}.values")
+            normalized[name] = {"kind": kind, "values": values, "weights": weights}
+        elif kind == "integer":
+            minimum = component.get("min")
+            maximum = component.get("max")
+            if (
+                isinstance(minimum, bool)
+                or isinstance(maximum, bool)
+                or not isinstance(minimum, int)
+                or not isinstance(maximum, int)
+                or minimum > maximum
+            ):
+                raise ValueError(f"weighted template integer component {column}.{name} requires integer min <= max")
+            normalized[name] = {"kind": kind, "min": minimum, "max": maximum}
+        else:
+            raise ValueError(f"unsupported weighted template component kind for {column}.{name}: {kind}")
+    references = [field for field in fields if field not in normalized]
+    if source is not None:
+        missing_references = sorted(set(references) - set(source.columns))
+        if missing_references:
+            raise ValueError(f"weighted template for {column} references missing columns: {missing_references}")
+    forbidden_references = sorted(set(references) & set(roles["identifier"] + roles["drop"]))
+    if forbidden_references:
+        raise ValueError(f"weighted template for {column} references identifier/drop columns: {forbidden_references}")
+    return {
+        "template": template,
+        "fields": fields,
+        "components": normalized,
+        "references": references,
+    }
+
+
+def weighted_template_values(
+    rows: int,
+    seed: int,
+    column: str,
+    config: dict[str, Any],
+    roles: dict[str, list[str]],
+    context: pd.DataFrame,
+) -> list[str]:
+    contract = validate_weighted_template(column, config, roles, context)
+    rng = random.Random(seed)
+    used: set[str] = set()
+    output: list[str] = []
+    for index in range(rows):
+        references = {name: str(context.iloc[index][name]) for name in contract["references"]}
+        for _attempt in range(1000):
+            values = dict(references)
+            for name, component in contract["components"].items():
+                if component["kind"] == "choice":
+                    values[name] = rng.choices(component["values"], weights=component["weights"], k=1)[0]
+                else:
+                    values[name] = str(rng.randint(component["min"], component["max"]))
+            candidate = contract["template"].format(**values).strip()
+            if candidate and candidate not in used:
+                used.add(candidate)
+                output.append(candidate)
+                break
+        else:
+            raise RuntimeError(
+                f"weighted template for {column} could not produce {rows} unique values; increase its component space"
+            )
+    return output
+
+
 def unique_run_workspace(root: Path) -> Path:
     run = root / time.strftime("run-%Y%m%d-%H%M%S")
     if run.exists():
@@ -406,8 +543,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> int:
-    args = parse_args()
+def run(args: argparse.Namespace) -> int:
     policy = load_policy(args.policy)
     dataset = policy["dataset"]
     input_path = args.input or Path(dataset["input"])
@@ -426,7 +562,7 @@ def main() -> int:
         if existing:
             raise FileExistsError(f"refusing to overwrite: {', '.join(map(str, existing))}")
 
-    source = load_table(input_path)
+    source = load_table(input_path, string_columns_from_policy(policy))
     if source.empty:
         raise ValueError("input table has no rows")
     if source.columns.duplicated().any():
@@ -521,20 +657,28 @@ def main() -> int:
             encoding_types(policy, condition_columns + roles["private"]),
             int(args.verbose),
         )
-        if not stage["dp_checkpoint"]:
-            raise RuntimeError("private stage produced no DP checkpoint evidence")
-        if stage["dp_checkpoint"]["epsilon"] > float(dp.get("max_epsilon", 8.0)):
-            raise RuntimeError("private stage checkpoint exceeds configured max epsilon")
+        stage["dp_checkpoint"] = validate_dp_checkpoint(stage["dp_checkpoint"], dp)
         stages.append(stage)
 
     for offset, column in enumerate(roles["identifier"]):
         config = policy["privacy"]["columns"].get(column, {})
-        output[column] = surrogate_values(
-            rows,
-            seed + 1000 + offset,
-            str(config.get("prefix", "syn")),
-            str(config.get("strategy", "uuid")),
-        )
+        strategy = str(config.get("strategy", "uuid")).lower()
+        if strategy == "weighted_template":
+            output[column] = weighted_template_values(
+                rows,
+                seed + 1000 + offset,
+                column,
+                config,
+                roles,
+                output,
+            )
+        else:
+            output[column] = surrogate_values(
+                rows,
+                seed + 1000 + offset,
+                str(config.get("prefix", "syn")),
+                strategy,
+            )
 
     released_columns = [column for column in source.columns if column not in roles["drop"]]
     output = output[released_columns]
@@ -583,6 +727,66 @@ def main() -> int:
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({**summary, "workspace": str(run_workspace), "stages": stages}, indent=2))
     return 0
+
+
+def write_failed_generation_report(args: argparse.Namespace, error: Exception) -> Path | None:
+    if args.dry_run:
+        return None
+    try:
+        raw_policy = json.loads(args.policy.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        raw_policy = {}
+    dataset = raw_policy.get("dataset", {}) if isinstance(raw_policy, dict) else {}
+    raw_report = args.report or (Path(dataset["report"]) if dataset.get("report") else None)
+    if raw_report is None or raw_report.exists():
+        return None
+    raw_input = args.input or (Path(dataset["input"]) if dataset.get("input") else None)
+    raw_output = args.output or (Path(dataset["output"]) if dataset.get("output") else None)
+    forbidden = {args.policy.resolve()}
+    forbidden.update(path.resolve() for path in (raw_input, raw_output) if path is not None)
+    if raw_report.resolve() in forbidden:
+        return None
+    evidence: dict[str, str] = {}
+    if args.policy.is_file():
+        evidence["policy_sha256"] = sha256_file(args.policy)
+    if raw_input is not None and raw_input.is_file():
+        evidence["input_sha256"] = sha256_file(raw_input)
+    if raw_output is not None and raw_output.is_file():
+        evidence["partial_output_sha256"] = sha256_file(raw_output)
+    error_message = str(error)
+    report = {
+        "schema_version": 1,
+        "passed": False,
+        "status": "generation-failed",
+        "method": "staged-column-privacy-tabular-argn",
+        "captured_at_utc": datetime.now(UTC).isoformat(),
+        "policy": str(args.policy),
+        "input": str(raw_input) if raw_input is not None else None,
+        "output": str(raw_output) if raw_output is not None else None,
+        "error": {
+            "type": type(error).__name__,
+            "message_sha256": hashlib.sha256(error_message.encode("utf-8")).hexdigest(),
+            "message_length": len(error_message),
+        },
+        "evidence": evidence,
+    }
+    raw_report.parent.mkdir(parents=True, exist_ok=True)
+    raw_report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    return raw_report
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        return run(args)
+    except Exception as error:
+        try:
+            failure_report = write_failed_generation_report(args, error)
+            if failure_report is not None:
+                error.add_note(f"Generation failure report: {failure_report}")
+        except Exception as report_error:
+            error.add_note(f"Unable to write generation failure report: {report_error}")
+        raise
 
 
 if __name__ == "__main__":

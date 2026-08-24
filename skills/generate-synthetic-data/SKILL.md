@@ -20,6 +20,13 @@ declared constraints as well as the generation evidence.
 
 Read [engine.md](references/engine.md) before changing engine versions, DP behavior, or staging semantics.
 
+Read [public-data-replication.md](references/public-data-replication.md) when the target resembles official business,
+labor, registry, geography, contracting, healthcare, transportation, or court data. Declare formatted codes, joint
+code/label relationships, skewed marginals, and row arithmetic explicitly; marginal fidelity alone is insufficient.
+For realistic names, addresses, business names, or short text, use aggregate weighted components and token/length
+distributions from that reference. Keep names and addresses as `identifier` surrogates so source strings never enter
+training, and require the final component-fidelity and template-shape gates.
+
 ## Generate
 
 Resolve `scripts/generate.py` relative to this `SKILL.md` and invoke it by absolute path. The adjacent script lockfile pins the standalone environment.
@@ -39,6 +46,11 @@ uv run C:\absolute\path\to\generate-synthetic-data\scripts\generate.py policy.js
 ```
 
 The command must produce both the synthetic table and a JSON generation report. The report binds SHA-256 evidence for the generation policy, source, and output. For `private` columns, fail the run unless the engine records a DP checkpoint epsilon and delta.
+The policy fingerprint covers the complete policy, including dataset provenance and seed—not only its privacy and
+quality sections. If a non-dry generation fails and the configured report path is safe and unused, the script writes
+a hash-bound `generation-failed` report before propagating the error.
+Failure evidence digests the exception message instead of copying potentially sensitive third-party text into the
+durable report.
 
 When the policy input kind is `aggregate-proxy`, also run the bundled `scripts/evaluate_spec.py` against the final table.
 When it is `synthetic-reference`, label original-source privacy and release fitness unresolved unless the original policy

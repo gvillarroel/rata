@@ -22,6 +22,115 @@ The tests cover policy inference and user overrides, invalid policy rejection, a
 They also cover aggregate proxy materialization, conservative role defaults, weighted categories, correlated numeric
 statistics, constraint evaluation, `synthetic-reference` provenance, and bound aggregate-spec hashes.
 
+## Public-data example coverage
+
+On 2026-08-22, `tools/generate_public_data_examples.py` generated and verified examples for the original 11 categories
+in the email **“public data to find”** plus the privacy-safe realism calibration family. The result covered all 40
+downloaded manifest artifacts plus two official gap examples from USAspending and U.S. Courts: 42 CSV files and 210
+example rows in total.
+
+The verifier checked exact source/category coverage, file containment, nonempty rows, catalog row counts, SHA-256
+checksums, and forbidden identifier/contact columns. It found zero forbidden columns. Federal-contract coverage is a
+partial public-award proxy for the SAM entity registry, and public-record coverage is limited to aggregate bankruptcy
+counts; those limitations are explicit in [the example catalog](public-data-examples.md).
+
+## Public-dataset replication contract coverage
+
+On 2026-08-22, a deterministic aggregate-specification matrix exercised the real materializer, policy builder,
+generator, CSV boundary, and constraint evaluator for all 11 public-data categories. Each profile generated 2,000
+rows and passed its schema, numeric-type, missingness, marginal, integer, declared-domain, code-pattern, joint,
+derived-arithmetic, identifier, datetime, and correlation gates when applicable. CSV tests specifically preserve
+leading-zero categorical codes and identifiers from policy-directed type inference.
+
+The complete validation run passed 135 tests, all four skill-package validations, lint and format checks, the
+dependency-license audit, all five standalone script-lock checks, and the four-skill installer dry run.
+
+Negative controls reject and preserve reports for malformed codes, nonnumeric and fractional integer values,
+undeclared categories, invalid code/description combinations, and broken row totals. Public roles remain explicit;
+row-level public-data financial fields retain conservative planner defaults. The coverage does not claim support for
+cross-table foreign keys, conditional numeric distributions, nested records, or native identifier checksum/format
+semantics; these remain explicit design gaps in
+[Requirement 003](../.specs/requirements/003-public-dataset-replication.md).
+
+## Data-quality and evaluation-readiness audit
+
+On 2026-08-22, `tools/audit_public_data_quality.py` hash-checked 209,345,354 retained bytes and fully value-profiled
+10,428,978 rows across all 40 manifest artifacts. Archive integrity, required schemas, critical numeric/code validity,
+aggregate-grain uniqueness, positive aggregate weights, privacy-minimized column exclusions, and coverage-count
+reconciliation passed with zero hard failures. Three source-quality warnings remain visible: 41.88% of FMCSA aggregate
+groups lack `business_org_desc`, 20.28% of Canadian corporation groups lack `status_detail`, and the official NYC
+name file contains 8,073 duplicate dimension rows. Exact NYC duplicates are removed before name calibration. The 12
+documented population/scope limitations also remain attached to the result.
+
+## Privacy-safe realism calibration
+
+The realism profile uses Census surname counts, NYC civil-registration given-name counts, USPS suffix standards, a
+six-county TIGER road sample, SEC company-name tokens, Census ZBP city/state/ZIP relationships, and CFPB narrative
+unigrams/length bands. It retains no person-name pairs, household addresses, road geometry, narrative rows, phrases,
+or token order. The 1.35 GiB staged CFPB archive was deleted after aggregation; no staging directory remained.
+
+At 10,000 rows, the uniform-weight negative control failed nine distribution gates. Public-distribution calibration
+passed every benchmark gate and reduced TV from 0.583 to 0.012 for narrative tokens, 0.889 to 0.018 for street
+suffixes, 0.440 to 0.074 for surnames, and 0.410 to 0.104 for given names. The real materialize/generate workflow also
+passed ordinary evaluation and the final aggregate constraint evaluation: zero template violations, zero identifier
+overlap, token TV 0.018, length TV 0.005, and component TVs at or below 0.110. The output remains labeled synthetic;
+component recombination cannot guarantee that a generated name or address does not exist in the real world.
+
+On 2026-08-23, the hardened 10,000-row rerun additionally passed complete-policy provenance binding, zero-tolerance
+semantic-type validation, identifier nonmissingness/uniqueness, ordinary policy-aware evaluation, and aggregate
+constraint evaluation. An explicit missing-generation-report negative control failed only
+`generation_report_binding`. Behavioral tests also prove that identifier/drop columns never enter either model stage,
+malformed DP checkpoints fail closed, and materialization/generation/evaluation runtime failures preserve new
+hash-bound reports without replacing earlier evidence.
+
+The real ordered planner/generator/evaluator matrix completed both 120-row, two-epoch scenarios in 56.17 seconds of
+generation time. The tabular candidate passed every gate (numeric KS 0.067, categorical TV 0.064, propensity AUC
+0.524, zero exact replay, zero identifier overlap), and its leaky control was rejected. The mixed-text candidate was
+correctly retained as a failure: protected rare-value replay, text-length KS (1.0), and character TF-IDF distance
+(0.862) exceeded their gates. This is a skill-quality limitation, not a hardware failure.
+
+The 2026-08-23 hardened matrix rerun completed generation in 57.08 seconds, passed the tabular candidate, rejected both
+leaky controls, and reproduced the same protected replay and text-quality failures in the mixed-text candidate. All
+candidate and control evaluations used complete-policy fingerprints and mandatory bound generation evidence. Local
+compute readiness therefore remains true while matrix quality remains false; the failed candidate and reports remain
+preserved.
+
+The local readiness audit passed with 16 logical CPUs, 31.4 GiB RAM, 98.3 GiB free workspace storage, Python 3.12.13,
+the locked runtime, and an optional RTX 5060 Laptop GPU with 8.0 GiB VRAM. Harbor readiness remains **false** because
+Docker is not installed; no Harbor holdout or model-call completion is claimed. See
+[Requirement 004](../.specs/requirements/004-data-quality-and-evaluation-readiness.md) for the separation between data,
+compute, Harbor, and candidate-quality evidence.
+
+## Direct repository installation
+
+On 2026-08-21, the Codex GitHub skill installer downloaded all four declared paths directly from
+`gvillarroel/rata@main` with its public-repository download method into an isolated destination. The installed
+`plan-synthetic-data`, `generate-synthetic-data`, `evaluate-synthetic-data`, and `run-synthetic-data-workflow`
+directories all contained their `SKILL.md` manifests and complete bundled payloads. The isolated destination was
+removed after verification.
+
+The unit suite also compares every file copied by the local installer with its source package, so missing references,
+scripts, lockfiles, or agent metadata fail validation before release.
+
+## GitHub download catalog and skill-package validation
+
+On 2026-08-24, the repository landing page gained a download center for the complete skill bundle, official public
+datasets, verified examples, documentation, and evaluation evidence. The detailed catalog exposes all 32 registered
+source keys with their direct-download and publisher links; a unit test now requires every downloader-registry entry
+to remain present there.
+
+A live HTTP audit reached 62 of the 64 registered download and publisher endpoints. The only two failures were the
+download and landing-page URLs for the already documented opt-in SSA national-name source, both of which returned
+HTTP 403. The reproducible default remains 31 sources and does not silently use a mirror.
+
+The full local quality audit reran successfully across 40 retained artifacts and 10,428,978 scanned rows with zero
+failed artifacts. The coverage audit again counted 12,332,856 local aligned core records, or 16,822,217 with the
+FMCSA server-side aggregate, and the example verifier passed all 12 categories, 42 files, and 210 rows.
+
+All four skill packages passed the skill manifest validator and installer dry run. The final suite passed 138 tests,
+and a coverage run measured 57% across all skill and tool scripts; the changed generation and evaluation scripts
+ranged from 81% to 90% statement coverage. Lint, formatting, license, script-lock, and Git diff checks also passed.
+
 ## Harbor skill benchmark
 
 On 2026-08-20, Harbor 0.18.0 and GEPA 0.1.2 validated a seven-task evolution plan: three development requests, two

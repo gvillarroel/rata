@@ -22,6 +22,14 @@ If the request starts from an existing synthetic reference or from schema and ag
 constraint evaluation report; synthetic-reference candidates retain unresolved original-source claims unless bound
 original evidence is available.
 
+For official public-data-shaped tables, require the replication contract described by the generation skill's
+`references/public-data-replication.md`. Return the aggregate constraint report together with the ordinary evaluation
+report whenever code relationships, strict totals, or other declared domain invariants exist.
+
+Read [evaluation-readiness.md](references/evaluation-readiness.md) before an expensive evaluation or whenever compute
+capacity, calibration-data quality, or Harbor readiness is in question. Keep hardware readiness and candidate quality
+as separate decisions.
+
 ## Required Guarantees
 
 - Use only the pinned permissive dependency boundary in the sibling scripts.
