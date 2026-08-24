@@ -44,7 +44,7 @@ a:visited {
   border: 1px solid var(--rata-line);
   border-radius: 1.25rem;
   background:
-    radial-gradient(circle at 90% 10%, rgb(233 196 106 / 38%), transparent 28%),
+    radial-gradient(circle at 90% 10%, rgba(233, 196, 106, 0.38), transparent 28%),
     linear-gradient(135deg, #f7fbfb, #eef6f7);
 }
 
