@@ -24,9 +24,9 @@ statistics, constraint evaluation, `synthetic-reference` provenance, and bound a
 
 ## Public-data example coverage
 
-On 2026-08-22, `tools/generate_public_data_examples.py` generated and verified examples for the original 11 categories
-in the email **“public data to find”** plus the privacy-safe realism calibration family. The result covered all 40
-downloaded manifest artifacts plus two official gap examples from USAspending and U.S. Courts: 42 CSV files and 210
+On 2026-08-24, `tools/generate_public_data_examples.py` generated and verified examples for the original 11 categories
+in the email **“public data to find”** plus the privacy-safe realism calibration family. The result covered all 39
+U.S.-only manifest artifacts plus two official gap examples from USAspending and U.S. Courts: 41 CSV files and 205
 example rows in total.
 
 The verifier checked exact source/category coverage, file containment, nonempty rows, catalog row counts, SHA-256
@@ -42,7 +42,7 @@ rows and passed its schema, numeric-type, missingness, marginal, integer, declar
 derived-arithmetic, identifier, datetime, and correlation gates when applicable. CSV tests specifically preserve
 leading-zero categorical codes and identifiers from policy-directed type inference.
 
-The complete validation run passed 135 tests, all four skill-package validations, lint and format checks, the
+The complete validation run passed 143 tests, all four skill-package validations, lint and format checks, the
 dependency-license audit, all five standalone script-lock checks, and the four-skill installer dry run.
 
 Negative controls reject and preserve reports for malformed codes, nonnumeric and fractional integer values,
@@ -54,13 +54,21 @@ semantics; these remain explicit design gaps in
 
 ## Data-quality and evaluation-readiness audit
 
-On 2026-08-22, `tools/audit_public_data_quality.py` hash-checked 209,345,354 retained bytes and fully value-profiled
-10,428,978 rows across all 40 manifest artifacts. Archive integrity, required schemas, critical numeric/code validity,
-aggregate-grain uniqueness, positive aggregate weights, privacy-minimized column exclusions, and coverage-count
-reconciliation passed with zero hard failures. Three source-quality warnings remain visible: 41.88% of FMCSA aggregate
-groups lack `business_org_desc`, 20.28% of Canadian corporation groups lack `status_detail`, and the official NYC
-name file contains 8,073 duplicate dimension rows. Exact NYC duplicates are removed before name calibration. The 12
+On 2026-08-24, `tools/audit_public_data_quality.py` hash-checked 213,039,562 retained bytes and fully value-profiled
+10,507,357 rows across all 39 U.S.-scope manifest artifacts. Archive integrity, required schemas, critical
+numeric/code and U.S.-country validity, aggregate-grain uniqueness, positive aggregate weights, privacy-minimized
+column exclusions, and coverage-count reconciliation passed with zero hard failures. Two source-quality warnings
+remain visible: 40.28% of FMCSA aggregate groups lack `business_org_desc`, and the official NYC name file contains
+8,073 duplicate dimension rows. Exact NYC duplicates are removed before name calibration. The 12
 documented population/scope limitations also remain attached to the result.
+
+The geographic audit retired both Corporations Canada feeds and their four generated data/example artifacts. Their
+replacement is the official [Colorado Business Entities](https://data.colorado.gov/Business/Business-Entities-in-Colorado/4ykn-tg5h/about_data)
+source with a publisher-side `principalcountry = 'US'` filter: 2,998,731 of 3,098,534 current source entities (96.8%)
+are represented in 85,185 retained aggregate groups. The FMCSA query now independently enforces
+`phy_country = 'US'`. Iowa's state-registry transform now retains the 330,340 U.S.-home-office entities from its
+347,200-row input (95.1%) and drops foreign or missing-country rows before legal-name aggregation. Every retained
+country column in the bundle now contains only `US`.
 
 ## Privacy-safe realism calibration
 
@@ -115,20 +123,20 @@ scripts, lockfiles, or agent metadata fail validation before release.
 ## GitHub download catalog and skill-package validation
 
 On 2026-08-24, the repository landing page gained a download center for the complete skill bundle, official public
-datasets, verified examples, documentation, and evaluation evidence. The detailed catalog exposes all 32 registered
+datasets, verified examples, documentation, and evaluation evidence. The detailed catalog exposes all 31 registered
 source keys with their direct-download and publisher links; a unit test now requires every downloader-registry entry
 to remain present there.
 
-A live HTTP audit reached 62 of the 64 registered download and publisher endpoints. The only two failures were the
-download and landing-page URLs for the already documented opt-in SSA national-name source, both of which returned
-HTTP 403. The reproducible default remains 31 sources and does not silently use a mirror.
+A live refresh downloaded the new Colorado U.S.-only aggregate and the revised FMCSA U.S.-only aggregate, and reached
+the Colorado publisher page. The already documented opt-in SSA national-name source still remains outside the
+reproducible default. The default is now 30 U.S.-aligned sources and does not silently use a mirror.
 
-The full local quality audit reran successfully across 40 retained artifacts and 10,428,978 scanned rows with zero
-failed artifacts. The coverage audit again counted 12,332,856 local aligned core records, or 16,822,217 with the
-FMCSA server-side aggregate, and the example verifier passed all 12 categories, 42 files, and 210 rows.
+The full local quality audit reran successfully across 39 retained artifacts and 10,507,357 scanned rows with zero
+failed artifacts. The coverage audit counted 10,933,879 local aligned core records, or 15,329,657 with the U.S.-only
+FMCSA server-side aggregate, and the example verifier passed all 12 categories, 41 files, and 205 rows.
 
-All four skill packages passed the skill manifest validator and installer dry run. The final suite passed 138 tests,
-and a coverage run measured 57% across all skill and tool scripts; the changed generation and evaluation scripts
+All four skill packages passed the skill manifest validator and installer dry run. The final suite passed 143 tests,
+and a coverage run measured 58% across all skill and tool scripts; the changed generation and evaluation scripts
 ranged from 81% to 90% statement coverage. Lint, formatting, license, script-lock, and Git diff checks also passed.
 
 ## Harbor skill benchmark

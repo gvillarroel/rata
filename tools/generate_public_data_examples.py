@@ -102,8 +102,8 @@ CATEGORIES = (
     Category(
         "business_names_formation",
         "Business names and formation",
-        "Entity type, status, formation year, province/state, and legal-name patterns.",
-        "Examples are aggregate Iowa/Canada distributions; names and identifiers were removed.",
+        "Entity type, status, formation year, U.S. state, and legal-name patterns.",
+        "Examples are U.S.-only Iowa and Colorado aggregates; names and identifiers were removed.",
     ),
     Category(
         "federal_contractors",
@@ -166,8 +166,7 @@ SOURCE_CATEGORY = {
     "census_gazetteer_zcta_2025": "addresses_geography",
     "iowa_business_registry_distribution": "business_names_formation",
     "iowa_legal_name_pattern_distribution": "business_names_formation",
-    "canada_corporations_distribution": "business_names_formation",
-    "canada_legal_name_pattern_distribution": "business_names_formation",
+    "colorado_business_entities_us_distribution": "business_names_formation",
     "usaspending_contract_awards_fy2025": "federal_contractors",
     "sec_company_tickers_exchange": "public_companies",
     "sba_ppp_data_dictionary": "historical_small_business",
@@ -642,14 +641,19 @@ LOCAL_SAMPLERS: dict[str, Callable[[Path], list[dict[str, str]]]] = {
     "iowa_legal_name_pattern_distribution": lambda path: _sample_distribution(
         path, ["corporation_type", "legal_suffix", "records"], "records", ("corporation_type", "legal_suffix")
     ),
-    "canada_corporations_distribution": lambda path: _sample_distribution(
+    "colorado_business_entities_us_distribution": lambda path: _sample_distribution(
         path,
-        ["governing_legislation", "status", "status_detail", "effective_year", "province", "country", "records"],
+        [
+            "entitytype",
+            "entitystatus",
+            "jurisdictonofformation",
+            "principalstate",
+            "principalcountry",
+            "formation_year",
+            "records",
+        ],
         "records",
-        ("status", "effective_year", "province", "country"),
-    ),
-    "canada_legal_name_pattern_distribution": lambda path: _sample_distribution(
-        path, ["status", "legal_suffix", "records"], "records", ("status", "legal_suffix")
+        ("entitystatus", "formation_year", "principalstate", "principalcountry"),
     ),
     "cms_nppes_type2_weekly_distribution": lambda path: _sample_distribution(
         path,
@@ -864,7 +868,7 @@ def _coverage_note(category_key: str) -> str:
     if category_key == "public_records":
         return "Partial aggregate: bankruptcy only; no liens, judgments, UCC records, or case-level data."
     if category_key == "business_names_formation":
-        return "Partial geography: aggregate Iowa and federal-Canada corporate distributions."
+        return "U.S.-only state coverage: aggregate Iowa and Colorado business registries."
     if category_key == "healthcare":
         return "Partial time window: weekly incremental Type-2 NPPES distribution."
     if category_key == "public_companies":

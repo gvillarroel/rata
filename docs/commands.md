@@ -147,7 +147,7 @@ uv run python tools/generate_public_data_examples.py --check
 mode. Pass one or more keys to `--only` to avoid downloading the complete bundle; the optional SSA source is available
 only through an explicit `--only ssa_national_names` request.
 
-`generate_public_data_examples.py` covers all 40 source-manifest artifacts and fetches two small official gap
+`generate_public_data_examples.py` covers all 39 U.S.-only source-manifest artifacts and fetches two small official gap
 examples from USAspending and U.S. Courts. `--offline` regenerates local examples while reusing those cached external
 CSV examples.
 

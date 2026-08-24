@@ -61,6 +61,21 @@ def test_delimited_quality_profile_rejects_invalid_values_and_duplicate_grain() 
     assert "aggregate_weight_total" in failures
 
 
+def test_delimited_quality_profile_rejects_non_us_rows() -> None:
+    rule = quality.DelimitedRule(
+        required=("country", "records"),
+        numeric=("records",),
+        allowed_values=(("country", ("US",)),),
+        weight="records",
+    )
+    data = io.StringIO("country,records\nUS,10\nCA,5\n")
+
+    metrics = quality.profile_delimited(data, rule)
+
+    assert metrics["allowed_value_violations"] == {"country": 1}
+    assert "allowed_value_violations" in quality.artifact_failures(metrics, rule)
+
+
 def test_matrix_readiness_distinguishes_compute_capacity_from_candidate_quality(tmp_path: Path) -> None:
     path = tmp_path / "summary.json"
     path.write_text(

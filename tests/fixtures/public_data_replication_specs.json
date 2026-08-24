@@ -120,30 +120,30 @@
   },
   {
     "category": "business_names_formation",
-    "sources": ["Iowa Business Entities", "Corporations Canada"],
+    "sources": ["Iowa Business Entities", "Colorado Business Entities"],
     "spec": {
       "version": 1,
       "rows": 2000,
       "seed": 105,
       "columns": [
         {"name": "synthetic_business_name", "type": "identifier", "role": "identifier", "prefix": "business"},
-        {"name": "registry", "type": "categorical", "role": "public", "values": ["IOWA", "CANADA_ACTIVE", "CANADA_DISSOLVED", "IOWA_HISTORICAL"]},
+        {"name": "registry", "type": "categorical", "role": "public", "values": ["IOWA_ACTIVE", "COLORADO_GOOD_STANDING", "COLORADO_DELINQUENT", "COLORADO_DISSOLVED"]},
         {"name": "entity_type", "type": "categorical", "role": "public", "values": ["LLC", "CORPORATION", "COOPERATIVE", "NONPROFIT"]},
         {"name": "legal_suffix", "type": "categorical", "role": "public", "values": ["LLC", "INCORPORATED", "COOPERATIVE", "ASSOCIATION"]},
-        {"name": "status", "type": "categorical", "role": "public", "values": {"ACTIVE": 0.5, "DISSOLVED": 0.5}},
-        {"name": "province_or_state", "type": "categorical", "role": "public", "values": ["IA", "ON", "QC", "BC"], "pattern": "^[A-Z]{2}$"},
+        {"name": "status", "type": "categorical", "role": "public", "values": ["ACTIVE", "GOOD_STANDING", "DELINQUENT", "DISSOLVED"]},
+        {"name": "state", "type": "categorical", "role": "public", "values": ["IA", "CO", "CA", "NY"], "pattern": "^[A-Z]{2}$"},
         {"name": "effective_year", "type": "integer", "role": "public", "distribution": {"kind": "uniform", "min": 1950, "max": 2026}},
         {"name": "records", "type": "integer", "role": "public", "distribution": {"kind": "lognormal", "mean": 120, "std": 100, "min": 0}}
       ],
       "joint_distributions": [
         {
           "name": "registry_status_type",
-          "columns": ["registry", "entity_type", "legal_suffix", "status", "province_or_state"],
+          "columns": ["registry", "entity_type", "legal_suffix", "status", "state"],
           "rows": [
-            {"values": {"registry": "IOWA", "entity_type": "LLC", "legal_suffix": "LLC", "status": "ACTIVE", "province_or_state": "IA"}},
-            {"values": {"registry": "CANADA_ACTIVE", "entity_type": "CORPORATION", "legal_suffix": "INCORPORATED", "status": "ACTIVE", "province_or_state": "ON"}},
-            {"values": {"registry": "CANADA_DISSOLVED", "entity_type": "COOPERATIVE", "legal_suffix": "COOPERATIVE", "status": "DISSOLVED", "province_or_state": "QC"}},
-            {"values": {"registry": "IOWA_HISTORICAL", "entity_type": "NONPROFIT", "legal_suffix": "ASSOCIATION", "status": "DISSOLVED", "province_or_state": "BC"}}
+            {"values": {"registry": "IOWA_ACTIVE", "entity_type": "LLC", "legal_suffix": "LLC", "status": "ACTIVE", "state": "IA"}},
+            {"values": {"registry": "COLORADO_GOOD_STANDING", "entity_type": "CORPORATION", "legal_suffix": "INCORPORATED", "status": "GOOD_STANDING", "state": "CO"}},
+            {"values": {"registry": "COLORADO_DELINQUENT", "entity_type": "COOPERATIVE", "legal_suffix": "COOPERATIVE", "status": "DELINQUENT", "state": "CA"}},
+            {"values": {"registry": "COLORADO_DISSOLVED", "entity_type": "NONPROFIT", "legal_suffix": "ASSOCIATION", "status": "DISSOLVED", "state": "NY"}}
           ]
         }
       ]

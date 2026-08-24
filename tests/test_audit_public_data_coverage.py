@@ -17,6 +17,15 @@ sys.modules[SPEC.name] = auditor
 SPEC.loader.exec_module(auditor)
 
 
+def test_coverage_catalog_replaces_non_us_registry_evidence() -> None:
+    specs = {spec.key: spec for spec in auditor.SPECS}
+
+    assert "canada_corporations_distribution" not in specs
+    assert "colorado_business_entities_us_distribution" in specs
+    assert specs["colorado_business_entities_us_distribution"].locally_materialized_or_processed is True
+    assert all("Canada" not in spec.publisher for spec in specs.values())
+
+
 def test_count_largest_zip_member_rows_excludes_header(tmp_path: Path) -> None:
     archive_path = tmp_path / "sample.zip"
     with zipfile.ZipFile(archive_path, "w") as archive:

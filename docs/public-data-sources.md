@@ -7,8 +7,14 @@ public-company presence.
 
 All download links below point to official publishers. The large bundle is intentionally ignored by Git and is not
 served from this repository: use a direct link or the reproducible downloader to create
-`datasets/public-data/` locally. The default run uses 31 sources; the SSA national-name archive is a documented
+`datasets/public-data/` locally. The default run uses 30 U.S.-aligned sources; the U.S. SSA national-name archive is
+a documented
 opt-in source because its endpoint was not reproducibly accessible during validation.
+
+The default catalog is intentionally U.S.-only. Every manifest row carries `geographic_scope=United States`; the
+FMCSA and Colorado API queries filter records to country `US`, the Iowa transform retains only U.S. home offices,
+and the quality audit rejects any retained country value outside `US`. The former Corporations Canada feeds and their
+generated artifacts were retired.
 
 | Browse by need | Section |
 | --- | --- |
@@ -20,7 +26,7 @@ opt-in source because its endpoint was not reproducibly accessible during valida
 | Full, subset, or individual-source commands | [Reproduce or refresh](#reproduce-or-refresh) |
 
 <details>
-<summary><strong>Complete 32-source index: keys, direct downloads, publisher pages, and handling</strong></summary>
+<summary><strong>Complete 31-source index: keys, direct downloads, publisher pages, and handling</strong></summary>
 
 | Source key | Dataset and vintage | Direct download | Publisher page | Handling |
 | --- | --- | --- | --- | --- |
@@ -37,7 +43,7 @@ opt-in source because its endpoint was not reproducibly accessible during valida
 | `census_gazetteer_counties_2025` | Census Gazetteer — counties (2025) | [download](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_counties_national.zip) | [source page](https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.2025.html) | Default; official artifact retained |
 | `census_gazetteer_places_2025` | Census Gazetteer — places (2025) | [download](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_place_national.zip) | [source page](https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.2025.html) | Default; official artifact retained |
 | `census_gazetteer_zcta_2025` | Census Gazetteer — ZIP Code Tabulation Areas (2025) | [download](https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_zcta_national.zip) | [source page](https://www.census.gov/geographies/reference-files/time-series/geo/gazetteer-files.2025.html) | Default; official artifact retained |
-| `fmcsa_company_census_distribution` | FMCSA Company Census privacy-minimized distribution (live snapshot) | [download](https://data.transportation.gov/resource/az4n-8mr2.csv?%24select=phy_country%2Cphy_state%2Cstatus_code%2Ccarrier_operation%2Cbusiness_org_desc%2Cfleetsize%2Ccount%28%2A%29+as+records&%24group=phy_country%2Cphy_state%2Cstatus_code%2Ccarrier_operation%2Cbusiness_org_desc%2Cfleetsize&%24order=records+desc&%24limit=500000) | [source page](https://data.transportation.gov/Trucking-and-Motorcoaches/Company-Census-File/az4n-8mr2/about_data) | Default; official aggregate retained |
+| `fmcsa_company_census_distribution` | FMCSA Company Census U.S. privacy-minimized distribution (live snapshot) | [download](https://data.transportation.gov/resource/az4n-8mr2.csv?%24select=phy_country%2Cphy_state%2Cstatus_code%2Ccarrier_operation%2Cbusiness_org_desc%2Cfleetsize%2Ccount%28%2A%29+as+records&%24where=phy_country+%3D+%27US%27&%24group=phy_country%2Cphy_state%2Cstatus_code%2Ccarrier_operation%2Cbusiness_org_desc%2Cfleetsize&%24order=records+desc&%24limit=500000) | [source page](https://data.transportation.gov/Trucking-and-Motorcoaches/Company-Census-File/az4n-8mr2/about_data) | Default; U.S.-only official aggregate retained |
 | `sec_company_tickers_exchange` | SEC EDGAR company, CIK, ticker, and exchange associations (continuously updated) | [download](https://www.sec.gov/files/company_tickers_exchange.json) | [source page](https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data) | Default; official artifact retained |
 | `sba_ppp_data_dictionary` | SBA PPP data dictionary (2024-09-30 release) | [download](https://data.sba.gov/sites/default/files/distribution/SBA-OCA-2022-07-001/ppp-data-dictionary.xlsx) | [source page](https://data.sba.gov/dataset/ppp-foia) | Default; official artifact retained |
 | `census_surnames_2010` | Census frequently occurring surnames (2010) | [download](https://www2.census.gov/topics/genealogy/2010surnames/names.zip) | [source page](https://www.census.gov/data/developers/data-sets/surnames/2010.html) | Default; official artifact retained |
@@ -52,14 +58,13 @@ opt-in source because its endpoint was not reproducibly accessible during valida
 | `tiger_roads_king_2025` | Census TIGER/Line roads — King County, WA (2025) | [download](https://www2.census.gov/geo/tiger/TIGER2025/ROADS/tl_2025_53033_roads.zip) | [source page](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.2025.html) | Default; road components retained after geometry removal |
 | `cfpb_complaints` | CFPB Consumer Complaint Database (continuously updated) | [download](https://files.consumerfinance.gov/ccdb/complaints.csv.zip) | [source page](https://www.consumerfinance.gov/data-research/consumer-complaints/) | Default; staged, aggregated, and source rows removed |
 | `iowa_active_business_entities` | Iowa active business entities (monthly) | [download](https://idh-be.iowa.gov/api/v1/datasets/554/rows.csv) | [source page](https://data.iowa.gov/catalog/dataset/554) | Default; staged, aggregated, and source rows removed |
-| `canada_active_cbca` | Corporations Canada — active business corporations (continuously updated) | [download](https://d4bf66bykfyaf.cloudfront.net/corporations-active-cbca-en.csv) | [source page](https://open.canada.ca/data/en/dataset/0032ce54-c5dd-4b66-99a0-320a7b5e99f2) | Default; staged, aggregated, and source rows removed |
-| `canada_inactive_cbca` | Corporations Canada — inactive/dissolved business corporations (continuously updated) | [download](https://d4bf66bykfyaf.cloudfront.net/corporations-inactive-or-dissolved-cbca-en.csv) | [source page](https://open.canada.ca/data/en/dataset/0032ce54-c5dd-4b66-99a0-320a7b5e99f2) | Default; staged, aggregated, and source rows removed |
+| `colorado_business_entities_us_distribution` | Colorado business entities — U.S. principal-address distribution (live snapshot) | [download](https://data.colorado.gov/resource/4ykn-tg5h.csv?%24select=entitytype%2Centitystatus%2Cjurisdictonofformation%2Cprincipalstate%2Cprincipalcountry%2Cdate_extract_y%28entityformdate%29+as+formation_year%2Ccount%28%2A%29+as+records&%24where=principalcountry+%3D+%27US%27&%24group=entitytype%2Centitystatus%2Cjurisdictonofformation%2Cprincipalstate%2Cprincipalcountry%2Cdate_extract_y%28entityformdate%29&%24order=records+desc&%24limit=500000) | [source page](https://data.colorado.gov/Business/Business-Entities-in-Colorado/4ykn-tg5h/about_data) | Default; U.S.-only official aggregate retained |
 | `cms_nppes_weekly_v2` | CMS NPPES weekly incremental V2 (2026-08-10 through 2026-08-16) | [download](https://download.cms.gov/nppes/NPPES_Data_Dissemination_081026_081626_Weekly_V2.zip) | [source page](https://download.cms.gov/nppes/NPI_Files.html) | Default; staged, aggregated, and source rows removed |
 | `sba_ppp_150k_plus` | SBA PPP loans above $150,000 (2024-09-30 release) | [download](https://data.sba.gov/sites/default/files/distribution/SBA-OCA-2022-07-001/public_150k_plus_240930.csv) | [source page](https://data.sba.gov/dataset/ppp-foia) | Default; staged, aggregated, and source rows removed |
 
 </details>
 
-Snapshot date: **2026-08-22**. The complete machine-readable inventory, SHA-256 checksums, byte sizes, source URLs,
+Snapshot date: **2026-08-24**. The complete machine-readable inventory, SHA-256 checksums, byte sizes, source URLs,
 and transformation notes are in `datasets/public-data/manifest.csv`. The record-level evidence is in
 `datasets/public-data/coverage-report.csv`, `coverage-report.json`, and `coverage-report.md`. See
 [Public-data examples](public-data-examples.md) for a verified example from every requested category and every local
@@ -69,10 +74,10 @@ manifest artifact, including the added privacy-safe realism calibration family.
 
 The local bundle passes the requested threshold without counting FMCSA's server-side underlying rows:
 
-- **12,332,856 locally materialized or locally processed core source records**.
+- **10,933,879 locally materialized or locally processed core source records**.
 - **10 distinct local core source families**: CBP/ZBP, NES, ABS, BDS, QCEW, Iowa Active Business Entities,
-  Corporations Canada, CMS NPPES Type-2 Organizations, SBA PPP FOIA, and SEC EDGAR associations.
-- **16,822,217 verified core source records across 11 families** when the 4,489,361 FMCSA entities represented by
+  Colorado Business Entities, CMS NPPES Type-2 Organizations, SBA PPP FOIA, and SEC EDGAR associations.
+- **15,329,657 verified core source records across 11 families** when the 4,395,778 U.S. FMCSA entities represented by
   the downloaded server-side aggregate are included.
 - The count uses source rows or published aggregate rows, not unique or deduplicated businesses. Supporting
   NAICS/SIC and Gazetteer reference rows are deliberately excluded from the 10-million threshold.
@@ -108,9 +113,8 @@ artifacts listed here are privacy-minimized distributions; the source rows were 
 | Dataset | What it supplies | Direct source download | Privacy-minimized local artifact |
 | --- | --- | --- | --- |
 | Iowa active business entities | Entity type, effective year, state/country, and legal-designator patterns | [ZIP/CSV](https://idh-be.iowa.gov/api/v1/datasets/554/rows.csv) | `derived/iowa_business_registry_distribution.csv`; `derived/iowa_legal_name_pattern_distribution.csv` |
-| Corporations Canada — active CBCA | Active status, effective year, province, legislation, and legal-designator patterns | [CSV](https://d4bf66bykfyaf.cloudfront.net/corporations-active-cbca-en.csv) | `derived/canada_corporations_distribution.csv`; `derived/canada_legal_name_pattern_distribution.csv` |
-| Corporations Canada — inactive/dissolved CBCA | Dissolution/status-detail and historical formation distributions | [CSV](https://d4bf66bykfyaf.cloudfront.net/corporations-inactive-or-dissolved-cbca-en.csv) | Same combined Canada artifacts above |
-| FMCSA Company Census | Carrier geography, status, operation, organization type, and fleet-size distributions | [Aggregate CSV query](https://data.transportation.gov/resource/az4n-8mr2.csv?%24select=phy_country%2Cphy_state%2Cstatus_code%2Ccarrier_operation%2Cbusiness_org_desc%2Cfleetsize%2Ccount%28%2A%29+as+records&%24group=phy_country%2Cphy_state%2Cstatus_code%2Ccarrier_operation%2Cbusiness_org_desc%2Cfleetsize&%24order=records+desc&%24limit=500000) | `raw/fmcsa_company_census_distribution.csv` |
+| Colorado business entities | Entity type, status, formation year, jurisdiction, and principal state for U.S.-principal-address entities | [U.S.-only aggregate CSV query](https://data.colorado.gov/resource/4ykn-tg5h.csv?%24select=entitytype%2Centitystatus%2Cjurisdictonofformation%2Cprincipalstate%2Cprincipalcountry%2Cdate_extract_y%28entityformdate%29+as+formation_year%2Ccount%28%2A%29+as+records&%24where=principalcountry+%3D+%27US%27&%24group=entitytype%2Centitystatus%2Cjurisdictonofformation%2Cprincipalstate%2Cprincipalcountry%2Cdate_extract_y%28entityformdate%29&%24order=records+desc&%24limit=500000) | `raw/colorado_business_entities_us_distribution.csv` |
+| FMCSA Company Census | U.S. carrier state, status, operation, organization type, and fleet-size distributions | [U.S.-only aggregate CSV query](https://data.transportation.gov/resource/az4n-8mr2.csv?%24select=phy_country%2Cphy_state%2Cstatus_code%2Ccarrier_operation%2Cbusiness_org_desc%2Cfleetsize%2Ccount%28%2A%29+as+records&%24where=phy_country+%3D+%27US%27&%24group=phy_country%2Cphy_state%2Cstatus_code%2Ccarrier_operation%2Cbusiness_org_desc%2Cfleetsize&%24order=records+desc&%24limit=500000) | `raw/fmcsa_company_census_distribution.csv` |
 | CMS NPPES weekly V2, 2026-08-10–2026-08-16 | Partial weekly Type-2 organization distribution by taxonomy, state, and year | [ZIP](https://download.cms.gov/nppes/NPPES_Data_Dissemination_081026_081626_Weekly_V2.zip) | `derived/cms_nppes_type2_weekly_distribution.csv` |
 | SEC EDGAR company/ticker/exchange associations | Partial public-company legal-name, CIK, ticker, and exchange coverage | [JSON](https://www.sec.gov/files/company_tickers_exchange.json) | `raw/sec_company_tickers_exchange.json` |
 | SBA PPP loans above $150,000 | Biased historical relationships among state, NAICS, jobs, business type/age, rural/urban, and loan size | [CSV](https://data.sba.gov/sites/default/files/distribution/SBA-OCA-2022-07-001/public_150k_plus_240930.csv) | `derived/sba_ppp_by_state_naics_distribution.csv`; `derived/sba_ppp_business_profile_distribution.csv` |
@@ -160,8 +164,8 @@ Paths in the last two tables are relative to `datasets/public-data/` when they b
 - Use NAICS/SIC files as validation dictionaries, not only as labels.
 - Gazetteer files validate city/state/county/ZCTA combinations and supply representative coordinates. They are not
   street-address datasets.
-- Iowa and Canada outputs contain only grouped statistics. Registered-agent names, tax/business numbers, streets,
-  and postal codes are not retained.
+- Iowa and Colorado outputs contain only grouped U.S. statistics. Registered-agent names, tax/business numbers,
+  streets, and postal codes are not retained. The Colorado query is aggregated by the publisher API before download.
 - The NPPES output includes only Type-2 organizations and is a one-week incremental sample, not a complete healthcare
   population. NPIs, personal/provider names, addresses, phones, and endpoints are not retained.
 - The PPP output includes only loans above $150,000. It is a historically and programmatically selected sample, not a
@@ -186,7 +190,7 @@ numbers. Use approved internal aggregates, de-identified statistics, or controll
 
 ## Reproduce or refresh
 
-List all 32 source keys together with their official download and publisher pages, download the default 31-source
+List all 31 source keys together with their official download and publisher pages, download the default 30-source
 bundle, or fetch only one source:
 
 ```powershell
@@ -208,13 +212,14 @@ transformation fails and are removed only after every derived output succeeds.
 
 ## Validation snapshot
 
-- 25 official aggregate/reference downloads validated.
-- 15 privacy-minimized distributions retained.
-- 40 manifest entries and 199.65 MiB retained locally.
-- 12,332,856 local core source records across 10 source families; the coverage audit gate passed.
-- 16,822,217 core source records across 11 families when FMCSA server-side source coverage is included.
-- Aggregate input coverage: 347,200 Iowa entities; 1,467,302 Canadian corporations; 6,275 NPPES Type-2 weekly
-  records; and 968,524 PPP loans above $150,000.
+- 26 official aggregate/reference downloads validated.
+- 13 privacy-minimized distributions retained.
+- 39 manifest entries and 203.17 MiB retained locally, all declaring United States scope.
+- 10,933,879 local core source records across 10 source families; the coverage audit gate passed.
+- 15,329,657 core source records across 11 families when U.S.-only FMCSA server-side source coverage is included.
+- Aggregate input coverage: 330,340 Iowa entities with U.S. home offices; 85,185 Colorado aggregate groups
+  representing 2,998,731 entities with U.S. principal addresses; 6,275 NPPES Type-2 weekly records; and 968,524 PPP
+  loans above $150,000.
 - No privacy-sensitive staging directory remained after successful processing.
-- Example coverage: 12/12 categories, 40/40 local manifest artifacts, 2 official gap examples, 42 CSV files, 210
+- Example coverage: 12/12 categories, 39/39 local manifest artifacts, 2 official gap examples, 41 CSV files, 205
   rows, and zero forbidden identifier/contact columns.

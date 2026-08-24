@@ -164,15 +164,15 @@ SPECS = (
         True,
     ),
     EvidenceSpec(
-        "canada_corporations_distribution",
-        "Corporations Canada Federal Corporations",
-        "Active and inactive/dissolved CBCA corporations",
-        "Innovation, Science and Economic Development Canada",
+        "colorado_business_entities_us_distribution",
+        "Colorado Business Entities",
+        "Business entities with U.S. principal addresses",
+        "Colorado Department of State",
         "core",
-        "legislation, status, status detail, effective year, province, country",
-        "source corporation rows processed",
-        "datasets/public-data/derived/canada_corporations_distribution.csv",
-        "sum_records_column",
+        "entity type, status, formation year, jurisdiction, principal state/country",
+        "published U.S.-only aggregate rows",
+        "datasets/public-data/raw/colorado_business_entities_us_distribution.csv",
+        "csv_rows_minus_header",
         True,
     ),
     EvidenceSpec(
@@ -450,7 +450,7 @@ def write_reports(results: list[EvidenceResult], summary: dict[str, Any]) -> Non
         "",
         f"- Local aligned core records: **{summary['verified_local_core_records']:,}**",
         f"- Local core source families: **{summary['verified_local_core_source_families']}**",
-        "- Core records including FMCSA server-side source coverage: "
+        "- Core records including the U.S.-only FMCSA server-side source coverage: "
         f"**{summary['verified_all_core_records_including_server_aggregates']:,}**",
         f"- Core source families including FMCSA: **{summary['verified_all_core_source_families']}**",
         f"- Distinct official publishers: **{summary['distinct_core_publishers']}**",
@@ -486,7 +486,7 @@ def main() -> int:
     print(f"Local aligned core records: {summary['verified_local_core_records']:,}")
     print(f"Local core source families: {summary['verified_local_core_source_families']}")
     print(
-        "Core records including FMCSA server aggregate: "
+        "Core records including the U.S.-only FMCSA server aggregate: "
         f"{summary['verified_all_core_records_including_server_aggregates']:,}"
     )
     print(f"Coverage gate: {'PASS' if summary['passed'] else 'FAIL'}")

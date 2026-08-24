@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import zipfile
 from collections import Counter
 from pathlib import Path
 
@@ -19,7 +20,7 @@ SPEC.loader.exec_module(downloader)
 def test_classify_legal_suffix_removes_name_specificity() -> None:
     assert downloader.classify_legal_suffix("Example Holdings, Inc.") == "INCORPORATED"
     assert downloader.classify_legal_suffix("Example Logistics LLC") == "LLC"
-    assert downloader.classify_legal_suffix("Exemple Québec Ltée") == "LIMITED"
+    assert downloader.classify_legal_suffix("Example Industries Ltd.") == "LIMITED"
     assert downloader.classify_legal_suffix("Unmarked Trade Name") == "OTHER/NONE"
     assert downloader.classify_legal_suffix(None) == "MISSING"
 
@@ -46,6 +47,28 @@ def test_add_counts_aggregates_without_retaining_rows() -> None:
     assert counter == Counter({("IA", "LLC"): 2, ("NY", "CORP"): 1})
 
 
+def test_iowa_transform_retains_only_us_home_offices(tmp_path, monkeypatch) -> None:
+    source = tmp_path / "iowa.zip"
+    with zipfile.ZipFile(source, "w") as archive:
+        archive.writestr(
+            "active_iowa_business_entities.csv",
+            "legal_name,corporation_type,effective_date,ho_state,ho_country\n"
+            "Example Iowa LLC,LLC,2020-01-01,IA,USA\n"
+            "Example Foreign Ltd.,CORP,2021-01-01,ON,CAN\n"
+            "Example Missing Inc.,CORP,2022-01-01,IA,\n",
+        )
+    monkeypatch.setattr(downloader, "DERIVED_DIR", tmp_path / "derived")
+
+    records = downloader._process_iowa(source)
+    distribution = pd.read_csv(records[0]["path"])
+    names = pd.read_csv(records[1]["path"])
+
+    assert distribution["records"].sum() == 1
+    assert distribution["home_office_country"].tolist() == ["US"]
+    assert names["records"].sum() == 1
+    assert names["legal_suffix"].tolist() == ["LLC"]
+
+
 def test_realism_profile_uses_reproducible_official_sources_and_stages_narratives() -> None:
     sources = {source.key: source for source in downloader.SOURCES}
 
@@ -70,14 +93,27 @@ def test_source_catalog_lists_stable_keys_and_official_metadata(capsys) -> None:
     assert "ssa_national_names [opt-in; retained official artifact]" in output
     assert f"download: {sources['ssa_national_names'].url}" in output
     assert f"publisher: {sources['ssa_national_names'].landing_page}" in output
+    assert "geography: United States" in output
     assert "cfpb_complaints [default; privacy-minimized after staging]" in output
     assert sources["cfpb_complaints"].purpose in output
+
+
+def test_source_catalog_is_us_only_and_country_scoped_queries_fail_closed() -> None:
+    sources = {source.key: source for source in downloader.SOURCES}
+
+    downloader._validate_us_source_catalog()
+    assert all(source.geographic_scope == "United States" for source in sources.values())
+    assert "canada_active_cbca" not in sources
+    assert "canada_inactive_cbca" not in sources
+    assert "colorado_business_entities_us_distribution" in sources
+    assert "%24where=phy_country+%3D+%27US%27" in sources["fmcsa_company_census_distribution"].url
+    assert "%24where=principalcountry+%3D+%27US%27" in sources["colorado_business_entities_us_distribution"].url
 
 
 def test_github_download_catalog_covers_every_registered_source() -> None:
     catalog = (ROOT / "docs" / "public-data-sources.md").read_text(encoding="utf-8")
 
-    assert "Complete 32-source index" in catalog
+    assert "Complete 31-source index" in catalog
     for source in downloader.SOURCES:
         assert f"`{source.key}`" in catalog
         assert source.url in catalog

@@ -1,0 +1,16 @@
+title: Rata
+description: Privacy-gated synthetic data skills with U.S.-aligned public calibration sources.
+url: https://gvillarroel.github.io
+baseurl: /rata
+repository: gvillarroel/rata
+theme: minima
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: true
+header_pages:
+  - README.md
+  - public-data-sources.md
+  - privacy-model.md
+  - validation.md

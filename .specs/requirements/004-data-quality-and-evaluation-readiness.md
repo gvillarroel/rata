@@ -28,11 +28,13 @@ release gates.
    readiness and the checked-in Harbor configuration.
 9. A completed workload with failed quality/privacy gates establishes compute capacity but remains a failed
    candidate. All failed generation and evaluation reports shall be retained as evidence.
+10. Every default calibration source and retained manifest artifact shall declare United States scope. Any source
+    with a country dimension shall fail quality validation if a retained row is outside the U.S.-only filter.
 
 ## Acceptance
 
-- The full public-data quality audit covers all 40 manifest artifacts and reconciles every covered record count.
-- Unit tests prove type, pattern, aggregate-grain, weight, and capacity-versus-quality behavior.
+- The full public-data quality audit covers all 39 manifest artifacts and reconciles every covered record count.
+- Unit tests prove type, pattern, U.S.-country scope, aggregate-grain, weight, and capacity-versus-quality behavior.
 - An actual ordered skill matrix records generation duration, candidate gates, and rejected leaky controls.
 - Documentation records local readiness, Harbor readiness, dataset warnings, and skill-quality failures without
   weakening a privacy or release threshold.

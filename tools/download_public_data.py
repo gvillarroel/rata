@@ -21,7 +21,7 @@ import urllib.request
 import zipfile
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from html.parser import HTMLParser
 from pathlib import Path
@@ -36,11 +36,26 @@ DERIVED_DIR = BUNDLE_DIR / "derived"
 STAGING_DIR = BUNDLE_DIR / ".staging"
 MANIFEST_PATH = BUNDLE_DIR / "manifest.csv"
 LINKS_PATH = BUNDLE_DIR / "download-links.txt"
+RETIRED_NON_US_KEYS = {
+    "canada_corporations_distribution",
+    "canada_legal_name_pattern_distribution",
+}
+RETIRED_NON_US_ARTIFACTS = (
+    STAGING_DIR / "canada_active_cbca.csv",
+    STAGING_DIR / "canada_active_cbca.csv.part",
+    STAGING_DIR / "canada_inactive_cbca.csv",
+    STAGING_DIR / "canada_inactive_cbca.csv.part",
+    DERIVED_DIR / "canada_corporations_distribution.csv",
+    DERIVED_DIR / "canada_legal_name_pattern_distribution.csv",
+    BUNDLE_DIR / "examples" / "canada_corporations_distribution.csv",
+    BUNDLE_DIR / "examples" / "canada_legal_name_pattern_distribution.csv",
+)
 
 USER_AGENT = "rata-public-data-research/1.0 (+https://github.com/gvillarroel/rata)"
 CHUNK_SIZE = 100_000
 DOWNLOAD_BLOCK_SIZE = 1024 * 1024
 PROGRESS_INTERVAL_BYTES = 50 * 1024 * 1024
+US_COUNTRY_VALUES = {"US", "USA", "UNITED STATES", "UNITED STATES OF AMERICA"}
 
 
 @dataclass(frozen=True)
@@ -55,6 +70,7 @@ class Source:
     minimum_bytes: int
     staged: bool = False
     optional: bool = False
+    geographic_scope: str = field(default="United States", init=False)
 
 
 def _fmcsa_aggregate_url() -> str:
@@ -68,11 +84,31 @@ def _fmcsa_aggregate_url() -> str:
     ]
     query = {
         "$select": ",".join(dimensions) + ",count(*) as records",
+        "$where": "phy_country = 'US'",
         "$group": ",".join(dimensions),
         "$order": "records desc",
         "$limit": "500000",
     }
     return "https://data.transportation.gov/resource/az4n-8mr2.csv?" + urllib.parse.urlencode(query)
+
+
+def _colorado_us_business_aggregate_url() -> str:
+    dimensions = [
+        "entitytype",
+        "entitystatus",
+        "jurisdictonofformation",
+        "principalstate",
+        "principalcountry",
+        "date_extract_y(entityformdate)",
+    ]
+    query = {
+        "$select": ",".join(dimensions[:-1]) + ",date_extract_y(entityformdate) as formation_year,count(*) as records",
+        "$where": "principalcountry = 'US'",
+        "$group": ",".join(dimensions),
+        "$order": "records desc",
+        "$limit": "500000",
+    }
+    return "https://data.colorado.gov/resource/4ykn-tg5h.csv?" + urllib.parse.urlencode(query)
 
 
 SOURCES = (
@@ -213,12 +249,12 @@ SOURCES = (
     ),
     Source(
         "fmcsa_company_census_distribution",
-        "FMCSA Company Census privacy-minimized distribution",
+        "FMCSA Company Census U.S. privacy-minimized distribution",
         _fmcsa_aggregate_url(),
         "fmcsa_company_census_distribution.csv",
         "https://data.transportation.gov/Trucking-and-Motorcoaches/Company-Census-File/az4n-8mr2/about_data",
         "Daily snapshot accessed at run time",
-        "Carrier counts by country/state, status, operation, organization type, and fleet-size class.",
+        "U.S.-carrier counts by state, status, operation, organization type, and fleet-size class.",
         1_000,
     ),
     Source(
@@ -360,31 +396,19 @@ SOURCES = (
         "iowa_active_business_entities.zip",
         "https://data.iowa.gov/catalog/dataset/554",
         "Monthly; accessed at run time",
-        "Formation, legal-structure, and geography distributions; source rows are not retained.",
+        "U.S.-home-office formation, legal-structure, and geography distributions; source rows are not retained.",
         1_000_000,
         staged=True,
     ),
     Source(
-        "canada_active_cbca",
-        "Corporations Canada — active business corporations",
-        "https://d4bf66bykfyaf.cloudfront.net/corporations-active-cbca-en.csv",
-        "canada_active_cbca.csv",
-        "https://open.canada.ca/data/en/dataset/0032ce54-c5dd-4b66-99a0-320a7b5e99f2",
-        "Continuously updated; accessed at run time",
-        "Status, formation-year, province, and legal-name-pattern distributions; source rows are not retained.",
-        90_000_000,
-        staged=True,
-    ),
-    Source(
-        "canada_inactive_cbca",
-        "Corporations Canada — inactive/dissolved business corporations",
-        "https://d4bf66bykfyaf.cloudfront.net/corporations-inactive-or-dissolved-cbca-en.csv",
-        "canada_inactive_cbca.csv",
-        "https://open.canada.ca/data/en/dataset/0032ce54-c5dd-4b66-99a0-320a7b5e99f2",
-        "Continuously updated; accessed at run time",
-        "Status, formation-year, province, and legal-name-pattern distributions; source rows are not retained.",
-        140_000_000,
-        staged=True,
+        "colorado_business_entities_us_distribution",
+        "Colorado business entities — U.S. principal-address distribution",
+        _colorado_us_business_aggregate_url(),
+        "colorado_business_entities_us_distribution.csv",
+        "https://data.colorado.gov/Business/Business-Entities-in-Colorado/4ykn-tg5h/about_data",
+        "Daily snapshot accessed at run time",
+        "U.S.-principal-address entity type, status, formation-year, jurisdiction, and state distributions.",
+        3_000_000,
     ),
     Source(
         "cms_nppes_weekly_v2",
@@ -945,6 +969,9 @@ def _process_iowa(path: Path) -> list[dict[str, Any]]:
     usecols = ["legal_name", "corporation_type", "effective_date", "ho_state", "ho_country"]
     try:
         for chunk in pd.read_csv(member, usecols=usecols, dtype="string", chunksize=CHUNK_SIZE):
+            normalized_country = chunk["ho_country"].str.strip().str.upper()
+            chunk = chunk.loc[normalized_country.isin(US_COUNTRY_VALUES)].copy()
+            chunk["ho_country"] = "US"
             effective = pd.to_datetime(chunk["effective_date"], errors="coerce")
             chunk["effective_year"] = effective.dt.year.astype("Int64").astype("string")
             add_counts(
@@ -972,72 +999,16 @@ def _process_iowa(path: Path) -> list[dict[str, Any]]:
             dist_path,
             "iowa_active_business_entities",
             records,
-            "Grouped by entity type, effective year, and home-office geography; identifiers and addresses removed.",
+            "Filtered to U.S. home offices and grouped by entity type, effective year, and state; identifiers and "
+            "addresses removed.",
         ),
         _derived_record(
             "iowa_legal_name_pattern_distribution",
             name_path,
             "iowa_active_business_entities",
             records,
-            "Grouped legal-designator patterns only; legal names and identifiers removed.",
-        ),
-    ]
-
-
-def _process_canada(active_path: Path, inactive_path: Path) -> list[dict[str, Any]]:
-    distribution: Counter[tuple[str, ...]] = Counter()
-    name_profile: Counter[tuple[str, ...]] = Counter()
-    usecols = [
-        "Corporate name - form 1",
-        "Governing legislation",
-        "Status",
-        "Status Detail",
-        "Anniversary date",
-        "Province/territory",
-        "Country",
-    ]
-    for path in (active_path, inactive_path):
-        for chunk in pd.read_csv(path, usecols=usecols, dtype="string", chunksize=CHUNK_SIZE, encoding="utf-8-sig"):
-            anniversary = pd.to_datetime(chunk["Anniversary date"], errors="coerce")
-            chunk["effective_year"] = anniversary.dt.year.astype("Int64").astype("string")
-            add_counts(
-                distribution,
-                chunk,
-                [
-                    "Governing legislation",
-                    "Status",
-                    "Status Detail",
-                    "effective_year",
-                    "Province/territory",
-                    "Country",
-                ],
-            )
-            chunk["legal_suffix"] = chunk["Corporate name - form 1"].map(classify_legal_suffix)
-            add_counts(name_profile, chunk, ["Status", "legal_suffix"])
-
-    dist_path = DERIVED_DIR / "canada_corporations_distribution.csv"
-    name_path = DERIVED_DIR / "canada_legal_name_pattern_distribution.csv"
-    records = _write_counter(
-        dist_path,
-        ["governing_legislation", "status", "status_detail", "effective_year", "province", "country"],
-        distribution,
-    )
-    _write_counter(name_path, ["status", "legal_suffix"], name_profile)
-    source_keys = "canada_active_cbca;canada_inactive_cbca"
-    return [
-        _derived_record(
-            "canada_corporations_distribution",
-            dist_path,
-            source_keys,
-            records,
-            "Grouped by legislation, status, effective year, and province; names, tax IDs, and addresses removed.",
-        ),
-        _derived_record(
-            "canada_legal_name_pattern_distribution",
-            name_path,
-            source_keys,
-            records,
-            "Grouped legal-designator patterns only; names, tax IDs, and addresses removed.",
+            "Filtered to U.S. home offices and grouped legal-designator patterns only; legal names and identifiers "
+            "removed.",
         ),
     ]
 
@@ -1264,11 +1235,6 @@ def _process_staged(paths: dict[str, Path], keep_staging: bool) -> list[dict[str
     records: list[dict[str, Any]] = []
     if "iowa_active_business_entities" in paths:
         records.extend(_process_iowa(paths["iowa_active_business_entities"]))
-    canada_keys = {"canada_active_cbca", "canada_inactive_cbca"}
-    if canada_keys & paths.keys():
-        if not canada_keys <= paths.keys():
-            raise RuntimeError("Canada distribution processing requires both active and inactive sources")
-        records.extend(_process_canada(paths["canada_active_cbca"], paths["canada_inactive_cbca"]))
     if "cms_nppes_weekly_v2" in paths:
         records.extend(_process_nppes(paths["cms_nppes_weekly_v2"]))
     if "sba_ppp_150k_plus" in paths:
@@ -1351,6 +1317,7 @@ def _write_manifest(
                 "records": _csv_rows(path) if path.suffix.lower() == ".csv" else "",
                 "source_url": source.url,
                 "landing_page": source.landing_page,
+                "geographic_scope": source.geographic_scope,
                 "purpose": source.purpose,
                 "privacy_transform": "None; publisher-provided aggregate/reference file.",
                 "accessed_at_utc": now,
@@ -1374,6 +1341,7 @@ def _write_manifest(
                 "records": _csv_rows(path),
                 "source_url": "; ".join(source_urls),
                 "landing_page": "; ".join(landing_pages),
+                "geographic_scope": "; ".join(sorted({source_by_key[key].geographic_scope for key in keys})),
                 "purpose": "Calibration-only aggregate derived from the cited public source.",
                 "privacy_transform": record["transform"],
                 "accessed_at_utc": now,
@@ -1383,7 +1351,11 @@ def _write_manifest(
     BUNDLE_DIR.mkdir(parents=True, exist_ok=True)
     if merge_existing and MANIFEST_PATH.is_file():
         with MANIFEST_PATH.open(encoding="utf-8-sig", newline="") as source:
-            existing = list(csv.DictReader(source))
+            existing = [row for row in csv.DictReader(source) if row.get("key") not in RETIRED_NON_US_KEYS]
+        for row in existing:
+            row.setdefault("geographic_scope", "United States")
+            if not row["geographic_scope"]:
+                row["geographic_scope"] = "United States"
         merged = {row["key"]: row for row in existing}
         merged.update({row["key"]: row for row in rows})
         rows = list(merged.values())
@@ -1397,6 +1369,8 @@ def _write_manifest(
     with LINKS_PATH.open("w", encoding="utf-8", newline="") as output:
         for source in SOURCES:
             output.write(f"{source.title}\n{source.url}\n\n")
+    for retired_path in RETIRED_NON_US_ARTIFACTS:
+        retired_path.unlink(missing_ok=True)
 
 
 def _parse_args() -> argparse.Namespace:
@@ -1427,7 +1401,14 @@ def _print_source_catalog(sources: tuple[Source, ...] = SOURCES) -> None:
         print(f"  {source.title} ({source.vintage})")
         print(f"  download: {source.url}")
         print(f"  publisher: {source.landing_page}")
+        print(f"  geography: {source.geographic_scope}")
         print(f"  purpose: {source.purpose}")
+
+
+def _validate_us_source_catalog(sources: tuple[Source, ...] = SOURCES) -> None:
+    non_us = sorted(source.key for source in sources if source.geographic_scope != "United States")
+    if non_us:
+        raise RuntimeError(f"non-U.S. sources are not permitted in this catalog: {', '.join(non_us)}")
 
 
 def _select_sources(selected_keys: set[str]) -> tuple[Source, ...]:
@@ -1439,6 +1420,7 @@ def _select_sources(selected_keys: set[str]) -> tuple[Source, ...]:
 
 def main() -> int:
     args = _parse_args()
+    _validate_us_source_catalog()
     if args.list:
         _print_source_catalog()
         return 0

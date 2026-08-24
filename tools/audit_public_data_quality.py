@@ -54,6 +54,7 @@ class DelimitedRule:
     weight: str | None = None
     delimiter: str = ","
     signed_numeric: tuple[str, ...] = ()
+    allowed_values: tuple[tuple[str, tuple[str, ...]], ...] = ()
     duplicates_are_warning: bool = False
 
 
@@ -149,13 +150,15 @@ RULES: dict[str, DelimitedRule] = {
         (("phy_country", r"[A-Z]{2}"), ("phy_state", r"[A-Z]{2}")),
         ("phy_country", "phy_state", "status_code", "carrier_operation", "business_org_desc", "fleetsize"),
         "records",
+        allowed_values=(("phy_country", ("US",)),),
     ),
     "iowa_business_registry_distribution": DelimitedRule(
         ("corporation_type", "effective_year", "home_office_state", "home_office_country", "records"),
         ("records",),
-        (("effective_year", r"\d{4}"),),
+        (("effective_year", r"\d{4}"), ("home_office_country", r"US")),
         ("corporation_type", "effective_year", "home_office_state", "home_office_country"),
         "records",
+        allowed_values=(("home_office_country", ("US",)),),
     ),
     "iowa_legal_name_pattern_distribution": DelimitedRule(
         ("corporation_type", "legal_suffix", "records"),
@@ -163,18 +166,28 @@ RULES: dict[str, DelimitedRule] = {
         dimensions=("corporation_type", "legal_suffix"),
         weight="records",
     ),
-    "canada_corporations_distribution": DelimitedRule(
-        ("governing_legislation", "status", "status_detail", "effective_year", "province", "country", "records"),
+    "colorado_business_entities_us_distribution": DelimitedRule(
+        (
+            "entitytype",
+            "entitystatus",
+            "jurisdictonofformation",
+            "principalstate",
+            "principalcountry",
+            "formation_year",
+            "records",
+        ),
         ("records",),
-        (("effective_year", r"\d{4}"),),
-        ("governing_legislation", "status", "status_detail", "effective_year", "province", "country"),
+        (("principalcountry", r"US"), ("formation_year", r"\d{4}")),
+        (
+            "entitytype",
+            "entitystatus",
+            "jurisdictonofformation",
+            "principalstate",
+            "principalcountry",
+            "formation_year",
+        ),
         "records",
-    ),
-    "canada_legal_name_pattern_distribution": DelimitedRule(
-        ("status", "legal_suffix", "records"),
-        ("records",),
-        dimensions=("status", "legal_suffix"),
-        weight="records",
+        allowed_values=(("principalcountry", ("US",)),),
     ),
     "cms_nppes_type2_weekly_distribution": DelimitedRule(
         ("practice_state", "taxonomy_code", "enumeration_year", "last_update_year", "is_deactivated", "records"),
@@ -293,6 +306,7 @@ def profile_delimited(handle: TextIO, rule: DelimitedRule, full_scan: bool = Tru
         reader.fieldnames = columns
     missing_columns = sorted(set(rule.required) - set(columns))
     pattern_violations = {column: 0 for column, _pattern in rule.patterns}
+    allowed_value_violations = {column: 0 for column, _values in rule.allowed_values}
     numeric_parse_violations = {column: 0 for column in rule.numeric}
     numeric_negative_values = {column: 0 for column in rule.numeric}
     missing_values = {column: 0 for column in columns}
@@ -312,6 +326,10 @@ def profile_delimited(handle: TextIO, rule: DelimitedRule, full_scan: bool = Tru
             value = str(row.get(column, "")).strip()
             if value and re.fullmatch(pattern, value) is None:
                 pattern_violations[column] += 1
+        for column, allowed_values in rule.allowed_values:
+            value = str(row.get(column, "")).strip()
+            if value and value not in allowed_values:
+                allowed_value_violations[column] += 1
         for column in rule.numeric:
             raw = str(row.get(column, ""))
             value = _number(raw)
@@ -342,6 +360,7 @@ def profile_delimited(handle: TextIO, rule: DelimitedRule, full_scan: bool = Tru
         "numeric_parse_violations": numeric_parse_violations,
         "numeric_negative_values": numeric_negative_values,
         "pattern_violations": pattern_violations,
+        "allowed_value_violations": allowed_value_violations,
         "duplicate_dimension_rows": duplicates,
         "weight_total": weight_total if rule.weight else None,
         "missing_rates": {column: round(count / rows, 8) if rows else None for column, count in missing_values.items()},
@@ -500,7 +519,12 @@ def artifact_failures(metrics: dict[str, Any], rule: DelimitedRule | None = None
             failures.append(field)
     if metrics.get("duplicate_dimension_rows", 0) and not (rule and rule.duplicates_are_warning):
         failures.append("duplicate_dimension_rows")
-    for field in ("numeric_parse_violations", "numeric_negative_values", "pattern_violations"):
+    for field in (
+        "numeric_parse_violations",
+        "numeric_negative_values",
+        "pattern_violations",
+        "allowed_value_violations",
+    ):
         if any(metrics.get(field, {}).values()):
             failures.append(field)
     if metrics.get("archive_crc_passed") is False or metrics.get("workbook_present") is False:
@@ -517,11 +541,14 @@ def audit_artifact(row: dict[str, str], full_scan: bool) -> dict[str, Any]:
         "key": key,
         "title": row["title"],
         "artifact_type": row["artifact_type"],
+        "geographic_scope": row.get("geographic_scope", ""),
         "path": row["local_path"],
         "exists": path.is_file(),
         "failures": [],
         "warnings": [],
     }
+    if result["geographic_scope"] != "United States":
+        result["failures"].append("non_us_geographic_scope")
     if not path.is_file():
         result["failures"].append("missing_file")
         result["status"] = "failed"
@@ -619,7 +646,7 @@ def markdown_report(report: dict[str, Any]) -> str:
             "## Interpretation",
             "",
             "A pass establishes file integrity, parseability, declared schema presence, critical numeric/code",
-            "validity,",
+            "and U.S.-scope validity,",
             "aggregate-grain uniqueness, positive aggregate weights, and privacy-minimized column exclusion for this",
             "retained bundle. It does not remove the source-specific sampling and representativeness limitations",
             "below.",
@@ -639,15 +666,19 @@ def audit(full_scan: bool = True) -> dict[str, Any]:
     coverage = json.loads(COVERAGE.read_text(encoding="utf-8"))
     example_coverage = json.loads(EXAMPLE_COVERAGE.read_text(encoding="utf-8"))
     artifacts = [audit_artifact(row, full_scan) for row in manifest]
-    coverage_counts = {item["key"]: int(item["record_count"]) for item in coverage.get("sources", [])}
+    coverage_by_key = {item["key"]: item for item in coverage.get("sources", [])}
     for artifact in artifacts:
-        expected = coverage_counts.get(artifact["key"])
-        if expected is None:
+        coverage_row = coverage_by_key.get(artifact["key"])
+        if coverage_row is None:
             continue
+        expected = int(coverage_row["record_count"])
         metrics = artifact["metrics"]
-        observed = metrics.get("weight_total")
-        if observed is None:
+        if coverage_row.get("count_method") == "csv_rows_minus_header":
             observed = metrics.get("rows_scanned")
+        else:
+            observed = metrics.get("weight_total")
+            if observed is None:
+                observed = metrics.get("rows_scanned")
         matches = observed is not None and int(observed) == expected
         metrics["coverage_record_count"] = expected
         metrics["record_count_matches_coverage"] = matches if full_scan else None
