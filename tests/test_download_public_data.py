@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import csv
 import importlib.util
+import io
 import sys
 import zipfile
 from collections import Counter
@@ -15,6 +17,14 @@ if SPEC is None or SPEC.loader is None:
 downloader = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = downloader
 SPEC.loader.exec_module(downloader)
+
+
+def _csv_text(header: list[str], rows: list[list[object]], delimiter: str = ",") -> str:
+    output = io.StringIO(newline="")
+    writer = csv.writer(output, delimiter=delimiter, lineterminator="\n")
+    writer.writerow(header)
+    writer.writerows(rows)
+    return output.getvalue()
 
 
 def test_classify_legal_suffix_removes_name_specificity() -> None:
@@ -113,7 +123,7 @@ def test_source_catalog_is_us_only_and_country_scoped_queries_fail_closed() -> N
 def test_github_download_catalog_covers_every_registered_source() -> None:
     catalog = (ROOT / "docs" / "public-data-sources.md").read_text(encoding="utf-8")
 
-    assert "Complete 31-source index" in catalog
+    assert "Complete 35-source index" in catalog
     for source in downloader.SOURCES:
         assert f"`{source.key}`" in catalog
         assert source.url in catalog
@@ -136,4 +146,138 @@ def test_nyc_name_transform_aggregates_ethnicity_rows_and_applies_minimum_count(
 
     assert output.to_dict(orient="records") == [
         {"given_name": "Olivia", "sex": "F", "records": 30, "first_year": 2024, "last_year": 2024}
+    ]
+
+
+def test_capability_profile_expands_paired_acs_sources() -> None:
+    sources = {source.key: source for source in downloader.SOURCES}
+    expanded = downloader._expand_selected_keys({"capability"})
+
+    assert expanded == set(downloader.CAPABILITY_KEYS)
+    assert downloader._expand_selected_keys({"acs_pums_nc_person_2024"}) >= set(downloader.ACS_PUMS_KEYS)
+    assert sources["acs_pums_nc_person_2024"].staged is True
+    assert sources["acs_pums_nc_housing_2024"].staged is True
+    assert sources["nhtsa_complaints_2020_2024"].staged is True
+    assert sources["usda_fooddata_foundation_2026_04"].staged is False
+
+
+def test_acs_pums_transform_suppresses_rows_and_discards_serials(tmp_path, monkeypatch) -> None:
+    housing = tmp_path / "housing.zip"
+    person = tmp_path / "person.zip"
+    serials = [f"H{index:03d}" for index in range(25)]
+    with zipfile.ZipFile(housing, "w") as archive:
+        archive.writestr(
+            "psam_h37.csv",
+            _csv_text(
+                ["SERIALNO", "TYPEHUGQ", "NP", "TEN", "BDSP", "VEH", "HINCP", "ACCESSINET", "FS", "WGTP"],
+                [[serial, 1, 2, 3, 2, 1, 50_000, 1, 2, 2] for serial in serials],
+            ),
+        )
+    with zipfile.ZipFile(person, "w") as archive:
+        archive.writestr(
+            "psam_p37.csv",
+            _csv_text(
+                ["SERIALNO", "AGEP", "SEX", "SCHL", "ESR", "DIS", "HICOV", "PINCP", "RELSHIPP", "PWGTP"],
+                [[serial, 40, 2, 21, 1, 2, 1, 60_000, 20, 3] for serial in serials],
+            ),
+        )
+    monkeypatch.setattr(downloader, "DERIVED_DIR", tmp_path / "derived")
+
+    records = downloader._process_acs_pums(person, housing)
+    outputs = {record["key"]: pd.read_csv(record["path"]) for record in records}
+
+    assert outputs["acs_pums_nc_person_distribution"]["records"].sum() == 25
+    assert outputs["acs_pums_nc_person_distribution"]["weighted_people"].sum() == 75
+    assert outputs["acs_pums_nc_household_distribution"]["records"].sum() == 25
+    assert outputs["acs_pums_nc_household_distribution"]["weighted_households"].sum() == 50
+    assert outputs["acs_pums_nc_relationship_distribution"]["relationship"].tolist() == ["REFERENCE_PERSON"]
+    assert all("SERIALNO" not in frame.columns for frame in outputs.values())
+
+
+def test_nhtsa_transform_never_retains_identifying_fields(tmp_path, monkeypatch) -> None:
+    source = tmp_path / "nhtsa.zip"
+    rows = []
+    for index in range(25):
+        row = {column: "" for column in downloader.NHTSA_COMPLAINT_COLUMNS}
+        row.update(
+            {
+                "CMPLID": f"COMP-{index}",
+                "ODINO": f"ODI-{index}",
+                "MAKETXT": "EXAMPLE MAKE",
+                "YEARTXT": "2022",
+                "CRASH": "N",
+                "FIRE": "N",
+                "INJURED": "0",
+                "DEATHS": "0",
+                "COMPDESC": "ENGINE",
+                "CITY": f"PRIVATE CITY {index}",
+                "STATE": "NC",
+                "VIN": f"PRIVATEVIN{index}",
+                "DATEA": "20240115",
+                "MILES": "10000",
+                "CDESCR": "The vehicle engine stopped while driving on the road",
+                "CMPL_TYPE": "VOQ",
+                "VEH_SPEED": "30",
+                "PROD_TYPE": "VEHICLE",
+                "MEDICAL_ATTN": "N",
+                "VEHICLES_TOWED_YN": "Y",
+                "DEALER_NAME": f"PRIVATE DEALER {index}",
+                "VEHICLE_OPERATOR": f"PRIVATE PERSON {index}",
+            }
+        )
+        rows.append([row[column] for column in downloader.NHTSA_COMPLAINT_COLUMNS])
+    with zipfile.ZipFile(source, "w") as archive:
+        archive.writestr("COMPLAINTS_RECEIVED_2020-2024.txt", _csv_text([], rows, delimiter="\t").lstrip("\n"))
+    monkeypatch.setattr(downloader, "DERIVED_DIR", tmp_path / "derived")
+    monkeypatch.setattr(downloader, "NHTSA_NARRATIVE_MIN_DOCUMENTS", 2)
+
+    records = downloader._process_nhtsa_complaints(source)
+    outputs = {record["key"]: pd.read_csv(record["path"]) for record in records}
+
+    assert outputs["nhtsa_vehicle_component_distribution"]["records"].sum() == 25
+    assert outputs["nhtsa_incident_profile_distribution"]["records"].sum() == 25
+    assert outputs["nhtsa_narrative_length_distribution"]["records"].sum() == 25
+    assert not outputs["nhtsa_narrative_token_distribution"].empty
+    forbidden = {"CMPLID", "ODINO", "CITY", "STATE", "VIN", "DEALER_NAME", "VEHICLE_OPERATOR"}
+    assert all(not forbidden.intersection(frame.columns) for frame in outputs.values())
+    assert "PRIVATE" not in " ".join(frame.to_csv(index=False) for frame in outputs.values())
+
+
+def test_fooddata_transform_aggregates_relational_nutrients(tmp_path, monkeypatch) -> None:
+    source = tmp_path / "fooddata.zip"
+    with zipfile.ZipFile(source, "w") as archive:
+        archive.writestr(
+            "bundle/food.csv",
+            _csv_text(
+                ["fdc_id", "data_type", "description", "food_category_id"],
+                [[index, "foundation_food", f"Food {index}", 1] for index in range(1, 6)],
+            ),
+        )
+        archive.writestr("bundle/foundation_food.csv", _csv_text(["fdc_id"], [[index] for index in range(1, 6)]))
+        archive.writestr("bundle/food_category.csv", _csv_text(["id", "description"], [[1, "Fruit"]]))
+        archive.writestr("bundle/nutrient.csv", _csv_text(["id", "name", "unit_name"], [[100, "Protein", "g"]]))
+        archive.writestr(
+            "bundle/food_nutrient.csv",
+            _csv_text(
+                ["fdc_id", "nutrient_id", "amount"],
+                [[index, 100, index] for index in range(1, 6)],
+            ),
+        )
+    monkeypatch.setattr(downloader, "DERIVED_DIR", tmp_path / "derived")
+
+    records = downloader._process_fooddata_foundation(source)
+    output = pd.read_csv(records[0]["path"])
+
+    assert output.to_dict(orient="records") == [
+        {
+            "food_category": "Fruit",
+            "nutrient_name": "Protein",
+            "unit_name": "g",
+            "observations": 5,
+            "distinct_foods": 5,
+            "mean_amount": 3.0,
+            "median_amount": 3.0,
+            "minimum_amount": 1,
+            "maximum_amount": 5,
+        }
     ]

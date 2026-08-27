@@ -33,7 +33,7 @@ release gates.
 
 ## Acceptance
 
-- The full public-data quality audit covers all 39 manifest artifacts and reconciles every covered record count.
+- The full public-data quality audit covers all 48 manifest artifacts and reconciles every covered record count.
 - Unit tests prove type, pattern, U.S.-country scope, aggregate-grain, weight, and capacity-versus-quality behavior.
 - An actual ordered skill matrix records generation duration, candidate gates, and rejected leaky controls.
 - Documentation records local readiness, Harbor readiness, dataset warnings, and skill-quality failures without

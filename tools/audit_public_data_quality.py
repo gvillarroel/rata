@@ -27,19 +27,30 @@ SUPPRESSION_MARKERS = {"", "N", "D", "S", "X", "(X)", "NA", "N/A", "NULL"}
 FORBIDDEN_MINIMIZED_COLUMNS = {
     "address",
     "borrower_name",
+    "city",
     "cik",
+    "cmplid",
     "company_name",
+    "dealer_city",
+    "dealer_name",
+    "dealer_state",
+    "dealer_tel",
+    "dealer_zip",
     "email",
     "legal_name",
     "loan_number",
     "npi",
+    "odino",
     "phone",
     "provider_name",
     "recipient_name",
     "ssn",
+    "serialno",
     "tax_id",
     "ticker",
     "uei",
+    "vehicle_operator",
+    "vin",
 }
 
 NAICS_PATTERN = r"[0-9/-]{2,6}"
@@ -265,6 +276,136 @@ RULES: dict[str, DelimitedRule] = {
         (("word_count_band", r"(?:\d{4}_\d{4}|1000_PLUS)"),),
         ("word_count_band",),
         "records",
+    ),
+    "acs_pums_nc_person_distribution": DelimitedRule(
+        (
+            "age_band",
+            "sex",
+            "education",
+            "employment_status",
+            "disability",
+            "health_insurance",
+            "personal_income_band",
+            "records",
+            "weighted_people",
+        ),
+        ("records", "weighted_people"),
+        dimensions=(
+            "age_band",
+            "sex",
+            "education",
+            "employment_status",
+            "disability",
+            "health_insurance",
+            "personal_income_band",
+        ),
+        weight="weighted_people",
+    ),
+    "acs_pums_nc_household_distribution": DelimitedRule(
+        (
+            "household_size_band",
+            "tenure",
+            "bedrooms_band",
+            "vehicles_band",
+            "household_income_band",
+            "internet_access",
+            "food_stamps",
+            "records",
+            "weighted_households",
+        ),
+        ("records", "weighted_households"),
+        dimensions=(
+            "household_size_band",
+            "tenure",
+            "bedrooms_band",
+            "vehicles_band",
+            "household_income_band",
+            "internet_access",
+            "food_stamps",
+        ),
+        weight="weighted_households",
+    ),
+    "acs_pums_nc_relationship_distribution": DelimitedRule(
+        ("household_size_band", "relationship", "age_band", "sex", "records", "weighted_people"),
+        ("records", "weighted_people"),
+        dimensions=("household_size_band", "relationship", "age_band", "sex"),
+        weight="weighted_people",
+    ),
+    "nhtsa_vehicle_component_distribution": DelimitedRule(
+        ("received_year", "product_type", "make", "model_year", "component", "crash", "fire", "records"),
+        ("records",),
+        patterns=(("received_year", r"(?:20\d{2}|MISSING)"), ("model_year", r"(?:(?:19|20)\d{2}|MISSING)")),
+        dimensions=("received_year", "product_type", "make", "model_year", "component", "crash", "fire"),
+        weight="records",
+    ),
+    "nhtsa_incident_profile_distribution": DelimitedRule(
+        (
+            "received_year",
+            "product_type",
+            "complaint_source",
+            "crash",
+            "fire",
+            "injury_band",
+            "death_band",
+            "mileage_band",
+            "speed_band",
+            "medical_attention",
+            "vehicles_towed",
+            "records",
+        ),
+        ("records",),
+        patterns=(("received_year", r"20\d{2}"),),
+        dimensions=(
+            "received_year",
+            "product_type",
+            "complaint_source",
+            "crash",
+            "fire",
+            "injury_band",
+            "death_band",
+            "mileage_band",
+            "speed_band",
+            "medical_attention",
+            "vehicles_towed",
+        ),
+        weight="records",
+    ),
+    "nhtsa_narrative_token_distribution": DelimitedRule(
+        ("token", "records", "document_frequency"),
+        ("records", "document_frequency"),
+        dimensions=("token",),
+        weight="records",
+    ),
+    "nhtsa_narrative_length_distribution": DelimitedRule(
+        ("word_count_band", "records"),
+        ("records",),
+        (("word_count_band", r"(?:\d{4}_\d{4}|1000_PLUS)"),),
+        ("word_count_band",),
+        "records",
+    ),
+    "usda_fooddata_foundation_nutrient_statistics": DelimitedRule(
+        (
+            "food_category",
+            "nutrient_name",
+            "unit_name",
+            "observations",
+            "distinct_foods",
+            "mean_amount",
+            "median_amount",
+            "minimum_amount",
+            "maximum_amount",
+        ),
+        (
+            "observations",
+            "distinct_foods",
+            "mean_amount",
+            "median_amount",
+            "minimum_amount",
+            "maximum_amount",
+        ),
+        dimensions=("food_category", "nutrient_name", "unit_name"),
+        weight="observations",
+        signed_numeric=("mean_amount", "median_amount", "minimum_amount", "maximum_amount"),
     ),
 }
 
@@ -509,9 +650,110 @@ def profile_tiger_dbf(path: Path) -> dict[str, Any]:
     }
 
 
+def _archive_members_by_basename(archive: zipfile.ZipFile) -> dict[str, str]:
+    members: dict[str, str] = {}
+    duplicates: set[str] = set()
+    for name in archive.namelist():
+        basename = Path(name).name.lower()
+        if not basename:
+            continue
+        if basename in members:
+            duplicates.add(basename)
+        members[basename] = name
+    if duplicates:
+        raise ValueError(f"archive has duplicate basenames: {', '.join(sorted(duplicates))}")
+    return members
+
+
+def _archive_dict_rows(archive: zipfile.ZipFile, member: str) -> list[dict[str, str]]:
+    with (
+        archive.open(member) as binary,
+        io.TextIOWrapper(binary, encoding="utf-8-sig", errors="replace", newline="") as text,
+    ):
+        return list(csv.DictReader(text))
+
+
+def profile_fooddata_archive(path: Path) -> dict[str, Any]:
+    required = {
+        "food.csv",
+        "food_category.csv",
+        "food_nutrient.csv",
+        "food_portion.csv",
+        "foundation_food.csv",
+        "measure_unit.csv",
+        "nutrient.csv",
+    }
+    with zipfile.ZipFile(path) as archive:
+        bad_member = archive.testzip()
+        members = _archive_members_by_basename(archive)
+        missing = sorted(required - set(members))
+        if missing:
+            return {
+                "rows_scanned": 0,
+                "columns": sorted(members),
+                "missing_required_members": missing,
+                "archive_crc_passed": bad_member is None,
+                "archive_bad_member": bad_member,
+            }
+
+        foods = _archive_dict_rows(archive, members["food.csv"])
+        categories = _archive_dict_rows(archive, members["food_category.csv"])
+        nutrients = _archive_dict_rows(archive, members["nutrient.csv"])
+        foundation = _archive_dict_rows(archive, members["foundation_food.csv"])
+        food_nutrients = _archive_dict_rows(archive, members["food_nutrient.csv"])
+        portions = _archive_dict_rows(archive, members["food_portion.csv"])
+        measure_units = _archive_dict_rows(archive, members["measure_unit.csv"])
+
+    food_ids = {row.get("fdc_id", "").strip() for row in foods if row.get("fdc_id", "").strip()}
+    category_ids = {row.get("id", "").strip() for row in categories if row.get("id", "").strip()}
+    nutrient_ids = {row.get("id", "").strip() for row in nutrients if row.get("id", "").strip()}
+    measure_ids = {row.get("id", "").strip() for row in measure_units if row.get("id", "").strip()}
+    relationship_orphans = {
+        "food_category": sum(
+            bool(row.get("food_category_id", "").strip())
+            and row.get("food_category_id", "").strip() not in category_ids
+            for row in foods
+        ),
+        "foundation_food": sum(row.get("fdc_id", "").strip() not in food_ids for row in foundation),
+        "food_nutrient_food": sum(row.get("fdc_id", "").strip() not in food_ids for row in food_nutrients),
+        "food_nutrient_nutrient": sum(row.get("nutrient_id", "").strip() not in nutrient_ids for row in food_nutrients),
+        "food_portion_food": sum(row.get("fdc_id", "").strip() not in food_ids for row in portions),
+        "food_portion_measure": sum(
+            bool(row.get("measure_unit_id", "").strip()) and row.get("measure_unit_id", "").strip() not in measure_ids
+            for row in portions
+        ),
+    }
+    relationship_totals = {
+        "food_category": len(foods),
+        "foundation_food": len(foundation),
+        "food_nutrient_food": len(food_nutrients),
+        "food_nutrient_nutrient": len(food_nutrients),
+        "food_portion_food": len(portions),
+        "food_portion_measure": len(portions),
+    }
+    return {
+        "rows_scanned": len(foods) + len(foundation) + len(food_nutrients) + len(portions),
+        "columns": sorted(required),
+        "missing_required_members": [],
+        "archive_crc_passed": bad_member is None,
+        "archive_bad_member": bad_member,
+        "relationship_orphans": relationship_orphans,
+        "relationship_orphan_rates": {
+            key: round(count / relationship_totals[key], 8) if relationship_totals[key] else 0.0
+            for key, count in relationship_orphans.items()
+        },
+        "table_rows": {
+            "food": len(foods),
+            "foundation_food": len(foundation),
+            "food_nutrient": len(food_nutrients),
+            "food_portion": len(portions),
+        },
+    }
+
+
 def artifact_failures(metrics: dict[str, Any], rule: DelimitedRule | None = None) -> list[str]:
     failures = []
-    for field in ("missing_required_columns",):
+    for field in ("missing_required_columns", "missing_required_members"):
         if metrics.get(field):
             failures.append(field)
     for field in ("malformed_rows", "invalid_cik_values"):
@@ -529,6 +771,8 @@ def artifact_failures(metrics: dict[str, Any], rule: DelimitedRule | None = None
             failures.append(field)
     if metrics.get("archive_crc_passed") is False or metrics.get("workbook_present") is False:
         failures.append("archive_integrity")
+    if any(rate > 0.05 for rate in metrics.get("relationship_orphan_rates", {}).values()):
+        failures.append("relationship_orphans")
     if rule and rule.weight and not metrics.get("weight_total", 0) > 0:
         failures.append("aggregate_weight_total")
     return failures
@@ -582,6 +826,8 @@ def audit_artifact(row: dict[str, str], full_scan: bool) -> dict[str, Any]:
         metrics = profile_usps_html(path)
     elif key.startswith("tiger_roads_"):
         metrics = profile_tiger_dbf(path)
+    elif key == "usda_fooddata_foundation_2026_04":
+        metrics = profile_fooddata_archive(path)
     else:
         metrics = {"rows_scanned": None, "unsupported_profile": True}
         result["failures"].append("missing_quality_profile")
@@ -590,6 +836,14 @@ def audit_artifact(row: dict[str, str], full_scan: bool) -> dict[str, Any]:
     result["failures"].extend(artifact_failures(metrics, rule))
     if rule and rule.duplicates_are_warning and metrics.get("duplicate_dimension_rows", 0):
         result["warnings"].append({"publisher_duplicate_dimension_rows": metrics["duplicate_dimension_rows"]})
+    if any(metrics.get("relationship_orphans", {}).values()):
+        result["warnings"].append(
+            {
+                "publisher_relationship_orphans": metrics["relationship_orphans"],
+                "relationship_orphan_rates": metrics.get("relationship_orphan_rates", {}),
+                "hard_failure_threshold": 0.05,
+            }
+        )
 
     if row["artifact_type"] == "privacy_minimized_distribution":
         forbidden = sorted(set(metrics.get("columns", [])) & FORBIDDEN_MINIMIZED_COLUMNS)

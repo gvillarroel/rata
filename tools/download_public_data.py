@@ -1,9 +1,9 @@
-"""Download and privacy-minimize public business calibration datasets.
+"""Download and privacy-minimize public calibration and capability datasets.
 
 The retained bundle lives under ``datasets/public-data`` (ignored by Git). Official
-aggregate datasets are retained verbatim. Row-level registry/provider/loan files are
-downloaded only to a staging directory, converted to aggregate distributions, and
-removed after successful processing.
+aggregate and non-person reference datasets are retained verbatim. Row-level
+registry/provider/loan/microdata files are downloaded only to a staging directory,
+converted to aggregate distributions, and removed after successful processing.
 """
 
 from __future__ import annotations
@@ -432,6 +432,51 @@ SOURCES = (
         400_000_000,
         staged=True,
     ),
+    Source(
+        "acs_pums_nc_person_2024",
+        "Census ACS PUMS North Carolina person records",
+        "https://www2.census.gov/programs-surveys/acs/data/pums/2024/1-Year/csv_pnc.zip",
+        "acs_pums_nc_person_2024.zip",
+        "https://www.census.gov/programs-surveys/acs/microdata/access.html",
+        "2024 ACS 1-year PUMS",
+        "Weighted person and relationship distributions for conditional and relational synthesis; source rows are "
+        "not retained.",
+        15_000_000,
+        staged=True,
+    ),
+    Source(
+        "acs_pums_nc_housing_2024",
+        "Census ACS PUMS North Carolina housing records",
+        "https://www2.census.gov/programs-surveys/acs/data/pums/2024/1-Year/csv_hnc.zip",
+        "acs_pums_nc_housing_2024.zip",
+        "https://www.census.gov/programs-surveys/acs/microdata/access.html",
+        "2024 ACS 1-year PUMS",
+        "Weighted occupied-household and person-to-household relationship distributions; source rows are not retained.",
+        6_000_000,
+        staged=True,
+    ),
+    Source(
+        "nhtsa_complaints_2020_2024",
+        "NHTSA vehicle complaints received 2020–2024",
+        "https://static.nhtsa.gov/odi/ffdd/cmpl/COMPLAINTS_RECEIVED_2020-2024.zip",
+        "nhtsa_complaints_2020_2024.zip",
+        "https://www.nhtsa.gov/nhtsa-datasets-and-apis",
+        "2020–2024 archive; publisher updates complaint files daily",
+        "Vehicle-component, incident-profile, and coarse narrative distributions; source rows and identifying "
+        "fields are not retained.",
+        50_000_000,
+        staged=True,
+    ),
+    Source(
+        "usda_fooddata_foundation_2026_04",
+        "USDA FoodData Central Foundation Foods",
+        "https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_foundation_food_csv_2026-04-30.zip",
+        "usda_fooddata_foundation_2026-04.zip",
+        "https://fdc.nal.usda.gov/download-datasets/",
+        "2026-04-30",
+        "Non-person relational benchmark for foods, nutrients, portions, samples, and analytical methods.",
+        3_000_000,
+    ),
 )
 
 TIGER_ROAD_KEYS = (
@@ -450,6 +495,71 @@ REALISM_KEYS = (
     "cfpb_complaints",
     "sec_company_tickers_exchange",
     "census_zbp_detail_2023",
+)
+ACS_PUMS_KEYS = (
+    "acs_pums_nc_person_2024",
+    "acs_pums_nc_housing_2024",
+)
+CAPABILITY_KEYS = (
+    *ACS_PUMS_KEYS,
+    "nhtsa_complaints_2020_2024",
+    "usda_fooddata_foundation_2026_04",
+)
+MINIMUM_DISTRIBUTION_CELL = 20
+NHTSA_NARRATIVE_MIN_DOCUMENTS = 500
+FOODDATA_MIN_OBSERVATIONS = 5
+NHTSA_COMPLAINT_COLUMNS = (
+    "CMPLID",
+    "ODINO",
+    "MFR_NAME",
+    "MAKETXT",
+    "MODELTXT",
+    "YEARTXT",
+    "CRASH",
+    "FAILDATE",
+    "FIRE",
+    "INJURED",
+    "DEATHS",
+    "COMPDESC",
+    "CITY",
+    "STATE",
+    "VIN",
+    "DATEA",
+    "LDATE",
+    "MILES",
+    "OCCURENCES",
+    "CDESCR",
+    "CMPL_TYPE",
+    "POLICE_RPT_YN",
+    "PURCH_DT",
+    "ORIG_OWNER_YN",
+    "ANTI_BRAKES_YN",
+    "CRUISE_CONT_YN",
+    "NUM_CYLS",
+    "DRIVE_TRAIN",
+    "FUEL_SYS",
+    "FUEL_TYPE",
+    "TRANS_TYPE",
+    "VEH_SPEED",
+    "DOT",
+    "TIRE_SIZE",
+    "LOC_OF_TIRE",
+    "TIRE_FAIL_TYPE",
+    "ORIG_EQUIP_YN",
+    "MANUF_DT",
+    "SEAT_TYPE",
+    "RESTRAINT_TYPE",
+    "DEALER_NAME",
+    "DEALER_TEL",
+    "DEALER_CITY",
+    "DEALER_STATE",
+    "DEALER_ZIP",
+    "PROD_TYPE",
+    "REPAIRED_YN",
+    "MEDICAL_ATTN",
+    "VEHICLES_TOWED_YN",
+    "STATE_OF_INCIDENT",
+    "VEHICLE_OPERATOR",
 )
 
 
@@ -515,6 +625,24 @@ def _write_counter(path: Path, dimensions: list[str], counter: Counter[tuple[str
         for key, count in sorted(counter.items()):
             writer.writerow([*key, count])
     return sum(counter.values())
+
+
+def _write_suppressed_counter(
+    path: Path,
+    dimensions: list[str],
+    counter: Counter[tuple[str, ...]],
+    minimum_records: int = MINIMUM_DISTRIBUTION_CELL,
+) -> int:
+    """Write only sufficiently common aggregate cells and return retained weight."""
+    retained = Counter({key: count for key, count in counter.items() if count >= minimum_records})
+    return _write_counter(path, dimensions, retained)
+
+
+def _archive_member(archive: zipfile.ZipFile, basename: str) -> str:
+    matches = [name for name in archive.namelist() if Path(name).name.lower() == basename.lower()]
+    if len(matches) != 1:
+        raise RuntimeError(f"Expected one {basename} member, found {len(matches)}")
+    return matches[0]
 
 
 def _download(source: Source, force: bool) -> Path:
@@ -907,7 +1035,7 @@ def _process_sec_name_tokens(path: Path) -> list[dict[str, Any]]:
 def _process_cfpb(path: Path) -> list[dict[str, Any]]:
     token_counts: Counter[str] = Counter()
     document_counts: Counter[str] = Counter()
-    length_counts: Counter[str] = Counter()
+    length_counts: Counter[tuple[str, ...]] = Counter()
     input_records = 0
     archive, member = _open_single_csv_from_zip(path, "complaints")
     try:
@@ -959,6 +1087,560 @@ def _process_cfpb(path: Path) -> list[dict[str, Any]]:
     return [
         _derived_record("cfpb_narrative_token_distribution", token_path, "cfpb_complaints", input_records, transform),
         _derived_record("cfpb_narrative_length_distribution", length_path, "cfpb_complaints", input_records, transform),
+    ]
+
+
+def _mapped_codes(values: pd.Series, mapping: dict[str, str]) -> pd.Series:
+    normalized = values.astype("string").str.strip()
+    output = normalized.map(mapping)
+    output = output.mask(normalized.isna() | normalized.eq(""), "MISSING")
+    return output.fillna("OTHER")
+
+
+def _add_weighted_counts(
+    accumulator: defaultdict[tuple[str, ...], list[int]],
+    frame: pd.DataFrame,
+    dimensions: list[str],
+    weight_column: str,
+) -> None:
+    if frame.empty:
+        return
+    normalized = frame[[*dimensions, weight_column]].copy()
+    for column in dimensions:
+        normalized[column] = normalized[column].map(_clean_dimension)
+    normalized[weight_column] = pd.to_numeric(normalized[weight_column], errors="coerce").fillna(0)
+    grouped = normalized.groupby(dimensions, dropna=False, observed=True).agg(
+        records=(weight_column, "size"),
+        weighted=(weight_column, "sum"),
+    )
+    for row in grouped.reset_index().itertuples(index=False, name=None):
+        key = tuple(str(value) for value in row[: len(dimensions)])
+        accumulator[key][0] += int(row[-2])
+        accumulator[key][1] += int(round(float(row[-1])))
+
+
+def _write_weighted_distribution(
+    path: Path,
+    dimensions: list[str],
+    weight_name: str,
+    accumulator: defaultdict[tuple[str, ...], list[int]],
+) -> int:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    retained_records = 0
+    with path.open("w", encoding="utf-8", newline="") as output:
+        writer = csv.writer(output)
+        writer.writerow([*dimensions, "records", weight_name])
+        for key, (records, weighted) in sorted(accumulator.items()):
+            if records < MINIMUM_DISTRIBUTION_CELL or weighted <= 0:
+                continue
+            writer.writerow([*key, records, weighted])
+            retained_records += records
+    return retained_records
+
+
+def _acs_person_dimensions(frame: pd.DataFrame) -> pd.DataFrame:
+    output = pd.DataFrame(index=frame.index)
+    output["age_band"] = bucket_numbers(
+        frame["AGEP"],
+        [-math.inf, 18, 25, 35, 45, 55, 65, 75, math.inf],
+        ["UNDER_18", "18_TO_24", "25_TO_34", "35_TO_44", "45_TO_54", "55_TO_64", "65_TO_74", "75_PLUS"],
+    )
+    output["sex"] = _mapped_codes(frame["SEX"], {"1": "MALE", "2": "FEMALE"})
+    education = pd.to_numeric(frame["SCHL"], errors="coerce")
+    output["education"] = "MISSING"
+    output.loc[education.between(1, 15), "education"] = "LESS_THAN_HIGH_SCHOOL"
+    output.loc[education.between(16, 17), "education"] = "HIGH_SCHOOL_OR_GED"
+    output.loc[education.between(18, 19), "education"] = "SOME_COLLEGE"
+    output.loc[education.eq(20), "education"] = "ASSOCIATE"
+    output.loc[education.eq(21), "education"] = "BACHELOR"
+    output.loc[education.eq(22), "education"] = "MASTER"
+    output.loc[education.eq(23), "education"] = "PROFESSIONAL"
+    output.loc[education.eq(24), "education"] = "DOCTORATE"
+    output["employment_status"] = _mapped_codes(
+        frame["ESR"],
+        {
+            "1": "EMPLOYED",
+            "2": "EMPLOYED",
+            "3": "UNEMPLOYED",
+            "4": "ARMED_FORCES",
+            "5": "ARMED_FORCES",
+            "6": "NOT_IN_LABOR_FORCE",
+        },
+    )
+    output["disability"] = _mapped_codes(frame["DIS"], {"1": "YES", "2": "NO"})
+    output["health_insurance"] = _mapped_codes(frame["HICOV"], {"1": "YES", "2": "NO"})
+    output["personal_income_band"] = bucket_numbers(
+        frame["PINCP"],
+        [-math.inf, 0, 1, 25_000, 50_000, 75_000, 100_000, 150_000, 200_000, math.inf],
+        [
+            "NEGATIVE",
+            "ZERO",
+            "1_TO_24999",
+            "25000_TO_49999",
+            "50000_TO_74999",
+            "75000_TO_99999",
+            "100000_TO_149999",
+            "150000_TO_199999",
+            "200000_PLUS",
+        ],
+    )
+    return output
+
+
+def _acs_household_dimensions(frame: pd.DataFrame) -> pd.DataFrame:
+    output = pd.DataFrame(index=frame.index)
+    output["household_size_band"] = bucket_numbers(
+        frame["NP"],
+        [1, 2, 3, 4, 5, 6, math.inf],
+        ["ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX_PLUS"],
+    )
+    output["tenure"] = _mapped_codes(
+        frame["TEN"],
+        {
+            "1": "OWNED_WITH_MORTGAGE",
+            "2": "OWNED_FREE_AND_CLEAR",
+            "3": "RENTED",
+            "4": "OCCUPIED_WITHOUT_RENT",
+        },
+    )
+    output["bedrooms_band"] = bucket_numbers(
+        frame["BDSP"],
+        [-math.inf, 1, 2, 3, 4, 5, math.inf],
+        ["ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE_PLUS"],
+    )
+    output["vehicles_band"] = bucket_numbers(
+        frame["VEH"],
+        [-math.inf, 1, 2, 3, 4, math.inf],
+        ["ZERO", "ONE", "TWO", "THREE", "FOUR_PLUS"],
+    )
+    output["household_income_band"] = bucket_numbers(
+        frame["HINCP"],
+        [-math.inf, 0, 1, 25_000, 50_000, 75_000, 100_000, 150_000, 200_000, math.inf],
+        [
+            "NEGATIVE",
+            "ZERO",
+            "1_TO_24999",
+            "25000_TO_49999",
+            "50000_TO_74999",
+            "75000_TO_99999",
+            "100000_TO_149999",
+            "150000_TO_199999",
+            "200000_PLUS",
+        ],
+    )
+    output["internet_access"] = _mapped_codes(frame["ACCESSINET"], {"1": "YES", "2": "NO"})
+    output["food_stamps"] = _mapped_codes(frame["FS"], {"1": "YES", "2": "NO"})
+    return output
+
+
+def _acs_relationship(values: pd.Series) -> pd.Series:
+    mapping = {"20": "REFERENCE_PERSON"}
+    mapping.update({str(code): "SPOUSE_OR_PARTNER" for code in range(21, 25)})
+    mapping.update({str(code): "CHILD" for code in range(25, 28)})
+    mapping.update({str(code): "OTHER_RELATIVE" for code in range(28, 34)})
+    mapping.update({str(code): "NONRELATIVE" for code in range(34, 37)})
+    mapping.update({str(code): "GROUP_QUARTERS" for code in range(37, 39)})
+    return _mapped_codes(values, mapping)
+
+
+def _process_acs_pums(person_path: Path, housing_path: Path) -> list[dict[str, Any]]:
+    person_dimensions = [
+        "age_band",
+        "sex",
+        "education",
+        "employment_status",
+        "disability",
+        "health_insurance",
+        "personal_income_band",
+    ]
+    household_dimensions = [
+        "household_size_band",
+        "tenure",
+        "bedrooms_band",
+        "vehicles_band",
+        "household_income_band",
+        "internet_access",
+        "food_stamps",
+    ]
+    relationship_dimensions = ["household_size_band", "relationship", "age_band", "sex"]
+    household_counts: defaultdict[tuple[str, ...], list[int]] = defaultdict(lambda: [0, 0])
+    person_counts: defaultdict[tuple[str, ...], list[int]] = defaultdict(lambda: [0, 0])
+    relationship_counts: defaultdict[tuple[str, ...], list[int]] = defaultdict(lambda: [0, 0])
+    household_size_by_serial: dict[str, str] = {}
+    housing_input_records = 0
+    person_input_records = 0
+
+    housing_columns = ["SERIALNO", "TYPEHUGQ", "NP", "TEN", "BDSP", "VEH", "HINCP", "ACCESSINET", "FS", "WGTP"]
+    with zipfile.ZipFile(housing_path) as archive:
+        member = _archive_member(archive, "psam_h37.csv")
+        with archive.open(member) as source:
+            for chunk in pd.read_csv(source, usecols=housing_columns, dtype="string", chunksize=CHUNK_SIZE):
+                housing_input_records += len(chunk)
+                occupied = chunk.loc[
+                    chunk["TYPEHUGQ"].str.strip().eq("1") & pd.to_numeric(chunk["NP"], errors="coerce").gt(0)
+                ].copy()
+                if occupied.empty:
+                    continue
+                dimensions = _acs_household_dimensions(occupied)
+                dimensions["WGTP"] = occupied["WGTP"]
+                _add_weighted_counts(household_counts, dimensions, household_dimensions, "WGTP")
+                household_size_by_serial.update(
+                    zip(occupied["SERIALNO"].astype(str), dimensions["household_size_band"].astype(str), strict=True)
+                )
+
+    person_columns = ["SERIALNO", "AGEP", "SEX", "SCHL", "ESR", "DIS", "HICOV", "PINCP", "RELSHIPP", "PWGTP"]
+    with zipfile.ZipFile(person_path) as archive:
+        member = _archive_member(archive, "psam_p37.csv")
+        with archive.open(member) as source:
+            for chunk in pd.read_csv(source, usecols=person_columns, dtype="string", chunksize=CHUNK_SIZE):
+                person_input_records += len(chunk)
+                dimensions = _acs_person_dimensions(chunk)
+                dimensions["PWGTP"] = chunk["PWGTP"]
+                _add_weighted_counts(person_counts, dimensions, person_dimensions, "PWGTP")
+
+                relationship = dimensions[["age_band", "sex", "PWGTP"]].copy()
+                relationship["household_size_band"] = chunk["SERIALNO"].astype(str).map(household_size_by_serial)
+                relationship["relationship"] = _acs_relationship(chunk["RELSHIPP"])
+                relationship = relationship.dropna(subset=["household_size_band"])
+                _add_weighted_counts(
+                    relationship_counts,
+                    relationship,
+                    relationship_dimensions,
+                    "PWGTP",
+                )
+
+    person_output = DERIVED_DIR / "acs_pums_nc_person_distribution.csv"
+    household_output = DERIVED_DIR / "acs_pums_nc_household_distribution.csv"
+    relationship_output = DERIVED_DIR / "acs_pums_nc_relationship_distribution.csv"
+    _write_weighted_distribution(person_output, person_dimensions, "weighted_people", person_counts)
+    _write_weighted_distribution(household_output, household_dimensions, "weighted_households", household_counts)
+    _write_weighted_distribution(
+        relationship_output,
+        relationship_dimensions,
+        "weighted_people",
+        relationship_counts,
+    )
+    source_keys = ";".join(ACS_PUMS_KEYS)
+    transform = (
+        "Restricted housing records to occupied ordinary housing units; converted person, household, and relationship "
+        f"attributes to coarse weighted cells; suppressed cells below {MINIMUM_DISTRIBUTION_CELL} sample records; "
+        "and discarded serial numbers, PUMAs, replicate weights, allocation flags, and all row-level source data."
+    )
+    return [
+        _derived_record(
+            "acs_pums_nc_person_distribution",
+            person_output,
+            source_keys,
+            person_input_records,
+            transform,
+        ),
+        _derived_record(
+            "acs_pums_nc_household_distribution",
+            household_output,
+            source_keys,
+            housing_input_records,
+            transform,
+        ),
+        _derived_record(
+            "acs_pums_nc_relationship_distribution",
+            relationship_output,
+            source_keys,
+            person_input_records,
+            transform,
+        ),
+    ]
+
+
+def _normalized_text(values: pd.Series, maximum_length: int = 120) -> pd.Series:
+    normalized = values.astype("string").fillna("").str.upper().str.replace(r"\s+", " ", regex=True).str.strip()
+    normalized = normalized.str.slice(0, maximum_length)
+    return normalized.mask(normalized.eq(""), "MISSING")
+
+
+def _yes_no(values: pd.Series) -> pd.Series:
+    return _mapped_codes(values.str.upper(), {"Y": "YES", "N": "NO"})
+
+
+def _received_year(values: pd.Series) -> pd.Series:
+    digits = values.astype("string").fillna("").str.replace(r"\D", "", regex=True)
+    first = digits.str.slice(0, 4)
+    last = digits.str.slice(-4)
+    years = first.where(first.str.fullmatch(r"20\d{2}"), last)
+    return years.where(years.str.fullmatch(r"20\d{2}"), "MISSING")
+
+
+def _word_count_band(length: int) -> str:
+    if length >= 1000:
+        return "1000_PLUS"
+    upper = min(((length // 50) + 1) * 50 - 1, 999)
+    return f"{upper - 49:04d}_{upper:04d}"
+
+
+def _process_nhtsa_complaints(path: Path) -> list[dict[str, Any]]:
+    component_counts: Counter[tuple[str, ...]] = Counter()
+    incident_counts: Counter[tuple[str, ...]] = Counter()
+    token_counts: Counter[str] = Counter()
+    document_counts: Counter[str] = Counter()
+    length_counts: Counter[str] = Counter()
+    seen_incidents: set[str] = set()
+    seen_narratives: set[str] = set()
+    input_records = 0
+    selected_columns = [
+        "ODINO",
+        "MAKETXT",
+        "YEARTXT",
+        "CRASH",
+        "FIRE",
+        "INJURED",
+        "DEATHS",
+        "COMPDESC",
+        "DATEA",
+        "MILES",
+        "CDESCR",
+        "CMPL_TYPE",
+        "VEH_SPEED",
+        "PROD_TYPE",
+        "MEDICAL_ATTN",
+        "VEHICLES_TOWED_YN",
+    ]
+    with zipfile.ZipFile(path) as archive:
+        members = [name for name in archive.namelist() if name.lower().endswith(".txt")]
+        if not members:
+            raise RuntimeError(f"No complaint text member found in {path}")
+        member = max(members, key=lambda name: archive.getinfo(name).file_size)
+        with archive.open(member) as source:
+            chunks = pd.read_csv(
+                source,
+                sep="\t",
+                header=None,
+                names=NHTSA_COMPLAINT_COLUMNS,
+                usecols=selected_columns,
+                dtype="string",
+                chunksize=CHUNK_SIZE,
+                keep_default_na=False,
+                on_bad_lines="error",
+            )
+            for chunk in chunks:
+                input_records += len(chunk)
+                normalized = pd.DataFrame(index=chunk.index)
+                normalized["received_year"] = _received_year(chunk["DATEA"])
+                normalized["product_type"] = _normalized_text(chunk["PROD_TYPE"], 40)
+                normalized["make"] = _normalized_text(chunk["MAKETXT"], 60)
+                normalized["model_year"] = (
+                    chunk["YEARTXT"]
+                    .str.strip()
+                    .where(
+                        chunk["YEARTXT"].str.strip().str.fullmatch(r"(?:19|20)\d{2}"),
+                        "MISSING",
+                    )
+                )
+                normalized["component"] = _normalized_text(chunk["COMPDESC"], 120)
+                normalized["crash"] = _yes_no(chunk["CRASH"])
+                normalized["fire"] = _yes_no(chunk["FIRE"])
+                add_counts(
+                    component_counts,
+                    normalized,
+                    ["received_year", "product_type", "make", "model_year", "component", "crash", "fire"],
+                )
+
+                incident_ids = chunk["ODINO"].str.strip()
+                unseen = incident_ids.ne("") & ~incident_ids.isin(seen_incidents)
+                incident_rows = chunk.loc[unseen].copy()
+                incident_rows = incident_rows.loc[~incident_rows["ODINO"].duplicated(keep="first")]
+                seen_incidents.update(incident_rows["ODINO"].str.strip())
+                if not incident_rows.empty:
+                    incident = pd.DataFrame(index=incident_rows.index)
+                    incident["received_year"] = _received_year(incident_rows["DATEA"])
+                    incident["product_type"] = _normalized_text(incident_rows["PROD_TYPE"], 40)
+                    incident["complaint_source"] = _normalized_text(incident_rows["CMPL_TYPE"], 40)
+                    incident["crash"] = _yes_no(incident_rows["CRASH"])
+                    incident["fire"] = _yes_no(incident_rows["FIRE"])
+                    incident["injury_band"] = bucket_numbers(
+                        incident_rows["INJURED"],
+                        [-math.inf, 1, 2, 5, math.inf],
+                        ["ZERO", "ONE", "TWO_TO_FOUR", "FIVE_PLUS"],
+                    )
+                    incident["death_band"] = bucket_numbers(
+                        incident_rows["DEATHS"],
+                        [-math.inf, 1, 2, math.inf],
+                        ["ZERO", "ONE", "TWO_PLUS"],
+                    )
+                    incident["mileage_band"] = bucket_numbers(
+                        incident_rows["MILES"],
+                        [-math.inf, 10_000, 50_000, 100_000, 200_000, math.inf],
+                        ["UNDER_10K", "10K_TO_49K", "50K_TO_99K", "100K_TO_199K", "200K_PLUS"],
+                    )
+                    incident["speed_band"] = bucket_numbers(
+                        incident_rows["VEH_SPEED"],
+                        [-math.inf, 1, 25, 50, 75, math.inf],
+                        ["STOPPED", "1_TO_24", "25_TO_49", "50_TO_74", "75_PLUS"],
+                    )
+                    incident["medical_attention"] = _yes_no(incident_rows["MEDICAL_ATTN"])
+                    incident["vehicles_towed"] = _yes_no(incident_rows["VEHICLES_TOWED_YN"])
+                    add_counts(
+                        incident_counts,
+                        incident,
+                        [
+                            "received_year",
+                            "product_type",
+                            "complaint_source",
+                            "crash",
+                            "fire",
+                            "injury_band",
+                            "death_band",
+                            "mileage_band",
+                            "speed_band",
+                            "medical_attention",
+                            "vehicles_towed",
+                        ],
+                    )
+
+                narratives = chunk.loc[
+                    incident_ids.ne("") & chunk["CDESCR"].str.strip().ne("") & ~incident_ids.isin(seen_narratives),
+                    ["ODINO", "CDESCR"],
+                ].drop_duplicates("ODINO", keep="first")
+                for complaint_id, narrative in narratives.itertuples(index=False, name=None):
+                    seen_narratives.add(str(complaint_id).strip())
+                    tokens = [
+                        token.lower()
+                        for token in re.findall(r"[A-Za-z][A-Za-z'-]{1,30}", str(narrative))
+                        if not re.fullmatch(r"x{2,}", token, flags=re.IGNORECASE)
+                    ]
+                    if not tokens:
+                        continue
+                    token_counts.update(tokens)
+                    document_counts.update(set(tokens))
+                    length_counts[(_word_count_band(len(tokens)),)] += 1
+
+    component_path = DERIVED_DIR / "nhtsa_vehicle_component_distribution.csv"
+    incident_path = DERIVED_DIR / "nhtsa_incident_profile_distribution.csv"
+    token_path = DERIVED_DIR / "nhtsa_narrative_token_distribution.csv"
+    length_path = DERIVED_DIR / "nhtsa_narrative_length_distribution.csv"
+    _write_suppressed_counter(
+        component_path,
+        ["received_year", "product_type", "make", "model_year", "component", "crash", "fire"],
+        component_counts,
+    )
+    _write_suppressed_counter(
+        incident_path,
+        [
+            "received_year",
+            "product_type",
+            "complaint_source",
+            "crash",
+            "fire",
+            "injury_band",
+            "death_band",
+            "mileage_band",
+            "speed_band",
+            "medical_attention",
+            "vehicles_towed",
+        ],
+        incident_counts,
+    )
+    with token_path.open("w", encoding="utf-8", newline="") as output:
+        writer = csv.writer(output)
+        writer.writerow(["token", "records", "document_frequency"])
+        writer.writerows(
+            (token, count, document_counts[token])
+            for token, count in token_counts.most_common(10_000)
+            if document_counts[token] >= NHTSA_NARRATIVE_MIN_DOCUMENTS
+        )
+    _write_counter(length_path, ["word_count_band"], length_counts)
+    transform = (
+        f"Suppressed structured cells below {MINIMUM_DISTRIBUTION_CELL} source records; retained only unigrams "
+        f"appearing in at least {NHTSA_NARRATIVE_MIN_DOCUMENTS} distinct complaints plus 50-word length bands; "
+        "and discarded complaint IDs, city/state, VIN, dealer and operator fields, narratives, token order, and all "
+        "row-level source data."
+    )
+    return [
+        _derived_record(
+            "nhtsa_vehicle_component_distribution",
+            component_path,
+            "nhtsa_complaints_2020_2024",
+            input_records,
+            transform,
+        ),
+        _derived_record(
+            "nhtsa_incident_profile_distribution",
+            incident_path,
+            "nhtsa_complaints_2020_2024",
+            len(seen_incidents),
+            transform,
+        ),
+        _derived_record(
+            "nhtsa_narrative_token_distribution",
+            token_path,
+            "nhtsa_complaints_2020_2024",
+            len(seen_narratives),
+            transform,
+        ),
+        _derived_record(
+            "nhtsa_narrative_length_distribution",
+            length_path,
+            "nhtsa_complaints_2020_2024",
+            len(seen_narratives),
+            transform,
+        ),
+    ]
+
+
+def _process_fooddata_foundation(path: Path) -> list[dict[str, Any]]:
+    with zipfile.ZipFile(path) as archive:
+        with archive.open(_archive_member(archive, "food.csv")) as source:
+            food = pd.read_csv(
+                source,
+                usecols=["fdc_id", "data_type", "description", "food_category_id"],
+                dtype="string",
+            )
+        with archive.open(_archive_member(archive, "foundation_food.csv")) as source:
+            foundation = pd.read_csv(source, usecols=["fdc_id"], dtype="string")
+        with archive.open(_archive_member(archive, "food_category.csv")) as source:
+            categories = pd.read_csv(source, usecols=["id", "description"], dtype="string")
+        with archive.open(_archive_member(archive, "nutrient.csv")) as source:
+            nutrients = pd.read_csv(source, usecols=["id", "name", "unit_name"], dtype="string")
+        with archive.open(_archive_member(archive, "food_nutrient.csv")) as source:
+            food_nutrients = pd.read_csv(source, usecols=["fdc_id", "nutrient_id", "amount"], dtype="string")
+
+    food = food.loc[food["fdc_id"].isin(set(foundation["fdc_id"]))].copy()
+    categories = categories.rename(columns={"id": "food_category_id", "description": "food_category"})
+    nutrients = nutrients.rename(columns={"id": "nutrient_id", "name": "nutrient_name"})
+    food = food.merge(categories, how="left", on="food_category_id")
+    enriched = food_nutrients.merge(food[["fdc_id", "food_category"]], how="inner", on="fdc_id")
+    enriched = enriched.merge(nutrients, how="inner", on="nutrient_id")
+    enriched["amount"] = pd.to_numeric(enriched["amount"], errors="coerce")
+    enriched["food_category"] = enriched["food_category"].fillna("UNCATEGORIZED").str.strip()
+    enriched["nutrient_name"] = enriched["nutrient_name"].fillna("UNKNOWN").str.strip()
+    enriched["unit_name"] = enriched["unit_name"].fillna("UNKNOWN").str.strip()
+    enriched = enriched.dropna(subset=["amount"])
+    statistics = (
+        enriched.groupby(["food_category", "nutrient_name", "unit_name"], dropna=False, observed=True)
+        .agg(
+            observations=("amount", "count"),
+            distinct_foods=("fdc_id", "nunique"),
+            mean_amount=("amount", "mean"),
+            median_amount=("amount", "median"),
+            minimum_amount=("amount", "min"),
+            maximum_amount=("amount", "max"),
+        )
+        .reset_index()
+    )
+    statistics = statistics.loc[statistics["observations"] >= FOODDATA_MIN_OBSERVATIONS].copy()
+    for column in ["mean_amount", "median_amount", "minimum_amount", "maximum_amount"]:
+        statistics[column] = statistics[column].round(6)
+    statistics = statistics.sort_values(["food_category", "nutrient_name", "unit_name"])
+    output_path = DERIVED_DIR / "usda_fooddata_foundation_nutrient_statistics.csv"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    statistics.to_csv(output_path, index=False)
+    return [
+        _derived_record(
+            "usda_fooddata_foundation_nutrient_statistics",
+            output_path,
+            "usda_fooddata_foundation_2026_04",
+            len(food_nutrients),
+            "Joined the official Foundation Foods relational tables, removed FDC row keys and food descriptions, "
+            f"and retained category-by-nutrient statistics with at least {FOODDATA_MIN_OBSERVATIONS} observations.",
+        )
     ]
 
 
@@ -1228,6 +1910,8 @@ def _process_reference_sources(paths: dict[str, Path]) -> list[dict[str, Any]]:
         records.extend(_process_tiger_roads(paths, suffixes))
     if "sec_company_tickers_exchange" in paths:
         records.extend(_process_sec_name_tokens(paths["sec_company_tickers_exchange"]))
+    if "usda_fooddata_foundation_2026_04" in paths:
+        records.extend(_process_fooddata_foundation(paths["usda_fooddata_foundation_2026_04"]))
     return records
 
 
@@ -1241,6 +1925,15 @@ def _process_staged(paths: dict[str, Path], keep_staging: bool) -> list[dict[str
         records.extend(_process_ppp(paths["sba_ppp_150k_plus"]))
     if "cfpb_complaints" in paths:
         records.extend(_process_cfpb(paths["cfpb_complaints"]))
+    if all(key in paths for key in ACS_PUMS_KEYS):
+        records.extend(
+            _process_acs_pums(
+                paths["acs_pums_nc_person_2024"],
+                paths["acs_pums_nc_housing_2024"],
+            )
+        )
+    if "nhtsa_complaints_2020_2024" in paths:
+        records.extend(_process_nhtsa_complaints(paths["nhtsa_complaints_2020_2024"]))
     if not keep_staging:
         _safe_remove_staged([paths[source.key] for source in SOURCES if source.staged and source.key in paths])
     return records
@@ -1383,7 +2076,7 @@ def _parse_args() -> argparse.Namespace:
         action="append",
         default=[],
         metavar="KEY",
-        help="Download only a source key; use repeatedly, comma-separate keys, or pass 'realism'.",
+        help="Download only a source key; repeat/comma-separate keys, or pass 'realism' or 'capability'.",
     )
     parser.add_argument(
         "--list",
@@ -1418,6 +2111,20 @@ def _select_sources(selected_keys: set[str]) -> tuple[Source, ...]:
     )
 
 
+def _expand_selected_keys(selected_keys: set[str]) -> set[str]:
+    """Expand named profiles and paired relational-source dependencies."""
+    expanded = set(selected_keys)
+    if "realism" in expanded:
+        expanded.remove("realism")
+        expanded.update(REALISM_KEYS)
+    if "capability" in expanded:
+        expanded.remove("capability")
+        expanded.update(CAPABILITY_KEYS)
+    if expanded.intersection(ACS_PUMS_KEYS):
+        expanded.update(ACS_PUMS_KEYS)
+    return expanded
+
+
 def main() -> int:
     args = _parse_args()
     _validate_us_source_catalog()
@@ -1426,10 +2133,7 @@ def main() -> int:
         return 0
     if args.workers < 1 or args.workers > 8:
         raise ValueError("--workers must be between 1 and 8")
-    selected_keys = {key.strip() for item in args.only for key in item.split(",") if key.strip()}
-    if "realism" in selected_keys:
-        selected_keys.remove("realism")
-        selected_keys.update(REALISM_KEYS)
+    selected_keys = _expand_selected_keys({key.strip() for item in args.only for key in item.split(",") if key.strip()})
     known_keys = {source.key for source in SOURCES}
     unknown = sorted(selected_keys - known_keys)
     if unknown:

@@ -24,10 +24,10 @@ statistics, constraint evaluation, `synthetic-reference` provenance, and bound a
 
 ## Public-data example coverage
 
-On 2026-08-24, `tools/generate_public_data_examples.py` generated and verified examples for the original 11 categories
-in the email **“public data to find”** plus the privacy-safe realism calibration family. The result covered all 39
-U.S.-only manifest artifacts plus two official gap examples from USAspending and U.S. Courts: 41 CSV files and 205
-example rows in total.
+On 2026-08-27, `tools/generate_public_data_examples.py` generated and verified examples for the original 11 categories
+in the email **“public data to find”** plus the privacy-safe realism and relational/mixed-type capability families. The
+result covered all 48 U.S.-only manifest artifacts plus two official gap examples from USAspending and U.S. Courts: 50
+CSV files and 250 example rows in total.
 
 The verifier checked exact source/category coverage, file containment, nonempty rows, catalog row counts, SHA-256
 checksums, and forbidden identifier/contact columns. It found zero forbidden columns. Federal-contract coverage is a
@@ -42,7 +42,7 @@ rows and passed its schema, numeric-type, missingness, marginal, integer, declar
 derived-arithmetic, identifier, datetime, and correlation gates when applicable. CSV tests specifically preserve
 leading-zero categorical codes and identifiers from policy-directed type inference.
 
-The complete validation run passed 143 tests, all four skill-package validations, lint and format checks, the
+The complete validation run passed 149 tests, all four skill-package validations, lint and format checks, the
 dependency-license audit, all five standalone script-lock checks, and the four-skill installer dry run.
 
 Negative controls reject and preserve reports for malformed codes, nonnumeric and fractional integer values,
@@ -54,13 +54,15 @@ semantics; these remain explicit design gaps in
 
 ## Data-quality and evaluation-readiness audit
 
-On 2026-08-24, `tools/audit_public_data_quality.py` hash-checked 213,039,562 retained bytes and fully value-profiled
-10,507,357 rows across all 39 U.S.-scope manifest artifacts. Archive integrity, required schemas, critical
+On 2026-08-27, `tools/audit_public_data_quality.py` hash-checked 217,302,198 retained bytes and fully value-profiled
+10,787,077 rows across all 48 U.S.-scope manifest artifacts. Archive integrity, required schemas, critical
 numeric/code and U.S.-country validity, aggregate-grain uniqueness, positive aggregate weights, privacy-minimized
-column exclusions, and coverage-count reconciliation passed with zero hard failures. Two source-quality warnings
+column exclusions, and coverage-count reconciliation passed with zero hard failures. Three source-quality warnings
 remain visible: 40.28% of FMCSA aggregate groups lack `business_org_desc`, and the official NYC name file contains
-8,073 duplicate dimension rows. Exact NYC duplicates are removed before name calibration. The 12
-documented population/scope limitations also remain attached to the result.
+8,073 duplicate dimension rows. Exact NYC duplicates are removed before name calibration. The official USDA
+Foundation Foods archive also contains 33 unresolved nutrient references (0.019%) and 273 portion-to-food references
+(2.493%); the audit records both below its explicit 5% hard-failure threshold, while the derivative uses valid inner
+joins only. The documented population/scope limitations remain attached to the result.
 
 The geographic audit retired both Corporations Canada feeds and their four generated data/example artifacts. Their
 replacement is the official [Colorado Business Entities](https://data.colorado.gov/Business/Business-Entities-in-Colorado/4ykn-tg5h/about_data)
@@ -122,20 +124,20 @@ scripts, lockfiles, or agent metadata fail validation before release.
 
 ## GitHub download catalog and skill-package validation
 
-On 2026-08-24, the repository landing page gained a download center for the complete skill bundle, official public
-datasets, verified examples, documentation, and evaluation evidence. The detailed catalog exposes all 31 registered
+On 2026-08-27, the repository landing page download center covers the complete skill bundle, official public
+datasets, verified examples, documentation, and evaluation evidence. The detailed catalog exposes all 35 registered
 source keys with their direct-download and publisher links; a unit test now requires every downloader-registry entry
 to remain present there.
 
 A live refresh downloaded the new Colorado U.S.-only aggregate and the revised FMCSA U.S.-only aggregate, and reached
 the Colorado publisher page. The already documented opt-in SSA national-name source still remains outside the
-reproducible default. The default is now 30 U.S.-aligned sources and does not silently use a mirror.
+reproducible default. The default is now 34 U.S.-aligned sources and does not silently use a mirror.
 
-The full local quality audit reran successfully across 39 retained artifacts and 10,507,357 scanned rows with zero
+The full local quality audit reran successfully across 48 retained artifacts and 10,787,077 scanned rows with zero
 failed artifacts. The coverage audit counted 10,933,879 local aligned core records, or 15,329,657 with the U.S.-only
-FMCSA server-side aggregate, and the example verifier passed all 12 categories, 41 files, and 205 rows.
+FMCSA server-side aggregate, and the example verifier passed all 13 categories, 50 files, and 250 rows.
 
-All four skill packages passed the skill manifest validator and installer dry run. The final suite passed 143 tests,
+All four skill packages passed the skill manifest validator and installer dry run. The final suite passed 149 tests,
 and a coverage run measured 58% across all skill and tool scripts; the changed generation and evaluation scripts
 ranged from 81% to 90% statement coverage. Lint, formatting, license, script-lock, and Git diff checks also passed.
 

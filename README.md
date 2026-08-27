@@ -9,7 +9,7 @@ Browse the published documentation at [gvillarroel.github.io/rata](https://gvill
 | What you need | Start here | What is available |
 | --- | --- | --- |
 | All four Codex skills | [Install directly from GitHub](#install-directly-from-github) or [download the repository ZIP](https://github.com/gvillarroel/rata/archive/refs/heads/main.zip) | Planning, generation, evaluation, and end-to-end workflow packages with pinned script environments. |
-| Public calibration datasets | [Official-source download catalog](docs/public-data-sources.md) | 30 reproducible U.S.-aligned default sources plus one documented U.S. opt-in source, grouped by business data, reference data, registries, and privacy-safe realism calibration. |
+| Public calibration datasets | [Official-source download catalog](docs/public-data-sources.md) | 34 reproducible U.S.-aligned default sources plus one documented U.S. opt-in source, grouped by business data, references, registries, privacy-safe realism, and relational capability benchmarks. |
 | Small verified examples | [Public-data example catalog](docs/public-data-examples.md) | Five-row examples and coverage notes for every requested category and every locally retained artifact. |
 | Validation evidence | [Validation record](docs/validation.md), [evaluation evidence](evaluations/results/2026-07-26.json), and [Harbor publication index](evaluations/harbor-studies/generate-synthetic-data-v1/publication/index.md) | Test, quality, privacy, readiness, and benchmark evidence, including preserved failures and limitations. |
 | Guides and reference | [Documentation index](docs/README.md) and [command reference](docs/commands.md) | Architecture, privacy model, licensing, commands, requirements, and ADRs. |

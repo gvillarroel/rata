@@ -3,7 +3,7 @@
 The full bundle under ``datasets/public-data`` is ignored by Git. This script reads
 the downloaded artifacts, requests two small official gap examples, writes one CSV
 example per source, and verifies complete coverage of the source manifest and the
-11 categories requested in the email ``public data to find``.
+requested categories plus capability-benchmark and realism families.
 """
 
 from __future__ import annotations
@@ -51,18 +51,28 @@ DISALLOWED_EXAMPLE_COLUMNS = {
     "address",
     "address_line1",
     "borrower_name",
+    "cmplid",
+    "dealer_city",
+    "dealer_name",
+    "dealer_state",
+    "dealer_tel",
+    "dealer_zip",
     "duns",
     "email",
     "guarantor",
     "lender_name",
     "loan_number",
     "npi",
+    "odino",
     "owner",
     "phone",
     "ssn",
     "street",
+    "serialno",
     "tax_id",
     "uei",
+    "vehicle_operator",
+    "vin",
 }
 
 
@@ -147,6 +157,14 @@ CATEGORIES = (
         "Aggregate name, road-component, postal-suffix, business-token, and narrative-language distributions.",
         "Component distributions improve surface realism but do not preserve source pairings or establish semantics.",
     ),
+    Category(
+        "capability_benchmarks",
+        "Relational and mixed-type capability benchmarks",
+        "Linked household/person structures, conditional distributions, mixed narratives, foods, nutrients, and "
+        "portions.",
+        "Person-level public-use and complaint files are transformed in staging; only suppressed aggregates are "
+        "retained.",
+    ),
 )
 CATEGORY_BY_KEY = {category.key: category for category in CATEGORIES}
 
@@ -192,6 +210,15 @@ SOURCE_CATEGORY = {
     "sec_business_name_token_distribution": "realism_calibration",
     "cfpb_narrative_token_distribution": "realism_calibration",
     "cfpb_narrative_length_distribution": "realism_calibration",
+    "acs_pums_nc_person_distribution": "capability_benchmarks",
+    "acs_pums_nc_household_distribution": "capability_benchmarks",
+    "acs_pums_nc_relationship_distribution": "capability_benchmarks",
+    "nhtsa_vehicle_component_distribution": "capability_benchmarks",
+    "nhtsa_incident_profile_distribution": "capability_benchmarks",
+    "nhtsa_narrative_token_distribution": "capability_benchmarks",
+    "nhtsa_narrative_length_distribution": "capability_benchmarks",
+    "usda_fooddata_foundation_2026_04": "capability_benchmarks",
+    "usda_fooddata_foundation_nutrient_statistics": "capability_benchmarks",
 }
 
 
@@ -529,6 +556,42 @@ def _sample_distribution(
     return _records(frame, columns)
 
 
+def _fooddata_member(archive: zipfile.ZipFile, basename: str) -> str:
+    matches = [name for name in archive.namelist() if Path(name).name.lower() == basename.lower()]
+    if len(matches) != 1:
+        raise RuntimeError(f"Expected one {basename} member, found {len(matches)}")
+    return matches[0]
+
+
+def _sample_fooddata_foundation(path: Path) -> list[dict[str, str]]:
+    with zipfile.ZipFile(path) as archive:
+        with archive.open(_fooddata_member(archive, "food.csv")) as source:
+            food = pd.read_csv(
+                source,
+                usecols=["fdc_id", "description", "food_category_id"],
+                dtype="string",
+            )
+        with archive.open(_fooddata_member(archive, "food_category.csv")) as source:
+            categories = pd.read_csv(source, usecols=["id", "description"], dtype="string")
+        with archive.open(_fooddata_member(archive, "nutrient.csv")) as source:
+            nutrients = pd.read_csv(source, usecols=["id", "name", "unit_name"], dtype="string")
+        with archive.open(_fooddata_member(archive, "food_nutrient.csv")) as source:
+            food_nutrients = pd.read_csv(source, usecols=["fdc_id", "nutrient_id", "amount"], dtype="string")
+
+    categories = categories.rename(columns={"id": "food_category_id", "description": "food_category"})
+    nutrients = nutrients.rename(columns={"id": "nutrient_id", "name": "nutrient_name"})
+    joined = food_nutrients.merge(food, how="inner", on="fdc_id")
+    joined = joined.merge(categories, how="left", on="food_category_id")
+    joined = joined.merge(nutrients, how="inner", on="nutrient_id")
+    joined["_amount"] = pd.to_numeric(joined["amount"], errors="coerce")
+    joined = joined.dropna(subset=["_amount", "description", "nutrient_name", "unit_name"])
+    joined = joined.sort_values(["description", "nutrient_name"])
+    return _records(
+        joined,
+        ["description", "food_category", "nutrient_name", "unit_name", "amount"],
+    )
+
+
 def _sample_census_surnames(path: Path) -> list[dict[str, str]]:
     frame = _read_zip_table(path, suffix=".csv", encoding="utf-8")
     frame.columns = [column.lower() for column in frame.columns]
@@ -708,6 +771,92 @@ LOCAL_SAMPLERS: dict[str, Callable[[Path], list[dict[str, str]]]] = {
     ),
     "cfpb_narrative_length_distribution": lambda path: _sample_distribution(
         path, ["word_count_band", "records"], "records", ("word_count_band",)
+    ),
+    "acs_pums_nc_person_distribution": lambda path: _sample_distribution(
+        path,
+        [
+            "age_band",
+            "sex",
+            "education",
+            "employment_status",
+            "disability",
+            "health_insurance",
+            "personal_income_band",
+            "records",
+            "weighted_people",
+        ],
+        "weighted_people",
+        ("age_band", "sex", "education", "employment_status"),
+    ),
+    "acs_pums_nc_household_distribution": lambda path: _sample_distribution(
+        path,
+        [
+            "household_size_band",
+            "tenure",
+            "bedrooms_band",
+            "vehicles_band",
+            "household_income_band",
+            "internet_access",
+            "food_stamps",
+            "records",
+            "weighted_households",
+        ],
+        "weighted_households",
+        ("household_size_band", "tenure"),
+    ),
+    "acs_pums_nc_relationship_distribution": lambda path: _sample_distribution(
+        path,
+        ["household_size_band", "relationship", "age_band", "sex", "records", "weighted_people"],
+        "weighted_people",
+        ("household_size_band", "relationship", "age_band", "sex"),
+    ),
+    "nhtsa_vehicle_component_distribution": lambda path: _sample_distribution(
+        path,
+        ["received_year", "product_type", "make", "model_year", "component", "crash", "fire", "records"],
+        "records",
+        ("received_year", "product_type", "make", "model_year", "component"),
+    ),
+    "nhtsa_incident_profile_distribution": lambda path: _sample_distribution(
+        path,
+        [
+            "received_year",
+            "product_type",
+            "complaint_source",
+            "crash",
+            "fire",
+            "injury_band",
+            "death_band",
+            "mileage_band",
+            "speed_band",
+            "medical_attention",
+            "vehicles_towed",
+            "records",
+        ],
+        "records",
+        ("received_year", "product_type", "complaint_source"),
+    ),
+    "nhtsa_narrative_token_distribution": lambda path: _sample_distribution(
+        path, ["token", "records", "document_frequency"], "records", ("token",)
+    ),
+    "nhtsa_narrative_length_distribution": lambda path: _sample_distribution(
+        path, ["word_count_band", "records"], "records", ("word_count_band",)
+    ),
+    "usda_fooddata_foundation_2026_04": _sample_fooddata_foundation,
+    "usda_fooddata_foundation_nutrient_statistics": lambda path: _sample_distribution(
+        path,
+        [
+            "food_category",
+            "nutrient_name",
+            "unit_name",
+            "observations",
+            "distinct_foods",
+            "mean_amount",
+            "median_amount",
+            "minimum_amount",
+            "maximum_amount",
+        ],
+        "observations",
+        ("food_category", "nutrient_name", "unit_name"),
     ),
 }
 

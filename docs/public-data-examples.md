@@ -5,14 +5,15 @@ This catalog answers the follow-up request to find an example for every dataset 
 reference rows are sampled directly, while registry, provider, carrier, loan, contract, and court data are reduced to
 the minimum fields needed to demonstrate useful relationships.
 
-Snapshot date: **2026-08-24**.
+Snapshot date: **2026-08-27**.
 
 ## Result
 
-- **12/12 categories covered**, including privacy-safe realism calibration added after the original email scope.
-- **39/39 artifacts in the downloaded U.S.-only source manifest covered**.
+- **13/13 categories covered**, including privacy-safe realism and capability-benchmark families added after the
+  original email scope.
+- **48/48 artifacts in the downloaded U.S.-only source manifest covered**.
 - **2 official gap examples added**: USAspending contract awards and U.S. Courts bankruptcy aggregates.
-- **41 CSV example files with 205 total rows**.
+- **50 CSV example files with 250 total rows**.
 - **0 forbidden identifier/contact columns** found by the verifier.
 
 The generated, ignored local artifacts are:
@@ -40,8 +41,9 @@ The generated, ignored local artifacts are:
 | Healthcare | [CMS NPPES weekly V2 ZIP](https://download.cms.gov/nppes/NPPES_Data_Dissemination_081026_081626_Weekly_V2.zip) | `cms_nppes_type2_weekly_distribution.csv` | Weekly incremental Type-2 organization aggregate; no NPI, name, address, endpoint, or phone. |
 | Public records | [U.S. Courts Table F-2 XLSX](https://www.uscourts.gov/sites/default/files/document/stfj_f2_630.2026.xlsx) | `uscourts_bankruptcy_f2_2026_06.csv` | District-level business/nonbusiness bankruptcy counts only. Liens, judgments, and UCC records remain state-specific. |
 | Realism calibration | [Census surnames ZIP](https://www2.census.gov/topics/genealogy/2010surnames/names.zip), [NYC baby-name API](https://data.cityofnewyork.us/resource/25th-nujf.csv?%24limit=50000), [USPS Publication 28 suffixes](https://pe.usps.com/text/pub28/28apc_002.htm), [Census TIGER/Line roads](https://www2.census.gov/geo/tiger/TIGER2025/ROADS/), [CFPB complaints ZIP](https://files.consumerfinance.gov/ccdb/complaints.csv.zip) | Seventeen raw or aggregate examples for names, address components, business-name tokens, and narrative word/length distributions. | Independent, thresholded marginals only; road geometry, full names, exact addresses, complaint narratives, phrases, and record identifiers are discarded. |
+| Relational and mixed-type capability benchmarks | [ACS PUMS person ZIP](https://www2.census.gov/programs-surveys/acs/data/pums/2024/1-Year/csv_pnc.zip), [ACS PUMS housing ZIP](https://www2.census.gov/programs-surveys/acs/data/pums/2024/1-Year/csv_hnc.zip), [NHTSA complaint ZIP](https://static.nhtsa.gov/odi/ffdd/cmpl/COMPLAINTS_RECEIVED_2020-2024.zip), [USDA Foundation Foods ZIP](https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_foundation_food_csv_2026-04-30.zip) | Nine raw or aggregate examples prefixed `acs_pums_`, `nhtsa_`, and `usda_fooddata_`. | Person/household and complaint archives are staging-only; examples use cell-suppressed aggregates. FoodData is non-person relational reference data. |
 
-The complete source inventory and caveats are in [Public business calibration datasets](public-data-sources.md).
+The complete source inventory and caveats are in [Public-data download catalog](public-data-sources.md).
 
 ## Regenerate and verify
 

@@ -48,7 +48,7 @@ def test_github_pages_site_has_a_us_aligned_entrypoint() -> None:
     assert config["url"] == "https://gvillarroel.github.io"
     assert config["baseurl"] == "/rata"
     assert config["repository"] == "gvillarroel/rata"
-    assert "<strong>30</strong>" in index
+    assert "<strong>34</strong>" in index
     assert "default U.S.-aligned sources" in index
     assert "100%" in index
     assert "country fields are filtered to `US`" in index

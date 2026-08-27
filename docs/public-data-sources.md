@@ -1,15 +1,14 @@
 # Public-data download catalog
 
 This catalog implements the scope from the email **“public data to find”**. The retained bundle is intended for
-aggregate calibration of synthetic businesses, not direct row-level enrichment. It covers industry, employment,
-payroll, receipts, geography, business size and age, legal structure/status, fleet size, healthcare taxonomy, and
-public-company presence.
+aggregate calibration and capability testing for synthetic data, not direct row-level enrichment. It covers industry,
+employment, payroll, receipts, geography, business size and age, legal structure/status, fleet size, healthcare
+taxonomy, public-company presence, household/person relationships, vehicle complaints, and food/nutrient relations.
 
 All download links below point to official publishers. The large bundle is intentionally ignored by Git and is not
 served from this repository: use a direct link or the reproducible downloader to create
-`datasets/public-data/` locally. The default run uses 30 U.S.-aligned sources; the U.S. SSA national-name archive is
-a documented
-opt-in source because its endpoint was not reproducibly accessible during validation.
+`datasets/public-data/` locally. The default run uses 34 U.S.-aligned sources; the U.S. SSA national-name archive is a
+documented opt-in source because its endpoint was not reproducibly accessible during validation.
 
 The default catalog is intentionally U.S.-only. Every manifest row carries `geographic_scope=United States`; the
 FMCSA and Colorado API queries filter records to country `US`, the Iowa transform retains only U.S. home offices,
@@ -23,10 +22,11 @@ generated artifacts were retired.
 | Registries, transportation, healthcare, public companies, and PPP | [Registry and sector-specific data](#registry-and-sector-specific-data) |
 | Federal contractors and bankruptcy aggregates | [Official gap examples](#official-gap-examples) |
 | Names, address components, business tokens, and text distributions | [Privacy-safe realism calibration](#privacy-safe-realism-calibration) |
+| Linked household/person, vehicle-complaint, and food/nutrient structures | [Capability benchmark downloads](#capability-benchmark-downloads) |
 | Full, subset, or individual-source commands | [Reproduce or refresh](#reproduce-or-refresh) |
 
 <details>
-<summary><strong>Complete 31-source index: keys, direct downloads, publisher pages, and handling</strong></summary>
+<summary><strong>Complete 35-source index: keys, direct downloads, publisher pages, and handling</strong></summary>
 
 | Source key | Dataset and vintage | Direct download | Publisher page | Handling |
 | --- | --- | --- | --- | --- |
@@ -61,14 +61,18 @@ generated artifacts were retired.
 | `colorado_business_entities_us_distribution` | Colorado business entities — U.S. principal-address distribution (live snapshot) | [download](https://data.colorado.gov/resource/4ykn-tg5h.csv?%24select=entitytype%2Centitystatus%2Cjurisdictonofformation%2Cprincipalstate%2Cprincipalcountry%2Cdate_extract_y%28entityformdate%29+as+formation_year%2Ccount%28%2A%29+as+records&%24where=principalcountry+%3D+%27US%27&%24group=entitytype%2Centitystatus%2Cjurisdictonofformation%2Cprincipalstate%2Cprincipalcountry%2Cdate_extract_y%28entityformdate%29&%24order=records+desc&%24limit=500000) | [source page](https://data.colorado.gov/Business/Business-Entities-in-Colorado/4ykn-tg5h/about_data) | Default; U.S.-only official aggregate retained |
 | `cms_nppes_weekly_v2` | CMS NPPES weekly incremental V2 (2026-08-10 through 2026-08-16) | [download](https://download.cms.gov/nppes/NPPES_Data_Dissemination_081026_081626_Weekly_V2.zip) | [source page](https://download.cms.gov/nppes/NPI_Files.html) | Default; staged, aggregated, and source rows removed |
 | `sba_ppp_150k_plus` | SBA PPP loans above $150,000 (2024-09-30 release) | [download](https://data.sba.gov/sites/default/files/distribution/SBA-OCA-2022-07-001/public_150k_plus_240930.csv) | [source page](https://data.sba.gov/dataset/ppp-foia) | Default; staged, aggregated, and source rows removed |
+| `acs_pums_nc_person_2024` | Census ACS PUMS North Carolina person records (2024 1-year) | [download](https://www2.census.gov/programs-surveys/acs/data/pums/2024/1-Year/csv_pnc.zip) | [source page](https://www.census.gov/programs-surveys/acs/microdata/access.html) | Default; staged, cell-suppressed, and source rows removed |
+| `acs_pums_nc_housing_2024` | Census ACS PUMS North Carolina housing records (2024 1-year) | [download](https://www2.census.gov/programs-surveys/acs/data/pums/2024/1-Year/csv_hnc.zip) | [source page](https://www.census.gov/programs-surveys/acs/microdata/access.html) | Default; staged, cell-suppressed, and source rows removed |
+| `nhtsa_complaints_2020_2024` | NHTSA vehicle complaints received 2020–2024 | [download](https://static.nhtsa.gov/odi/ffdd/cmpl/COMPLAINTS_RECEIVED_2020-2024.zip) | [source page](https://www.nhtsa.gov/nhtsa-datasets-and-apis) | Default; staged, cell-suppressed, and source rows removed |
+| `usda_fooddata_foundation_2026_04` | USDA FoodData Central Foundation Foods (2026-04-30) | [download](https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_foundation_food_csv_2026-04-30.zip) | [source page](https://fdc.nal.usda.gov/download-datasets/) | Default; non-person relational archive retained |
 
 </details>
 
-Snapshot date: **2026-08-24**. The complete machine-readable inventory, SHA-256 checksums, byte sizes, source URLs,
+Snapshot date: **2026-08-27**. The complete machine-readable inventory, SHA-256 checksums, byte sizes, source URLs,
 and transformation notes are in `datasets/public-data/manifest.csv`. The record-level evidence is in
 `datasets/public-data/coverage-report.csv`, `coverage-report.json`, and `coverage-report.md`. See
 [Public-data examples](public-data-examples.md) for a verified example from every requested category and every local
-manifest artifact, including the added privacy-safe realism calibration family.
+manifest artifact, including the privacy-safe realism and capability-benchmark families.
 
 ## Verified 10-million-record gate
 
@@ -120,6 +124,35 @@ artifacts listed here are privacy-minimized distributions; the source rows were 
 | SBA PPP loans above $150,000 | Biased historical relationships among state, NAICS, jobs, business type/age, rural/urban, and loan size | [CSV](https://data.sba.gov/sites/default/files/distribution/SBA-OCA-2022-07-001/public_150k_plus_240930.csv) | `derived/sba_ppp_by_state_naics_distribution.csv`; `derived/sba_ppp_business_profile_distribution.csv` |
 | SBA PPP data dictionary | Definitions for the PPP aggregate tables | [XLSX](https://data.sba.gov/sites/default/files/distribution/SBA-OCA-2022-07-001/ppp-data-dictionary.xlsx) | `raw/sba_ppp_data_dictionary.xlsx` |
 
+## Capability benchmark downloads
+
+These additions target generation capabilities that marginal business tables do not exercise well: cross-table
+relationships, conditional distributions, mixed numeric/categorical/text inputs, and multi-table joins. The Census
+and NHTSA source archives are public-use data, but they are still treated as sensitive staging inputs.
+
+| Dataset | Capability supplied | Direct download | Retained local artifact |
+| --- | --- | --- | --- |
+| ACS PUMS North Carolina person records, 2024 1-year | Weighted age, education, employment, disability, insurance, income, and relationship conditionals | [person ZIP](https://www2.census.gov/programs-surveys/acs/data/pums/2024/1-Year/csv_pnc.zip) | `derived/acs_pums_nc_person_distribution.csv`; `derived/acs_pums_nc_relationship_distribution.csv` |
+| ACS PUMS North Carolina housing records, 2024 1-year | Weighted household size, tenure, bedrooms, vehicles, income, internet access, and food-stamp conditionals | [housing ZIP](https://www2.census.gov/programs-surveys/acs/data/pums/2024/1-Year/csv_hnc.zip) | `derived/acs_pums_nc_household_distribution.csv`; `derived/acs_pums_nc_relationship_distribution.csv` |
+| NHTSA complaints received 2020–2024 | Vehicle/component relationships, incident profiles, high-frequency language, and narrative lengths | [complaint ZIP](https://static.nhtsa.gov/odi/ffdd/cmpl/COMPLAINTS_RECEIVED_2020-2024.zip) | Four CSVs prefixed `derived/nhtsa_` |
+| USDA FoodData Central Foundation Foods, 2026-04-30 | Foods, nutrients, portions, samples, and analytical-method relations | [Foundation Foods CSV ZIP](https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_foundation_food_csv_2026-04-30.zip) | `raw/usda_fooddata_foundation_2026-04.zip`; `derived/usda_fooddata_foundation_nutrient_statistics.csv` |
+
+ACS processing keeps only occupied ordinary housing units, converts values to coarse categories, joins person and
+household rows in memory, suppresses cells with fewer than 20 sample records, and removes serial numbers, PUMAs,
+replicate weights, allocation flags, and both source archives. Use the [ACS PUMS documentation](https://www.census.gov/programs-surveys/acs/microdata/documentation.html)
+and comply with the Census [no-reidentification terms](https://www.census.gov/data/developers/about/terms-of-service.html)
+when refreshing or extending this source.
+
+The NHTSA parser follows the official [complaint field layout](https://static.nhtsa.gov/odi/ffdd/cmpl/CMPL.txt). It
+never selects city/state, VIN, dealer, or vehicle-operator fields; it suppresses structured cells below 20 records,
+keeps only unigrams present in at least 500 distinct complaints and 50-word length bands, then deletes IDs, text,
+token order, and the source archive.
+
+FoodData Central is non-person reference data, so its official relational ZIP is retained. The audit verifies required
+tables, CRCs, and foreign keys. The 2026-04-30 publisher archive has 33 unresolved nutrient references (0.019%) and 273
+portion-to-food references (2.493%); both remain explicit quality warnings below the 5% hard-failure threshold. The
+derived nutrient table uses valid inner joins and category/nutrient cells with at least five observations.
+
 ## Official gap examples
 
 | Requested category | Official source | Generated privacy-safe example |
@@ -155,7 +188,7 @@ geographic cells below five occurrences. The official file remains an optional s
 returned HTTP 403 to the reproducible downloader on this workstation; the pipeline does not silently substitute an
 unofficial mirror.
 
-Paths in the last two tables are relative to `datasets/public-data/` when they begin with `raw/` or `derived/`.
+Paths in these tables are relative to `datasets/public-data/` when they begin with `raw/` or `derived/`.
 
 ## Coverage and use notes
 
@@ -181,6 +214,12 @@ Paths in the last two tables are relative to `datasets/public-data/` when they b
   or contact fields.
 - U.S. Courts Table F-2 supplies aggregate bankruptcy counts. It does not cover state-specific liens, judgments, or
   UCC filings and intentionally retains no case-level records.
+- ACS PUMS is a North Carolina public-use sample, not a national population file. Use its person/household weights and
+  preserve the documented geographic and sampling limitation when calibrating synthetic relationships.
+- NHTSA complaints are self-reported safety records and do not represent all vehicles or incidents. Component and
+  narrative distributions must not be interpreted as defect prevalence or causal evidence.
+- Foundation Foods is a curated food-composition reference, not a representative sample of consumption or products.
+  Publisher-side orphan relationships remain recorded by the quality audit.
 
 ## Explicit exclusions
 
@@ -190,7 +229,7 @@ numbers. Use approved internal aggregates, de-identified statistics, or controll
 
 ## Reproduce or refresh
 
-List all 31 source keys together with their official download and publisher pages, download the default 30-source
+List all 35 source keys together with their official download and publisher pages, download the default 34-source
 bundle, or fetch only one source:
 
 ```powershell
@@ -198,6 +237,7 @@ uv run python tools/download_public_data.py --list
 uv run python tools/download_public_data.py --workers 4
 uv run python tools/download_public_data.py --only census_cbp_state_2023
 uv run python tools/download_public_data.py --only realism --workers 6
+uv run python tools/download_public_data.py --only capability --workers 4
 uv run python tools/build_realism_profile.py
 uv run python tools/benchmark_realism_quality.py
 uv run python tools/audit_public_data_coverage.py
@@ -212,14 +252,16 @@ transformation fails and are removed only after every derived output succeeds.
 
 ## Validation snapshot
 
-- 26 official aggregate/reference downloads validated.
-- 13 privacy-minimized distributions retained.
-- 39 manifest entries and 203.17 MiB retained locally, all declaring United States scope.
+- 27 official aggregate/reference downloads validated.
+- 21 privacy-minimized distributions retained.
+- 48 manifest entries and 207.24 MiB (217,302,198 bytes) retained locally, all declaring United States scope.
+- The full value audit scanned 10,787,077 rows with zero hard failures. It retained three publisher-quality warnings:
+  FMCSA organization-type missingness, NYC duplicate name dimensions, and the documented FoodData relationship gaps.
 - 10,933,879 local core source records across 10 source families; the coverage audit gate passed.
 - 15,329,657 core source records across 11 families when U.S.-only FMCSA server-side source coverage is included.
 - Aggregate input coverage: 330,340 Iowa entities with U.S. home offices; 85,185 Colorado aggregate groups
   representing 2,998,731 entities with U.S. principal addresses; 6,275 NPPES Type-2 weekly records; and 968,524 PPP
   loans above $150,000.
 - No privacy-sensitive staging directory remained after successful processing.
-- Example coverage: 12/12 categories, 39/39 local manifest artifacts, 2 official gap examples, 41 CSV files, 205
+- Example coverage: 13/13 categories, 48/48 local manifest artifacts, 2 official gap examples, 50 CSV files, 250
   rows, and zero forbidden identifier/contact columns.

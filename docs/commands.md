@@ -128,6 +128,7 @@ example from every source:
 ```powershell
 uv run python tools/download_public_data.py --workers 4
 uv run python tools/download_public_data.py --only realism --workers 6
+uv run python tools/download_public_data.py --only capability --workers 4
 uv run python tools/build_realism_profile.py
 uv run python tools/benchmark_realism_quality.py
 uv run python tools/audit_public_data_coverage.py
@@ -147,7 +148,7 @@ uv run python tools/generate_public_data_examples.py --check
 mode. Pass one or more keys to `--only` to avoid downloading the complete bundle; the optional SSA source is available
 only through an explicit `--only ssa_national_names` request.
 
-`generate_public_data_examples.py` covers all 39 U.S.-only source-manifest artifacts and fetches two small official gap
+`generate_public_data_examples.py` covers all 48 U.S.-only source-manifest artifacts and fetches two small official gap
 examples from USAspending and U.S. Courts. `--offline` regenerates local examples while reusing those cached external
 CSV examples.
 
@@ -159,6 +160,10 @@ coverage report. Use `--sample` only for a fast diagnostic.
 and ZIP/city sources without redownloading unrelated staged registries. Row-level CFPB complaints are reduced to
 high-document-frequency token and length distributions and removed after successful processing. The profile builder
 creates an ignored aggregate spec; the benchmark compares it with a uniform-weight baseline.
+
+`--only capability` downloads or reuses the paired 2024 ACS PUMS North Carolina person/housing archives, the NHTSA
+2020–2024 complaint archive, and the USDA 2026-04-30 Foundation Foods archive. ACS and NHTSA inputs are transformed
+into thresholded distributions and deleted from staging; the non-person FoodData relational archive is retained.
 
 ## Audit evaluation hardware and runtime
 

@@ -32,10 +32,11 @@ def test_every_requested_category_and_local_artifact_has_a_sampler() -> None:
         "healthcare",
         "public_records",
         "realism_calibration",
+        "capability_benchmarks",
     }
     assert set(examples.CATEGORY_BY_KEY) == expected_categories
     assert set(examples.SOURCE_CATEGORY.values()) == expected_categories
-    assert len(examples.LOCAL_SAMPLERS) == 39
+    assert len(examples.LOCAL_SAMPLERS) == 48
     assert set(examples.LOCAL_SAMPLERS) < set(examples.SOURCE_CATEGORY)
     assert "colorado_business_entities_us_distribution" in examples.LOCAL_SAMPLERS
     assert all("canada" not in key for key in examples.SOURCE_CATEGORY)

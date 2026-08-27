@@ -18,7 +18,7 @@ title: Rata
 
 <section class="metrics" aria-label="Project highlights">
   <article>
-    <strong>30</strong>
+    <strong>34</strong>
     <span>default U.S.-aligned sources</span>
   </article>
   <article>
@@ -37,7 +37,7 @@ title: Rata
   <article class="doc-card">
     <p class="card-kicker">Data</p>
     <h3><a href="public-data-sources.md">U.S. calibration sources</a></h3>
-    <p>Official Census, BLS, Colorado, Iowa, FMCSA, CMS, SEC, SBA, CFPB, USPS, SSA, and U.S. Courts sources.</p>
+    <p>Official Census, BLS, Colorado, Iowa, FMCSA, CMS, SEC, SBA, CFPB, NHTSA, USDA, USPS, SSA, and U.S. Courts sources.</p>
   </article>
   <article class="doc-card">
     <p class="card-kicker">Assurance</p>
