@@ -72,5 +72,7 @@ def test_readme_exposes_the_download_center() -> None:
     assert "https://github.com/gvillarroel/rata/archive/refs/heads/main.zip" in text
     assert "docs/public-data-sources.md" in text
     assert "docs/public-data-examples.md" in text
-    assert "tools/download_public_data.py --list" in text
-    assert "tools/download_public_data.py --workers 4" in text
+    assert "docs/getting-started.md" in text
+    guide = (ROOT / "docs" / "getting-started.md").read_text(encoding="utf-8")
+    assert "tools/download_public_data.py --list" in guide
+    assert "tools/download_public_data.py --workers 4" in guide

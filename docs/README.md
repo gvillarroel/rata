@@ -1,5 +1,17 @@
 # Documentation
 
+## Start here
+
+- [Usage and setup](getting-started.md)
+- [Repository layout, maintenance, and validation](repository-guide.md)
+- [Agent instructions](../AGENTS.md)
+- [Command reference](commands.md)
+- [Privacy model](privacy-model.md)
+- [Architecture](architecture.md)
+- [Validation evidence](validation.md)
+- [Public dataset catalog](public-data-sources.md)
+
+
 ## Downloads and datasets
 
 - [Public-data download catalog](public-data-sources.md): all official source and landing-page links, local artifact
