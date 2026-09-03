@@ -12,6 +12,7 @@ DIRECT_INSTALL_SKILLS = {
     "skills/generate-synthetic-data",
     "skills/evaluate-synthetic-data",
     "skills/run-synthetic-data-workflow",
+    "skills/harbor-author-evaluation-datasets",
 }
 
 

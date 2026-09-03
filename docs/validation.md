@@ -15,12 +15,32 @@ uv lock --check --script skills/generate-synthetic-data/scripts/generate.py
 uv lock --check --script skills/generate-synthetic-data/scripts/materialize_spec.py
 uv lock --check --script skills/generate-synthetic-data/scripts/evaluate_spec.py
 uv lock --check --script skills/evaluate-synthetic-data/scripts/evaluate.py
+uv lock --check --script skills/harbor-author-evaluation-datasets/scripts/plan_harbor_task_datasets.py
+uv lock --check --script skills/harbor-author-evaluation-datasets/scripts/consolidate_harbor_reports.py
 ```
 
 The tests cover policy inference and user overrides, invalid policy rejection, all five table containers, identifier generation, DP checkpoint selection, datetime semantics, quality/privacy metrics, failed-schema report preservation, per-column gates, report binding and tamper detection, skill metadata/links, documentation links, installation, and licensing rules.
 
 They also cover aggregate proxy materialization, conservative role defaults, weighted categories, correlated numeric
 statistics, constraint evaluation, `synthetic-reference` provenance, and bound aggregate-spec hashes.
+
+## Harbor dataset authoring and aggregate-report coverage
+
+On 2026-09-02, the repository suite passed 149 tests after installing the
+fifth skill package. The shared authoring suite passed all 12 planner and
+report-consolidator tests, both uv script locks were current, all seven
+standalone script locks resolved, Ruff lint and formatting passed, and the
+five-skill installer dry run listed the complete bundle. The dependency audit
+found no forbidden strong or network-copyleft metadata; its existing MPL review
+notices remain visible.
+
+The report checks cover deterministic aggregate JSON and Markdown, accessible
+self-contained SVGs, source hashes, error accounting, input/cache/output and
+optional reasoning tokens, reported USD cost, agent and wall time, throughput,
+baseline deltas, overwrite refusal, privacy-safe omission of task-level data,
+and fail-closed inconsistent token totals. Visual rendering is validated in the
+canonical bundle repository; the local copy is format-adapted for Rata's uv and
+Ruff contracts without changing those semantics.
 
 ## Public-data example coverage
 

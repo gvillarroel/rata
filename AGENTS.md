@@ -34,6 +34,8 @@ uv run python tools/audit_licenses.py
 uv lock --check --script skills/plan-synthetic-data/scripts/plan.py
 uv lock --check --script skills/generate-synthetic-data/scripts/generate.py
 uv lock --check --script skills/evaluate-synthetic-data/scripts/evaluate.py
+uv lock --check --script skills/harbor-author-evaluation-datasets/scripts/plan_harbor_task_datasets.py
+uv lock --check --script skills/harbor-author-evaluation-datasets/scripts/consolidate_harbor_reports.py
 python tools/install_skills.py --destination .local-skill-test --dry-run
 ```
 

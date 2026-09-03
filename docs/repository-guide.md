@@ -1,12 +1,14 @@
 # Rata Synthetic Data Skills: repository guide
 
-Four self-contained skills for planning, generating, and evaluating tabular synthetic data with explicit column-level privacy policy. The workflow uses the mostlyai-engine SDK and keeps generation separate from release evaluation.
+Four self-contained synthetic-data skills plus one Harbor dataset-authoring
+skill. The workflow keeps generation, release evaluation, and sealed
+skill-validation evidence separate.
 
 ## Layout
 
 | Path | Responsibility |
 | --- | --- |
-| `skills/` | Planning, generation, evaluation, and end-to-end workflow bundles. |
+| `skills/` | Planning, generation, evaluation, workflow, and Harbor dataset-authoring bundles. |
 | `tools/` | Installation, public-data acquisition, and audit utilities. |
 | `tests/` | Privacy, provenance, and generation contract tests. |
 | `docs/` | User commands, privacy model, architecture, and validation. |
@@ -44,5 +46,10 @@ Also check the changed standalone script lockfiles and use the installation dry 
 ## Data and operating boundaries
 
 Keep row-level source data, generated datasets, model workspaces, and private study artifacts out of Git. Retain generation-report binding and all role semantics. Published aggregate evidence must remain separate from native traces and sealed validation data.
+
+For a new Harbor study, author group-disjoint task roots with
+[`harbor-author-evaluation-datasets`](../skills/harbor-author-evaluation-datasets/SKILL.md).
+Only development is optimizer-visible. Release sealed validation after one
+candidate is frozen; reserve holdout for an optional later final gate.
 
 [Back to the documentation index](README.md).

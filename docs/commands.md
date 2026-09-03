@@ -12,6 +12,7 @@ Use $skill-installer to install all of these paths from gvillarroel/rata at ref 
 - skills/generate-synthetic-data
 - skills/evaluate-synthetic-data
 - skills/run-synthetic-data-workflow
+- skills/harbor-author-evaluation-datasets
 ```
 
 For a local clone, run from the repository root:
@@ -23,6 +24,24 @@ python tools/install_skills.py [--destination PATH] [--skill NAME] [--dry-run] [
 Without `--skill`, install all packages. Both installation methods default to `$CODEX_HOME/skills` or
 `~/.codex/skills`. Existing packages are never replaced; only the local installer offers the explicit `--overwrite`
 escape hatch. Reload Codex after installation.
+
+## Author Harbor evaluation datasets and compare runs
+
+The standalone
+[`harbor-author-evaluation-datasets`](../skills/harbor-author-evaluation-datasets/SKILL.md)
+bundle owns the exact planning, verification, and reporting commands. Use its
+planner before study registration, then use its consolidator only on finalized
+schema-version-1 reports emitted by `harbor-run-results`:
+
+```powershell
+uv run skills/harbor-author-evaluation-datasets/scripts/consolidate_harbor_reports.py `
+  REPORT_A REPORT_B --baseline BASELINE_LABEL --output-dir PUBLICATION_DIR
+```
+
+The command writes aggregate JSON and Markdown plus quality, token/cost/time,
+and efficiency-frontier SVGs. It does not release sealed validation or holdout
+data, establish cross-hardware comparability, or replace Harbor's native
+reporter.
 
 ## Plan
 

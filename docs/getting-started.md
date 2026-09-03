@@ -2,7 +2,11 @@
 
 Run commands from the repository root unless a different working directory is shown.
 
-Rata is a set of four Codex skills for generating tabular synthetic data under an explicit column-level privacy policy. It uses the Apache-2.0 `mostlyai-engine` SDK directly and keeps planning, generation, and release evaluation separate so a candidate cannot silently bypass its privacy gates.
+Rata ships four Codex skills for generating tabular synthetic data under an
+explicit column-level privacy policy plus one skill for authoring native Harbor
+evaluation datasets. It uses the Apache-2.0 `mostlyai-engine` SDK directly and
+keeps planning, generation, release evaluation, and sealed skill validation
+separate so a candidate cannot silently bypass its privacy gates.
 
 Browse the published documentation at [gvillarroel.github.io/rata](https://gvillarroel.github.io/rata/).
 
@@ -10,7 +14,7 @@ Browse the published documentation at [gvillarroel.github.io/rata](https://gvill
 
 | What you need | Start here | What is available |
 | --- | --- | --- |
-| All four Codex skills | [Install directly from GitHub](#install-directly-from-github) or [download the repository ZIP](https://github.com/gvillarroel/rata/archive/refs/heads/main.zip) | Planning, generation, evaluation, and end-to-end workflow packages with pinned script environments. |
+| All five Codex skills | [Install directly from GitHub](#install-directly-from-github) or [download the repository ZIP](https://github.com/gvillarroel/rata/archive/refs/heads/main.zip) | Planning, generation, evaluation, workflow, and Harbor dataset-authoring packages with pinned script environments. |
 | Public calibration datasets | [Official-source download catalog](public-data-sources.md) | 34 reproducible U.S.-aligned default sources plus one documented U.S. opt-in source, grouped by business data, references, registries, privacy-safe realism, and relational capability benchmarks. |
 | Small verified examples | [Public-data example catalog](public-data-examples.md) | Five-row examples and coverage notes for every requested category and every locally retained artifact. |
 | Validation evidence | [Validation record](validation.md), [evaluation evidence](../evaluations/results/2026-07-26.json), and [Harbor publication index](../evaluations/harbor-studies/generate-synthetic-data-v1/publication/index.md) | Test, quality, privacy, readiness, and benchmark evidence, including preserved failures and limitations. |
@@ -33,6 +37,7 @@ uv run python tools/download_public_data.py --workers 4
 | [`generate-synthetic-data`](../skills/generate-synthetic-data/SKILL.md) | Route source, synthetic-reference, or aggregate-spec inputs through staged generation and validation. |
 | [`evaluate-synthetic-data`](../skills/evaluate-synthetic-data/SKILL.md) | Apply policy-aware quality, replay, overlap, schema, and DP-evidence gates. |
 | [`run-synthetic-data-workflow`](../skills/run-synthetic-data-workflow/SKILL.md) | Coordinate the other skills and remediate failed release candidates without weakening privacy. |
+| [`harbor-author-evaluation-datasets`](../skills/harbor-author-evaluation-datasets/SKILL.md) | Partition semantic task families, materialize deterministic response-surface variants before Harbor study registration, and create publication-safe aggregate comparisons from finalized native reports. |
 
 ## Install directly from GitHub
 
@@ -45,6 +50,7 @@ Use $skill-installer to install all of these paths from gvillarroel/rata at ref 
 - skills/generate-synthetic-data
 - skills/evaluate-synthetic-data
 - skills/run-synthetic-data-workflow
+- skills/harbor-author-evaluation-datasets
 ```
 
 The built-in installer downloads each skill into `$CODEX_HOME/skills` or, when `CODEX_HOME` is unset,
@@ -54,7 +60,7 @@ environments when invoked.
 
 ## Install from a local clone
 
-From the repository root, preview and install all four skills into the current Codex skill directory:
+From the repository root, preview and install all five skills into the current Codex skill directory:
 
 ```powershell
 python tools/install_skills.py --dry-run

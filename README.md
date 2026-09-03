@@ -1,12 +1,15 @@
 # Rata Synthetic Data Skills
 
-Four self-contained skills for planning, generating, and evaluating tabular synthetic data with explicit column-level privacy policy. The workflow uses the mostlyai-engine SDK and keeps generation separate from release evaluation.
+Four self-contained synthetic-data skills plus one Harbor dataset-authoring
+skill. The workflow uses the mostlyai-engine SDK, keeps generation separate
+from release evaluation, and keeps optimizer-visible development tasks
+separate from sealed validation.
 
 A passing evaluation is evidence against configured gates, not proof of anonymization. Preserve failed reports; never weaken privacy roles or release criteria to obtain a pass.
 
 ## Get started
 
-Install the four independent skills from GitHub by asking Codex:
+Install the five independent skills from GitHub by asking Codex:
 
 ```text
 Use $skill-installer to install all of these paths from gvillarroel/rata at ref main:
@@ -14,6 +17,7 @@ Use $skill-installer to install all of these paths from gvillarroel/rata at ref 
 - skills/generate-synthetic-data
 - skills/evaluate-synthetic-data
 - skills/run-synthetic-data-workflow
+- skills/harbor-author-evaluation-datasets
 ```
 
 The scripts use uv and pinned Python environments. For source development and

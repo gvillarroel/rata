@@ -17,6 +17,29 @@ The catalog relaxes only dataset-specific quality thresholds for this small mech
 
 Generated model workspaces can be large and are not repository fixtures. Keep them in an external evidence directory and commit only reviewed summaries when a durable validation record is needed.
 
+## Dataset authoring for future Harbor studies
+
+Use
+[`harbor-author-evaluation-datasets`](../skills/harbor-author-evaluation-datasets/SKILL.md)
+before registering any new native task cohort. Assign whole semantic families
+to one split, let only development drive candidate changes, and keep validation
+sealed until one candidate is frozen. Holdout is an optional later final gate.
+
+Keep private blueprints, seeds, rendered tasks, solutions, verifiers, jobs,
+traces, candidates, and diagnostics outside Git. A future
+`evaluations/datasets/<dataset-id>/` may contain only reviewed public schemas,
+adapter source, provenance, and redacted manifests; study-specific publication
+indexes remain under `evaluations/harbor-studies/<study-id>/publication/`.
+The existing v1 path is historical evidence and must not move.
+
+After a cohort's release boundary permits aggregate publication, the same
+bundle can consolidate finalized `harbor-run-results` reports into JSON,
+Markdown, and three self-contained SVGs covering correctness, errors, tokens,
+reported USD cost, agent time, wall time, throughput, and the quality/cost
+frontier. Keep task-level rows and raw paths private, retain source hashes and
+fairness warnings, and treat cross-hardware or cross-lock views as descriptive
+unless the execution profiles are actually comparable.
+
 ## Harbor skill-request benchmark
 
 The private Harbor 0.18.0 dataset exercises the `generate-synthetic-data` skill across original source rows, existing

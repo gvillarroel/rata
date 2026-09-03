@@ -29,6 +29,9 @@
 - [Licensing](licensing.md): selected SDK and dependency license policy.
 - [Validation record](validation.md): automated coverage and mixed-type end-to-end evidence.
 - [Evaluation state of the art](evaluation-state-of-art.md): ordered tabular and tabular-plus-text real-run evidence.
+- [Harbor evaluation dataset authoring skill](../skills/harbor-author-evaluation-datasets/SKILL.md): group-disjoint
+  development, sealed validation, optional holdout, deterministic response-surface variation, and aggregate
+  token/cost/time SVG comparisons from finalized Harbor reports.
 - [Harbor study publication index](../evaluations/harbor-studies/generate-synthetic-data-v1/publication/index.md):
   source-path-free benchmark status and evidence digests.
 

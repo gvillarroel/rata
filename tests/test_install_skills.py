@@ -32,7 +32,7 @@ def test_installer_dry_run_does_not_write(tmp_path) -> None:
 
     targets = installer.install(destination, installer.available_skills(), overwrite=False, dry_run=True)
 
-    assert len(targets) == 4
+    assert len(targets) == 5
     assert not destination.exists()
 
 

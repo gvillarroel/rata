@@ -11,6 +11,7 @@ SKILLS = {
     "generate-synthetic-data",
     "evaluate-synthetic-data",
     "run-synthetic-data-workflow",
+    "harbor-author-evaluation-datasets",
 }
 
 
